@@ -1,12 +1,11 @@
 {
   "expo": {
-    "name": "mapo",
+    "name": "Mapo - 거래처 관리",
     "slug": "mapo",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -20,10 +19,17 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "package": "com.mapo.businessmanager",
+      "versionCode": 1,
+      "permissions": ["CALL_PHONE"]
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "595f4ecf-f6bd-4ca2-aabf-2116bc79c25c"
+      }
     }
   }
 }
