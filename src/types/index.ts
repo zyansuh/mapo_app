@@ -101,14 +101,7 @@ export interface CallAnalytics {
 }
 
 // 상품 관련 타입 정의
-export type ProductCategory =
-  | "식품"
-  | "전자제품"
-  | "의류"
-  | "가구"
-  | "화장품"
-  | "서비스"
-  | "기타";
+export type ProductCategory = "두부" | "콩나물" | "묵류";
 
 export interface Product {
   id: string;

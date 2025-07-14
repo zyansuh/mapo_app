@@ -87,7 +87,11 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.mapo"
+    lintOptions {
+        checkReleaseBuilds false
+    }
+
+    namespace "com.mapo.businessmanager"
     defaultConfig {
         applicationId 'com.mapo.businessmanager'
         minSdkVersion rootProject.ext.minSdkVersion

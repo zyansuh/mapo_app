@@ -19,59 +19,192 @@ interface ProductSelectionProps {
   onSelectProduct: (formData: ProductSelectionFormData) => void;
 }
 
+// 제품 편집 폼 데이터 타입
+interface ProductFormData {
+  name: string;
+  category: ProductCategory;
+  price: number;
+  unit: string;
+  description: string;
+}
+
 // 샘플 상품 데이터
 const sampleProducts: Product[] = [
+  // 두부 카테고리
   {
     id: "1",
-    name: "사과",
-    category: "식품",
-    price: 5000,
-    unit: "kg",
-    description: "신선한 사과",
+    name: "착한손두부",
+    category: "두부",
+    price: 2500,
+    unit: "모",
+    description: "신선한 착한손두부",
     companyId: "1",
     createdAt: new Date(),
     updatedAt: new Date(),
   },
   {
     id: "2",
-    name: "노트북",
-    category: "전자제품",
-    price: 1500000,
-    unit: "대",
-    description: "고성능 노트북",
+    name: "고소한손두부",
+    category: "두부",
+    price: 2800,
+    unit: "모",
+    description: "고소한 맛의 손두부",
     companyId: "1",
     createdAt: new Date(),
     updatedAt: new Date(),
   },
   {
     id: "3",
-    name: "셔츠",
-    category: "의류",
-    price: 30000,
-    unit: "벌",
-    description: "면 셔츠",
+    name: "순두부",
+    category: "두부",
+    price: 3000,
+    unit: "모",
+    description: "부드러운 순두부",
     companyId: "1",
     createdAt: new Date(),
     updatedAt: new Date(),
   },
   {
     id: "4",
-    name: "쌀",
-    category: "식품",
-    price: 50000,
-    unit: "포",
-    description: "국산 쌀 20kg",
+    name: "맛두부",
+    category: "두부",
+    price: 3200,
+    unit: "모",
+    description: "맛있는 두부",
     companyId: "1",
     createdAt: new Date(),
     updatedAt: new Date(),
   },
   {
     id: "5",
-    name: "우유",
-    category: "식품",
+    name: "판두부",
+    category: "두부",
+    price: 2200,
+    unit: "판",
+    description: "판 형태의 두부",
+    companyId: "1",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: "6",
+    name: "모두부",
+    category: "두부",
+    price: 2700,
+    unit: "모",
+    description: "모 형태의 두부",
+    companyId: "1",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: "7",
+    name: "콩물",
+    category: "두부",
+    price: 1500,
+    unit: "병",
+    description: "신선한 콩물",
+    companyId: "1",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  // 콩나물 카테고리
+  {
+    id: "8",
+    name: "시루콩나물",
+    category: "콩나물",
+    price: 1800,
+    unit: "봉지",
+    description: "시루에서 기른 콩나물",
+    companyId: "1",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: "9",
+    name: "박스콩나물",
+    category: "콩나물",
+    price: 12000,
+    unit: "박스",
+    description: "박스 단위 콩나물",
+    companyId: "1",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: "10",
+    name: "두절콩나물",
+    category: "콩나물",
+    price: 2200,
+    unit: "봉지",
+    description: "두절 콩나물",
+    companyId: "1",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  // 묵류 카테고리
+  {
+    id: "11",
+    name: "도토리묵小",
+    category: "묵류",
+    price: 2500,
+    unit: "개",
+    description: "소형 도토리묵",
+    companyId: "1",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: "12",
+    name: "도토리묵大",
+    category: "묵류",
+    price: 4000,
+    unit: "개",
+    description: "대형 도토리묵",
+    companyId: "1",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: "13",
+    name: "도토리420",
+    category: "묵류",
+    price: 3500,
+    unit: "개",
+    description: "도토리420 묵",
+    companyId: "1",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: "14",
+    name: "검정깨묵",
+    category: "묵류",
+    price: 3200,
+    unit: "개",
+    description: "검정깨로 만든 묵",
+    companyId: "1",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: "15",
+    name: "우뭇가사리",
+    category: "묵류",
+    price: 2800,
+    unit: "개",
+    description: "우뭇가사리 묵",
+    companyId: "1",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: "16",
+    name: "청포묵",
+    category: "묵류",
     price: 3000,
     unit: "개",
-    description: "신선한 우유 1L",
+    description: "청포로 만든 묵",
     companyId: "1",
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -90,10 +223,19 @@ export const ProductSelection: React.FC<ProductSelectionProps> = ({
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isCategoryModalVisible, setIsCategoryModalVisible] = useState(false);
+  const [isProductEditModalVisible, setIsProductEditModalVisible] =
+    useState(false);
+  const [isProductAddModalVisible, setIsProductAddModalVisible] =
+    useState(false);
+  const [isCategorySelectModalVisible, setIsCategorySelectModalVisible] =
+    useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [customCategories, setCustomCategories] = useState<ProductCategory[]>(
     []
   );
+  const [localProducts, setLocalProducts] = useState<Product[]>(sampleProducts);
+
   const [formData, setFormData] = useState<ProductSelectionFormData>({
     productId: "",
     quantity: 1,
@@ -102,18 +244,22 @@ export const ProductSelection: React.FC<ProductSelectionProps> = ({
     memo: "",
   });
 
-  // 실제 앱에서는 props로 받은 products를 사용하지만, 데모용으로 샘플 데이터 사용
-  const displayProducts = products.length > 0 ? products : sampleProducts;
+  const [productFormData, setProductFormData] = useState<ProductFormData>({
+    name: "",
+    category: "두부",
+    price: 0,
+    unit: "",
+    description: "",
+  });
+
+  // 실제 앱에서는 props로 받은 products를 사용하지만, 데모용으로 로컬 상태 사용
+  const displayProducts = products.length > 0 ? products : localProducts;
 
   const defaultCategories: (ProductCategory | "전체")[] = [
     "전체",
-    "식품",
-    "전자제품",
-    "의류",
-    "가구",
-    "화장품",
-    "서비스",
-    "기타",
+    "두부",
+    "콩나물",
+    "묵류",
   ];
 
   // 기본 카테고리 + 사용자 추가 카테고리
@@ -126,20 +272,12 @@ export const ProductSelection: React.FC<ProductSelectionProps> = ({
 
   const getCategoryColor = (category: ProductCategory | "전체") => {
     switch (category) {
-      case "식품":
+      case "두부":
         return "#10b981";
-      case "전자제품":
+      case "콩나물":
         return "#3b82f6";
-      case "의류":
+      case "묵류":
         return "#ec4899";
-      case "가구":
-        return "#f59e0b";
-      case "화장품":
-        return "#ef4444";
-      case "서비스":
-        return "#8b5cf6";
-      case "기타":
-        return "#6b7280";
       default:
         return "#525252";
     }
@@ -159,6 +297,43 @@ export const ProductSelection: React.FC<ProductSelectionProps> = ({
       memo: "",
     });
     setIsModalVisible(true);
+  };
+
+  const handleProductEdit = (product: Product) => {
+    setEditingProduct(product);
+    setProductFormData({
+      name: product.name,
+      category: product.category,
+      price: product.price,
+      unit: product.unit,
+      description: product.description || "",
+    });
+    setIsProductEditModalVisible(true);
+  };
+
+  const handleProductDelete = (product: Product) => {
+    Alert.alert("제품 삭제", `'${product.name}'을(를) 삭제하시겠습니까?`, [
+      { text: "취소", style: "cancel" },
+      {
+        text: "삭제",
+        style: "destructive",
+        onPress: () => {
+          setLocalProducts((prev) => prev.filter((p) => p.id !== product.id));
+          Alert.alert("완료", "제품이 삭제되었습니다.");
+        },
+      },
+    ]);
+  };
+
+  const handleProductAdd = () => {
+    setProductFormData({
+      name: "",
+      category: "두부",
+      price: 0,
+      unit: "",
+      description: "",
+    });
+    setIsProductAddModalVisible(true);
   };
 
   const handleSubmit = () => {
@@ -192,6 +367,76 @@ export const ProductSelection: React.FC<ProductSelectionProps> = ({
     });
   };
 
+  const handleProductEditSubmit = () => {
+    if (!editingProduct) return;
+
+    if (!productFormData.name.trim()) {
+      Alert.alert("알림", "제품명을 입력해주세요.");
+      return;
+    }
+
+    if (productFormData.price <= 0) {
+      Alert.alert("알림", "가격을 올바르게 입력해주세요.");
+      return;
+    }
+
+    if (!productFormData.unit.trim()) {
+      Alert.alert("알림", "단위를 입력해주세요.");
+      return;
+    }
+
+    const updatedProduct: Product = {
+      ...editingProduct,
+      name: productFormData.name,
+      category: productFormData.category,
+      price: productFormData.price,
+      unit: productFormData.unit,
+      description: productFormData.description,
+      updatedAt: new Date(),
+    };
+
+    setLocalProducts((prev) =>
+      prev.map((p) => (p.id === editingProduct.id ? updatedProduct : p))
+    );
+
+    setIsProductEditModalVisible(false);
+    setEditingProduct(null);
+    Alert.alert("완료", "제품이 수정되었습니다!");
+  };
+
+  const handleProductAddSubmit = () => {
+    if (!productFormData.name.trim()) {
+      Alert.alert("알림", "제품명을 입력해주세요.");
+      return;
+    }
+
+    if (productFormData.price <= 0) {
+      Alert.alert("알림", "가격을 올바르게 입력해주세요.");
+      return;
+    }
+
+    if (!productFormData.unit.trim()) {
+      Alert.alert("알림", "단위를 입력해주세요.");
+      return;
+    }
+
+    const newProduct: Product = {
+      id: Date.now().toString(),
+      name: productFormData.name,
+      category: productFormData.category,
+      price: productFormData.price,
+      unit: productFormData.unit,
+      description: productFormData.description,
+      companyId: companyId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    setLocalProducts((prev) => [...prev, newProduct]);
+    setIsProductAddModalVisible(false);
+    Alert.alert("완료", "새 제품이 추가되었습니다!");
+  };
+
   const handleAddCategory = () => {
     setIsCategoryModalVisible(true);
   };
@@ -219,6 +464,20 @@ export const ProductSelection: React.FC<ProductSelectionProps> = ({
   const handleCategoryCancel = () => {
     setIsCategoryModalVisible(false);
     setNewCategoryName("");
+  };
+
+  const handleProductEditCancel = () => {
+    setIsProductEditModalVisible(false);
+    setEditingProduct(null);
+  };
+
+  const handleProductAddCancel = () => {
+    setIsProductAddModalVisible(false);
+  };
+
+  const handleCategorySelect = (category: ProductCategory) => {
+    setProductFormData((prev) => ({ ...prev, category }));
+    setIsCategorySelectModalVisible(false);
   };
 
   const renderCategoryItem = ({ item }: { item: ProductCategory | "전체" }) => (
@@ -261,14 +520,29 @@ export const ProductSelection: React.FC<ProductSelectionProps> = ({
     >
       <View style={styles.productHeader}>
         <Text style={styles.productName}>{item.name}</Text>
-        <View
-          style={[
-            styles.categoryBadge,
-            { backgroundColor: getCategoryColor(item.category) },
-          ]}
-        >
-          <Text style={styles.categoryBadgeText}>{item.category}</Text>
+        <View style={styles.productActions}>
+          <TouchableOpacity
+            style={styles.editButton}
+            onPress={() => handleProductEdit(item)}
+          >
+            <Ionicons name="pencil" size={16} color="#525252" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={() => handleProductDelete(item)}
+          >
+            <Ionicons name="trash" size={16} color="#dc2626" />
+          </TouchableOpacity>
         </View>
+      </View>
+
+      <View
+        style={[
+          styles.categoryBadge,
+          { backgroundColor: getCategoryColor(item.category) },
+        ]}
+      >
+        <Text style={styles.categoryBadgeText}>{item.category}</Text>
       </View>
 
       <View style={styles.productDetails}>
@@ -453,11 +727,286 @@ export const ProductSelection: React.FC<ProductSelectionProps> = ({
     </Modal>
   );
 
+  const renderCategorySelectModal = () => (
+    <Modal
+      visible={isCategorySelectModalVisible}
+      transparent
+      animationType="fade"
+      onRequestClose={() => setIsCategorySelectModalVisible(false)}
+    >
+      <TouchableOpacity
+        style={styles.modalOverlay}
+        activeOpacity={1}
+        onPress={() => setIsCategorySelectModalVisible(false)}
+      >
+        <View style={styles.modalContent}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>카테고리 선택</Text>
+            <TouchableOpacity
+              onPress={() => setIsCategorySelectModalVisible(false)}
+            >
+              <Ionicons name="close" size={24} color="#737373" />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.modalBody}>
+            <FlatList
+              data={["두부", "콩나물", "묵류", ...customCategories]}
+              keyExtractor={(item) => item}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[
+                    styles.categoryItem,
+                    productFormData.category === item &&
+                      styles.selectedCategoryItem,
+                  ]}
+                  onPress={() => handleCategorySelect(item as ProductCategory)}
+                >
+                  <Text
+                    style={[
+                      styles.categoryText,
+                      productFormData.category === item &&
+                        styles.selectedCategoryText,
+                    ]}
+                  >
+                    {item}
+                  </Text>
+                  {productFormData.category === item && (
+                    <Ionicons name="checkmark" size={20} color="#ffffff" />
+                  )}
+                </TouchableOpacity>
+              )}
+            />
+
+            <TouchableOpacity
+              style={styles.addCategoryButton}
+              onPress={() => {
+                setIsCategorySelectModalVisible(false);
+                setIsCategoryModalVisible(true);
+              }}
+            >
+              <Ionicons name="add" size={16} color="#525252" />
+              <Text style={styles.addCategoryText}>새 카테고리 추가</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </TouchableOpacity>
+    </Modal>
+  );
+
+  const renderProductEditModal = () => (
+    <Modal
+      visible={isProductEditModalVisible}
+      transparent
+      animationType="slide"
+      onRequestClose={handleProductEditCancel}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>제품 수정</Text>
+            <TouchableOpacity onPress={handleProductEditCancel}>
+              <Ionicons name="close" size={24} color="#737373" />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.modalBody}>
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>제품명</Text>
+              <TextInput
+                style={styles.categoryInput}
+                value={productFormData.name}
+                onChangeText={(text) =>
+                  setProductFormData((prev) => ({ ...prev, name: text }))
+                }
+                placeholder="제품명을 입력하세요"
+              />
+            </View>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>카테고리</Text>
+              <TouchableOpacity
+                style={styles.categoryInput}
+                onPress={() => setIsCategorySelectModalVisible(true)}
+              >
+                <Text style={styles.categoryText}>
+                  {productFormData.category}
+                </Text>
+                <Ionicons name="chevron-down" size={16} color="#737373" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>가격</Text>
+              <TextInput
+                style={styles.priceInput}
+                value={productFormData.price.toString()}
+                onChangeText={(text) =>
+                  setProductFormData((prev) => ({
+                    ...prev,
+                    price: parseInt(text) || 0,
+                  }))
+                }
+                keyboardType="numeric"
+                placeholder="가격을 입력하세요"
+              />
+            </View>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>단위</Text>
+              <TextInput
+                style={styles.priceInput}
+                value={productFormData.unit}
+                onChangeText={(text) =>
+                  setProductFormData((prev) => ({ ...prev, unit: text }))
+                }
+                placeholder="단위를 입력하세요"
+              />
+            </View>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>설명 (선택사항)</Text>
+              <TextInput
+                style={styles.memoInput}
+                value={productFormData.description}
+                onChangeText={(text) =>
+                  setProductFormData((prev) => ({ ...prev, description: text }))
+                }
+                placeholder="제품 설명을 입력하세요"
+                multiline
+                numberOfLines={3}
+              />
+            </View>
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={handleProductEditCancel}
+              >
+                <Text style={styles.cancelButtonText}>취소</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.submitButton}
+                onPress={handleProductEditSubmit}
+              >
+                <Text style={styles.submitButtonText}>수정</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+
+  const renderProductAddModal = () => (
+    <Modal
+      visible={isProductAddModalVisible}
+      transparent
+      animationType="slide"
+      onRequestClose={handleProductAddCancel}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>제품 추가</Text>
+            <TouchableOpacity onPress={handleProductAddCancel}>
+              <Ionicons name="close" size={24} color="#737373" />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.modalBody}>
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>제품명</Text>
+              <TextInput
+                style={styles.categoryInput}
+                value={productFormData.name}
+                onChangeText={(text) =>
+                  setProductFormData((prev) => ({ ...prev, name: text }))
+                }
+                placeholder="제품명을 입력하세요"
+              />
+            </View>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>카테고리</Text>
+              <TouchableOpacity
+                style={styles.categoryInput}
+                onPress={() => setIsCategorySelectModalVisible(true)}
+              >
+                <Text style={styles.categoryText}>
+                  {productFormData.category}
+                </Text>
+                <Ionicons name="chevron-down" size={16} color="#737373" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>가격</Text>
+              <TextInput
+                style={styles.priceInput}
+                value={productFormData.price.toString()}
+                onChangeText={(text) =>
+                  setProductFormData((prev) => ({
+                    ...prev,
+                    price: parseInt(text) || 0,
+                  }))
+                }
+                keyboardType="numeric"
+                placeholder="가격을 입력하세요"
+              />
+            </View>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>단위</Text>
+              <TextInput
+                style={styles.priceInput}
+                value={productFormData.unit}
+                onChangeText={(text) =>
+                  setProductFormData((prev) => ({ ...prev, unit: text }))
+                }
+                placeholder="단위를 입력하세요"
+              />
+            </View>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>설명 (선택사항)</Text>
+              <TextInput
+                style={styles.memoInput}
+                value={productFormData.description}
+                onChangeText={(text) =>
+                  setProductFormData((prev) => ({ ...prev, description: text }))
+                }
+                placeholder="제품 설명을 입력하세요"
+                multiline
+                numberOfLines={3}
+              />
+            </View>
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={handleProductAddCancel}
+              >
+                <Text style={styles.cancelButtonText}>취소</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.submitButton}
+                onPress={handleProductAddSubmit}
+              >
+                <Text style={styles.submitButtonText}>추가</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>상품 선택</Text>
-        <TouchableOpacity style={styles.addButton} onPress={onAddProduct}>
+        <TouchableOpacity style={styles.addButton} onPress={handleProductAdd}>
           <Ionicons name="add" size={20} color="#ffffff" />
           <Text style={styles.addButtonText}>상품 추가</Text>
         </TouchableOpacity>
@@ -508,7 +1057,10 @@ export const ProductSelection: React.FC<ProductSelectionProps> = ({
       />
 
       {renderCategoryModal()}
+      {renderCategorySelectModal()}
       {renderSelectionModal()}
+      {renderProductEditModal()}
+      {renderProductAddModal()}
     </View>
   );
 };
@@ -645,6 +1197,16 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 8,
   },
+  productActions: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  editButton: {
+    marginLeft: 10,
+  },
+  deleteButton: {
+    marginLeft: 10,
+  },
   categoryBadge: {
     paddingHorizontal: 8,
     paddingVertical: 2,
@@ -732,6 +1294,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#171717",
     marginBottom: 12,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   categoryHint: {
     fontSize: 14,

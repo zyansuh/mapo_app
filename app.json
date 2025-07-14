@@ -21,11 +21,18 @@
       },
       "package": "com.mapo.businessmanager",
       "versionCode": 1,
-      "permissions": ["CALL_PHONE"]
+      "permissions": [
+        "CALL_PHONE"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "owner": "suhzian"
+    "owner": "suhzian",
+    "extra": {
+      "eas": {
+        "projectId": "44c461dc-1b2d-49c5-a77b-f648a26e043f"
+      }
+    }
   }
 }
