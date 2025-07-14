@@ -4,29 +4,27 @@
     "slug": "mapo",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/mapo-icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/mapo-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#f5f5dc"
     },
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/mapo-icon.png",
+        "backgroundColor": "#f5f5dc"
       },
       "package": "com.mapo.businessmanager",
       "versionCode": 1,
-      "permissions": [
-        "CALL_PHONE"
-      ]
+      "permissions": ["CALL_PHONE"]
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/mapo-icon.png"
     },
     "owner": "suhzian",
     "extra": {
