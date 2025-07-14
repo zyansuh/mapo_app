@@ -26,10 +26,6 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "extra": {
-      "eas": {
-        "projectId": "595f4ecf-f6bd-4ca2-aabf-2116bc79c25c"
-      }
-    }
+    "owner": "suhzian"
   }
 }
