@@ -3,21 +3,26 @@ import {
   View,
   Text,
   ScrollView,
+  TouchableOpacity,
   StyleSheet,
-  Alert,
+  SafeAreaView,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
+  Alert,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
-import { RootStackParamList } from "../navigation/AppNavigator";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
+
+import { CompanyFormData, CompanyType } from "../types";
 import { useCompany } from "../hooks";
-import { Company, CompanyType, CompanyFormData } from "../types";
-import { COLORS, SIZES } from "../constants";
-import { Button, Input, Select } from "../components";
+import { Input, Select, AddressSearchModal } from "../components";
+
+// Navigation 타입 정의
+type RootStackParamList = {
+  CompanyEdit: { companyId?: string };
+};
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 type RouteProps = RouteProp<RootStackParamList, "CompanyEdit">;
@@ -63,6 +68,7 @@ export const CompanyEditScreen: React.FC = () => {
 
   const [errors, setErrors] = useState<Partial<FormData>>({});
   const [loading, setLoading] = useState(false);
+  const [showAddressSearch, setShowAddressSearch] = useState(false);
 
   useEffect(() => {
     if (existingCompany) {
@@ -163,11 +169,9 @@ export const CompanyEditScreen: React.FC = () => {
   };
 
   const hasChanges = (): boolean => {
-    if (!isEditing) {
-      return Object.values(formData).some((value) => value?.trim());
+    if (!existingCompany) {
+      return Object.values(formData).some((value) => value.trim() !== "");
     }
-
-    if (!existingCompany) return false;
 
     return (
       formData.name !== existingCompany.name ||
@@ -186,6 +190,12 @@ export const CompanyEditScreen: React.FC = () => {
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
+  };
+
+  // 주소 검색 결과 처리
+  const handleAddressSelect = (selectedAddress: string) => {
+    updateField("address", selectedAddress);
+    setShowAddressSearch(false);
   };
 
   return (
@@ -243,15 +253,30 @@ export const CompanyEditScreen: React.FC = () => {
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>연락처 정보</Text>
 
-              <Input
-                label="주소 *"
-                value={formData.address}
-                onChangeText={(value) => updateField("address", value)}
-                placeholder="주소를 입력하세요"
-                multiline
-                numberOfLines={3}
-                error={errors.address}
-              />
+              {/* 주소 입력 - 카카오맵 검색 기능 추가 */}
+              <View style={styles.addressSection}>
+                <Text style={styles.fieldLabel}>주소 *</Text>
+                <View style={styles.addressInputContainer}>
+                  <Input
+                    label=""
+                    value={formData.address}
+                    onChangeText={(value) => updateField("address", value)}
+                    placeholder="주소를 입력하거나 검색 버튼을 눌러주세요"
+                    multiline
+                    numberOfLines={3}
+                    style={styles.addressInput}
+                  />
+                  <TouchableOpacity
+                    style={styles.searchButton}
+                    onPress={() => setShowAddressSearch(true)}
+                  >
+                    <Text style={styles.searchButtonText}>🔍 검색</Text>
+                  </TouchableOpacity>
+                </View>
+                {errors.address && (
+                  <Text style={styles.errorText}>{errors.address}</Text>
+                )}
+              </View>
 
               <Input
                 label="이메일"
@@ -296,23 +321,34 @@ export const CompanyEditScreen: React.FC = () => {
           </View>
         </ScrollView>
 
-        {/* 액션 버튼들 */}
-        <View
-          style={[styles.actionSection, { paddingBottom: 16 + insets.bottom }]}
-        >
-          <Button
-            title="취소"
-            onPress={handleCancel}
-            variant="secondary"
-            style={styles.actionButton}
-          />
-          <Button
-            title={isEditing ? "수정 완료" : "등록하기"}
-            onPress={handleSave}
-            loading={loading}
-            style={styles.actionButton}
-          />
+        {/* 하단 버튼 */}
+        <View style={[styles.footer, { paddingBottom: insets.bottom + 20 }]}>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={[styles.button, styles.cancelButton]}
+              onPress={handleCancel}
+            >
+              <Text style={styles.cancelButtonText}>취소</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.button, styles.saveButton]}
+              onPress={handleSave}
+              disabled={loading}
+            >
+              <Text style={styles.saveButtonText}>
+                {loading ? "저장 중..." : isEditing ? "수정" : "등록"}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
+
+        {/* 주소 검색 모달 */}
+        <AddressSearchModal
+          visible={showAddressSearch}
+          onClose={() => setShowAddressSearch(false)}
+          onSelectAddress={handleAddressSelect}
+          currentAddress={formData.address}
+        />
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -321,50 +357,113 @@ export const CompanyEditScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.BACKGROUND,
+    backgroundColor: "#f8f9fa",
   },
   header: {
+    paddingHorizontal: 20,
     paddingBottom: 30,
-    paddingHorizontal: SIZES.LARGE,
-    alignItems: "center",
-    // paddingTop은 동적으로 설정됨
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: COLORS.WHITE,
+    fontSize: 28,
+    fontWeight: "700",
+    color: "#ffffff",
     marginBottom: 8,
   },
   headerSubtitle: {
     fontSize: 16,
-    color: "rgba(255, 255, 255, 0.8)",
+    color: "#e5e7eb",
   },
   content: {
     flex: 1,
   },
   form: {
-    padding: SIZES.LARGE,
+    padding: 20,
   },
   section: {
     marginBottom: 32,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#1f2937",
+    marginBottom: 20,
+    paddingBottom: 8,
+    borderBottomWidth: 2,
+    borderBottomColor: "#e5e7eb",
+  },
+  // 주소 검색 관련 스타일
+  addressSection: {
+    marginBottom: 20,
+  },
+  fieldLabel: {
+    fontSize: 16,
+    fontWeight: "600",
     color: "#333",
-    marginBottom: 16,
+    marginBottom: 8,
   },
-  actionSection: {
+  addressInputContainer: {
     flexDirection: "row",
-    padding: SIZES.LARGE,
-    paddingTop: 16,
-    backgroundColor: COLORS.WHITE,
-    borderTopWidth: 1,
-    borderTopColor: "#f0f0f0",
+    alignItems: "flex-start",
+    gap: 8,
   },
-  actionButton: {
+  addressInput: {
     flex: 1,
-    marginHorizontal: 8,
+    marginBottom: 0,
+  },
+  searchButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    backgroundColor: "#525252",
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    minHeight: 48,
+  },
+  searchButtonText: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  errorText: {
+    fontSize: 14,
+    color: "#ef4444",
+    marginTop: 8,
+  },
+  footer: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    backgroundColor: "#ffffff",
+    borderTopWidth: 1,
+    borderTopColor: "#e5e7eb",
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  button: {
+    flex: 1,
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cancelButton: {
+    backgroundColor: "#ffffff",
+    borderWidth: 2,
+    borderColor: "#d1d5db",
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#6b7280",
+  },
+  saveButton: {
+    backgroundColor: "#525252",
+  },
+  saveButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#ffffff",
   },
 });
 

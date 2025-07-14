@@ -7,12 +7,15 @@ import {
   ScrollView,
   Alert,
   SafeAreaView,
+  Modal,
+  FlatList,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Linking } from "react-native";
 import { useCompany } from "../hooks/useCompany";
 import { usePhoneCall } from "../hooks/usePhoneCall";
 import { useCallDetection } from "../hooks/useCallDetection";
@@ -34,6 +37,10 @@ const HomeScreen = () => {
     addTestUnknownNumber,
   } = useCallDetection();
 
+  const [isBusinessTypeModalVisible, setIsBusinessTypeModalVisible] =
+    useState(false);
+  const [selectedBusinessType, setSelectedBusinessType] = useState<string>("");
+
   const stats = getStats();
 
   // 전화 감지 토글
@@ -48,6 +55,50 @@ const HomeScreen = () => {
   // 거래처 등록 화면으로 이동
   const handleAddCompany = () => {
     navigation.navigate("CompanyEdit", {});
+  };
+
+  // 비즈니스 타입 카드 클릭 핸들러
+  const handleBusinessTypePress = (type: string) => {
+    setSelectedBusinessType(type);
+    setIsBusinessTypeModalVisible(true);
+  };
+
+  // 거래처 상세 페이지로 이동
+  const handleCompanyPress = (companyId: string) => {
+    navigation.navigate("CompanyDetail", { companyId });
+  };
+
+  // 거래처 타입별 필터링
+  const getCompaniesByType = (type: string) => {
+    return companies.filter((company) => company.type === type);
+  };
+
+  // 거래처 타입 아이콘 가져오기
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case "고객사":
+        return "people";
+      case "협력업체":
+        return "people";
+      case "공급업체":
+        return "cube";
+      default:
+        return "business";
+    }
+  };
+
+  // 거래처 타입 색상 가져오기
+  const getTypeColor = (type: string) => {
+    switch (type) {
+      case "고객사":
+        return "#10b981";
+      case "협력업체":
+        return "#3b82f6";
+      case "공급업체":
+        return "#f59e0b";
+      default:
+        return "#6b7280";
+    }
   };
 
   // 비즈니스 인사이트 제공
@@ -112,6 +163,136 @@ ${unknownNumberCount > 0 ? "• 미지의 번호를 처리해주세요" : ""}`,
     ]);
   };
 
+  // 비즈니스 타입 모달 렌더링
+  const renderBusinessTypeModal = () => {
+    const filteredCompanies = getCompaniesByType(selectedBusinessType);
+    const typeColor = getTypeColor(selectedBusinessType);
+    const typeIcon = getTypeIcon(selectedBusinessType);
+
+    const renderCompanyItem = ({ item }: { item: any }) => (
+      <TouchableOpacity
+        style={styles.companyItem}
+        onPress={() => {
+          setIsBusinessTypeModalVisible(false);
+          handleCompanyPress(item.id);
+        }}
+      >
+        <View style={styles.companyInfo}>
+          <View style={styles.companyHeader}>
+            <Text style={styles.companyName}>{item.name}</Text>
+            {item.isFavorite && (
+              <Ionicons name="star" size={16} color="#f59e0b" />
+            )}
+          </View>
+          <Text style={styles.companyPhone}>{item.phoneNumber}</Text>
+          <Text style={styles.companyAddress} numberOfLines={1}>
+            {item.address}
+          </Text>
+        </View>
+        <View style={styles.companyActions}>
+          <TouchableOpacity
+            style={[styles.actionButton, { backgroundColor: typeColor }]}
+            onPress={() => {
+              if (item.phoneNumber) {
+                Linking.openURL(`tel:${item.phoneNumber}`);
+              }
+            }}
+          >
+            <Ionicons name="call" size={16} color="#ffffff" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionButton}>
+            <Ionicons name="chevron-forward" size={16} color="#9ca3af" />
+          </TouchableOpacity>
+        </View>
+      </TouchableOpacity>
+    );
+
+    return (
+      <Modal
+        visible={isBusinessTypeModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setIsBusinessTypeModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <View style={styles.modalTitleContainer}>
+                <Ionicons name={typeIcon as any} size={24} color={typeColor} />
+                <Text style={styles.modalTitle}>{selectedBusinessType}</Text>
+              </View>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => setIsBusinessTypeModalVisible(false)}
+              >
+                <Ionicons name="close" size={24} color="#737373" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.modalStats}>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>
+                  {filteredCompanies.length}
+                </Text>
+                <Text style={styles.statLabel}>총 거래처</Text>
+              </View>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>
+                  {filteredCompanies.filter((c) => c.isFavorite).length}
+                </Text>
+                <Text style={styles.statLabel}>즐겨찾기</Text>
+              </View>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>
+                  {
+                    callHistory.filter((call) =>
+                      filteredCompanies.some(
+                        (c) => c.phoneNumber === call.phoneNumber
+                      )
+                    ).length
+                  }
+                </Text>
+                <Text style={styles.statLabel}>통화 기록</Text>
+              </View>
+            </View>
+
+            <View style={styles.modalBody}>
+              {filteredCompanies.length > 0 ? (
+                <FlatList
+                  data={filteredCompanies}
+                  renderItem={renderCompanyItem}
+                  keyExtractor={(item) => item.id}
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={styles.companyList}
+                />
+              ) : (
+                <View style={styles.emptyState}>
+                  <Ionicons name="business-outline" size={64} color="#9ca3af" />
+                  <Text style={styles.emptyTitle}>
+                    등록된 {selectedBusinessType}가 없습니다
+                  </Text>
+                  <Text style={styles.emptySubtitle}>
+                    새로운 {selectedBusinessType}를 등록해보세요
+                  </Text>
+                  <TouchableOpacity
+                    style={[styles.addButton, { backgroundColor: typeColor }]}
+                    onPress={() => {
+                      setIsBusinessTypeModalVisible(false);
+                      handleAddCompany();
+                    }}
+                  >
+                    <Ionicons name="add" size={20} color="#ffffff" />
+                    <Text style={styles.addButtonText}>거래처 등록</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          </View>
+        </View>
+      </Modal>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -165,7 +346,10 @@ ${unknownNumberCount > 0 ? "• 미지의 번호를 처리해주세요" : ""}`,
         <View style={styles.businessTypeContainer}>
           <Text style={styles.sectionTitle}>거래처 유형별 현황</Text>
           <View style={styles.businessTypeGrid}>
-            <View style={styles.businessTypeCard}>
+            <TouchableOpacity
+              style={styles.businessTypeCard}
+              onPress={() => handleBusinessTypePress("고객사")}
+            >
               <View style={styles.businessTypeHeader}>
                 <Ionicons name="people" size={20} color="#10b981" />
                 <Text style={styles.businessTypeTitle}>고객사</Text>
@@ -174,9 +358,15 @@ ${unknownNumberCount > 0 ? "• 미지의 번호를 처리해주세요" : ""}`,
                 {stats.byType.고객사}
               </Text>
               <Text style={styles.businessTypeDesc}>매출 창출 고객</Text>
-            </View>
+              <View style={styles.cardIndicator}>
+                <Ionicons name="chevron-forward" size={16} color="#9ca3af" />
+              </View>
+            </TouchableOpacity>
 
-            <View style={styles.businessTypeCard}>
+            <TouchableOpacity
+              style={styles.businessTypeCard}
+              onPress={() => handleBusinessTypePress("협력업체")}
+            >
               <View style={styles.businessTypeHeader}>
                 <Ionicons name="people" size={20} color="#3b82f6" />
                 <Text style={styles.businessTypeTitle}>협력업체</Text>
@@ -185,9 +375,15 @@ ${unknownNumberCount > 0 ? "• 미지의 번호를 처리해주세요" : ""}`,
                 {stats.byType.협력업체}
               </Text>
               <Text style={styles.businessTypeDesc}>파트너 업체</Text>
-            </View>
+              <View style={styles.cardIndicator}>
+                <Ionicons name="chevron-forward" size={16} color="#9ca3af" />
+              </View>
+            </TouchableOpacity>
 
-            <View style={styles.businessTypeCard}>
+            <TouchableOpacity
+              style={styles.businessTypeCard}
+              onPress={() => handleBusinessTypePress("공급업체")}
+            >
               <View style={styles.businessTypeHeader}>
                 <Ionicons name="cube" size={20} color="#f59e0b" />
                 <Text style={styles.businessTypeTitle}>공급업체</Text>
@@ -196,7 +392,10 @@ ${unknownNumberCount > 0 ? "• 미지의 번호를 처리해주세요" : ""}`,
                 {stats.byType.공급업체}
               </Text>
               <Text style={styles.businessTypeDesc}>자재/서비스</Text>
-            </View>
+              <View style={styles.cardIndicator}>
+                <Ionicons name="chevron-forward" size={16} color="#9ca3af" />
+              </View>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -294,6 +493,9 @@ ${unknownNumberCount > 0 ? "• 미지의 번호를 처리해주세요" : ""}`,
 
         <View style={[styles.bottomSpacer, { height: 80 + insets.bottom }]} />
       </ScrollView>
+
+      {/* 비즈니스 타입 모달 */}
+      {renderBusinessTypeModal()}
     </SafeAreaView>
   );
 };
@@ -525,7 +727,7 @@ const styles = StyleSheet.create({
     // height는 동적으로 설정됨
   },
   addCompanyButton: {
-    backgroundColor: "#10b981",
+    backgroundColor: "#737373", // NEUTRAL_500 - 톤 다운된 회색
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -544,6 +746,152 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 16,
     fontWeight: "600",
+  },
+  cardIndicator: {
+    position: "absolute",
+    bottom: 8,
+    right: 8,
+  },
+  // 모달 스타일
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: "#ffffff",
+    borderRadius: 16,
+    width: "90%",
+    maxHeight: "80%",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f3f4f6",
+  },
+  modalTitleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#171717",
+    marginLeft: 12,
+  },
+  closeButton: {
+    padding: 4,
+  },
+  modalStats: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    padding: 16,
+    backgroundColor: "#f9fafb",
+    borderBottomWidth: 1,
+    borderBottomColor: "#f3f4f6",
+  },
+  statItem: {
+    alignItems: "center",
+  },
+  modalBody: {
+    flex: 1,
+    padding: 16,
+  },
+  companyList: {
+    paddingBottom: 16,
+  },
+  companyItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  companyInfo: {
+    flex: 1,
+    marginRight: 12,
+  },
+  companyHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  companyName: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#171717",
+    marginRight: 8,
+  },
+  companyPhone: {
+    fontSize: 14,
+    color: "#737373",
+    marginBottom: 4,
+  },
+  companyAddress: {
+    fontSize: 12,
+    color: "#9ca3af",
+  },
+  companyActions: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  actionButton: {
+    backgroundColor: "#f3f4f6",
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: 8,
+  },
+  emptyState: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 40,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#171717",
+    marginTop: 16,
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  emptySubtitle: {
+    fontSize: 14,
+    color: "#737373",
+    textAlign: "center",
+    marginBottom: 24,
+  },
+  addButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  addButtonText: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "600",
+    marginLeft: 6,
   },
 });
 

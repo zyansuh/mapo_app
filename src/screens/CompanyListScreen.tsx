@@ -433,7 +433,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   primaryButton: {
-    backgroundColor: "#8b5cf6",
+    backgroundColor: "#737373", // NEUTRAL_500 - 톤 다운된 회색
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -458,7 +458,7 @@ const styles = StyleSheet.create({
     // bottom은 동적으로 설정됨
   },
   fabButton: {
-    backgroundColor: "#8b5cf6",
+    backgroundColor: "#737373", // NEUTRAL_500 - 톤 다운된 회색
     width: 56,
     height: 56,
     borderRadius: 28,

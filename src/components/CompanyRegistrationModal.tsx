@@ -16,6 +16,7 @@ import { isValidEmail, isValidPhoneNumber } from "../utils";
 import TextInput from "./TextInput";
 import Picker from "./Picker";
 import Button from "./Button";
+import { AddressSearchModal } from "./AddressSearchModal";
 
 interface CompanyRegistrationModalProps {
   visible: boolean;
@@ -48,6 +49,7 @@ export const CompanyRegistrationModal: React.FC<
 
   const [errors, setErrors] = useState<CompanyFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showAddressSearch, setShowAddressSearch] = useState(false);
 
   // 편집 데이터가 있을 때 폼 초기화
   useEffect(() => {
@@ -130,6 +132,12 @@ export const CompanyRegistrationModal: React.FC<
     }
   };
 
+  // 주소 검색 결과 처리
+  const handleAddressSelect = (selectedAddress: string) => {
+    updateFormData("address", selectedAddress);
+    setShowAddressSearch(false);
+  };
+
   return (
     <Modal
       visible={visible}
@@ -177,17 +185,32 @@ export const CompanyRegistrationModal: React.FC<
               required
             />
 
-            {/* 주소 (필수) */}
-            <TextInput
-              label="주소"
-              value={formData.address}
-              onChangeText={(value) => updateFormData("address", value)}
-              placeholder="주소를 입력하세요"
-              error={errors.address}
-              required
-              multiline
-              numberOfLines={2}
-            />
+            {/* 주소 (필수) - 카카오맵 검색 기능 추가 */}
+            <View style={styles.addressSection}>
+              <Text style={styles.label}>
+                주소 <Text style={styles.required}>*</Text>
+              </Text>
+              <View style={styles.addressInputContainer}>
+                <TextInput
+                  label=""
+                  value={formData.address}
+                  onChangeText={(value) => updateFormData("address", value)}
+                  placeholder="주소를 입력하거나 검색 버튼을 눌러주세요"
+                  multiline
+                  numberOfLines={2}
+                  style={styles.addressInput}
+                />
+                <TouchableOpacity
+                  style={styles.searchButton}
+                  onPress={() => setShowAddressSearch(true)}
+                >
+                  <Text style={styles.searchButtonText}>🔍 검색</Text>
+                </TouchableOpacity>
+              </View>
+              {errors.address && (
+                <Text style={styles.errorText}>{errors.address}</Text>
+              )}
+            </View>
 
             {/* 전화번호 (필수) */}
             <TextInput
@@ -251,6 +274,14 @@ export const CompanyRegistrationModal: React.FC<
             disabled={isSubmitting}
           />
         </View>
+
+        {/* 주소 검색 모달 */}
+        <AddressSearchModal
+          visible={showAddressSearch}
+          onClose={() => setShowAddressSearch(false)}
+          onSelectAddress={handleAddressSelect}
+          currentAddress={formData.address}
+        />
       </KeyboardAvoidingView>
     </Modal>
   );
@@ -259,30 +290,28 @@ export const CompanyRegistrationModal: React.FC<
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.BACKGROUND,
+    backgroundColor: COLORS.WHITE,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingTop: Platform.OS === "ios" ? 50 : 20,
-    paddingHorizontal: SIZES.LARGE,
-    paddingBottom: SIZES.MEDIUM,
-    backgroundColor: COLORS.WHITE,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.GRAY,
+    borderBottomColor: "#e0e0e0",
   },
   closeButton: {
-    padding: SIZES.SMALL,
+    padding: 4,
   },
   closeButtonText: {
     fontSize: 16,
-    color: COLORS.PRIMARY,
+    color: "#007AFF",
   },
   title: {
     fontSize: 18,
-    fontWeight: "bold",
-    color: COLORS.BLACK,
+    fontWeight: "600",
+    color: "#333",
   },
   headerSpacer: {
     width: 50,
@@ -291,13 +320,53 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   form: {
-    padding: SIZES.LARGE,
+    padding: 20,
   },
   footer: {
-    padding: SIZES.LARGE,
-    backgroundColor: COLORS.WHITE,
+    padding: 20,
     borderTopWidth: 1,
-    borderTopColor: COLORS.GRAY,
+    borderTopColor: "#e0e0e0",
+  },
+  // 주소 검색 관련 스타일
+  addressSection: {
+    marginBottom: SIZES.MEDIUM,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: COLORS.BLACK,
+    marginBottom: SIZES.SMALL / 2,
+  },
+  required: {
+    color: COLORS.ERROR,
+  },
+  addressInputContainer: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
+  },
+  addressInput: {
+    flex: 1,
+    marginBottom: 0,
+  },
+  searchButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: COLORS.PRIMARY,
+    borderRadius: 8,
+    justifyContent: "center",
+    alignItems: "center",
+    minHeight: 44,
+  },
+  searchButtonText: {
+    color: COLORS.WHITE,
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  errorText: {
+    fontSize: 14,
+    color: COLORS.ERROR,
+    marginTop: SIZES.SMALL / 2,
   },
 });
 

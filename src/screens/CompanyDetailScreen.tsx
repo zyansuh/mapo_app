@@ -21,6 +21,7 @@ import {
   Button,
   DailyProductsList,
   ProductSelection,
+  InventoryManagement,
   CreditManagement,
 } from "../components";
 import {
@@ -34,7 +35,7 @@ type NavigationProp = StackNavigationProp<RootStackParamList>;
 type RouteProps = RouteProp<RootStackParamList, "CompanyDetail">;
 
 // 탭 타입 정의
-type TabType = "info" | "products" | "selection" | "credit";
+type TabType = "info" | "products" | "selection" | "inventory" | "credit";
 
 interface Tab {
   id: TabType;
@@ -46,6 +47,7 @@ const tabs: Tab[] = [
   { id: "info", title: "기본 정보", icon: "information-circle" },
   { id: "products", title: "상품 목록", icon: "calendar" },
   { id: "selection", title: "상품 선택", icon: "add-circle" },
+  { id: "inventory", title: "재고 관리", icon: "cube" },
   { id: "credit", title: "외상 관리", icon: "card" },
 ];
 
@@ -337,6 +339,13 @@ export const CompanyDetailScreen: React.FC = () => {
     </View>
   );
 
+  // 재고 관리 탭 컨텐츠
+  const renderInventoryTab = () => (
+    <View style={styles.tabContent}>
+      <InventoryManagement companyId={company.id} />
+    </View>
+  );
+
   // 외상 관리 탭 컨텐츠
   const renderCreditTab = () => (
     <View style={styles.tabContent}>
@@ -359,6 +368,8 @@ export const CompanyDetailScreen: React.FC = () => {
         return renderProductsTab();
       case "selection":
         return renderSelectionTab();
+      case "inventory":
+        return renderInventoryTab();
       case "credit":
         return renderCreditTab();
       default:
