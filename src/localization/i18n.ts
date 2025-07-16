@@ -59,7 +59,6 @@ export interface TranslationKeys {
     edit: string;
     delete: string;
     call: string;
-    qrCode: string;
     share: string;
   };
 
@@ -127,16 +126,6 @@ export interface TranslationKeys {
     completed: string;
     failed: string;
     selectFormat: string;
-  };
-
-  // QR 코드
-  qr: {
-    title: string;
-    generate: string;
-    share: string;
-    save: string;
-    description: string;
-    companyInfo: string;
   };
 
   // 에러 메시지
@@ -210,7 +199,6 @@ const ko: TranslationKeys = {
     edit: "업체 수정",
     delete: "업체 삭제",
     call: "통화하기",
-    qrCode: "QR 코드",
     share: "공유",
   },
 
@@ -273,15 +261,6 @@ const ko: TranslationKeys = {
     completed: "내보내기 완료",
     failed: "내보내기 실패",
     selectFormat: "내보내기 형식 선택",
-  },
-
-  qr: {
-    title: "QR 코드",
-    generate: "QR 코드 생성",
-    share: "공유",
-    save: "저장",
-    description: "QR 코드를 스캔하여 업체 정보를 확인할 수 있습니다.",
-    companyInfo: "업체 정보",
   },
 
   errors: {
@@ -353,7 +332,6 @@ const en: TranslationKeys = {
     edit: "Edit Company",
     delete: "Delete Company",
     call: "Call",
-    qrCode: "QR Code",
     share: "Share",
   },
 
@@ -416,15 +394,6 @@ const en: TranslationKeys = {
     completed: "Export Completed",
     failed: "Export Failed",
     selectFormat: "Select Export Format",
-  },
-
-  qr: {
-    title: "QR Code",
-    generate: "Generate QR Code",
-    share: "Share",
-    save: "Save",
-    description: "Scan this QR code to view company information.",
-    companyInfo: "Company Information",
   },
 
   errors: {
@@ -496,7 +465,6 @@ const ja: TranslationKeys = {
     edit: "会社編集",
     delete: "会社削除",
     call: "通話",
-    qrCode: "QRコード",
     share: "共有",
   },
 
@@ -559,15 +527,6 @@ const ja: TranslationKeys = {
     completed: "エクスポート完了",
     failed: "エクスポート失敗",
     selectFormat: "エクスポート形式選択",
-  },
-
-  qr: {
-    title: "QRコード",
-    generate: "QRコード生成",
-    share: "共有",
-    save: "保存",
-    description: "このQRコードをスキャンして会社情報を確認できます。",
-    companyInfo: "会社情報",
   },
 
   errors: {
@@ -639,7 +598,6 @@ const zh: TranslationKeys = {
     edit: "编辑公司",
     delete: "删除公司",
     call: "拨打电话",
-    qrCode: "二维码",
     share: "分享",
   },
 
@@ -702,15 +660,6 @@ const zh: TranslationKeys = {
     completed: "导出完成",
     failed: "导出失败",
     selectFormat: "选择导出格式",
-  },
-
-  qr: {
-    title: "二维码",
-    generate: "生成二维码",
-    share: "分享",
-    save: "保存",
-    description: "扫描此二维码查看公司信息。",
-    companyInfo: "公司信息",
   },
 
   errors: {

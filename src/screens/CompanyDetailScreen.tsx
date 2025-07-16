@@ -32,7 +32,6 @@ import {
   ProductSelectionFormData,
 } from "../types";
 import { generateId } from "../utils";
-import { QRCodeModal } from "../components/modals/QRCodeModal";
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 type RouteProps = RouteProp<RootStackParamList, "CompanyDetail">;
@@ -65,7 +64,6 @@ export const CompanyDetailScreen: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<TabType>("info");
   const [showProductSelection, setShowProductSelection] = useState(false);
-  const [showQRCode, setShowQRCode] = useState(false);
 
   // 샘플 상품 데이터 생성 함수
   const createSampleProducts = (companyId: string): Product[] => [
@@ -635,10 +633,6 @@ export const CompanyDetailScreen: React.FC = () => {
     }
   };
 
-  const handleQRCodeGenerate = () => {
-    setShowQRCode(true);
-  };
-
   const handleProductConfirm = (deliveries: ProductDelivery[]) => {
     setDeliveries((prev) => [...prev, ...deliveries]);
     setShowProductSelection(false);
@@ -713,14 +707,6 @@ export const CompanyDetailScreen: React.FC = () => {
           </View>
         </Modal>
       )}
-
-      {/* QR Code Modal */}
-      <QRCodeModal
-        visible={showQRCode}
-        onClose={() => setShowQRCode(false)}
-        company={company}
-        title={`${company.name} QR 코드`}
-      />
     </SafeAreaView>
   );
 };

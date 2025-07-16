@@ -261,30 +261,6 @@ export interface ExportResult {
   error?: string;
 }
 
-// QR코드 관련 타입 정의
-export type QRCodeType = "company" | "contact" | "website" | "text";
-
-export interface QRCodeData {
-  type: QRCodeType;
-  company?: Company;
-  contactInfo?: {
-    name: string;
-    phone: string;
-    email?: string;
-    address?: string;
-  };
-  website?: string;
-  text?: string;
-}
-
-export interface QRCodeOptions {
-  size: number;
-  backgroundColor: string;
-  foregroundColor: string;
-  errorCorrectionLevel: "L" | "M" | "Q" | "H";
-  includeMargin: boolean;
-}
-
 // 배송등록 관련 타입 정의
 export type DeliveryStatus = "배송준비" | "배송중" | "배송완료" | "취소";
 

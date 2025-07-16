@@ -10,7 +10,6 @@ export { DeliveryRegistrationModal } from "./modals/DeliveryRegistrationModal";
 export { CompanyRegistrationModal } from "./modals/CompanyRegistrationModal";
 export { InvoiceViewModal } from "./modals/InvoiceViewModal";
 export { AddressSearchModal } from "./modals/AddressSearchModal";
-export { QRCodeModal } from "./modals/QRCodeModal";
 
 // Business
 export { InventoryManagement } from "./business/InventoryManagement";
