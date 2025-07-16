@@ -1,3 +1,4 @@
+// 기존 스타일들
 import { StyleSheet } from "react-native";
 import { COLORS, SIZES } from "../constants";
 
@@ -88,3 +89,6 @@ export const buttonStyles = StyleSheet.create({
     color: COLORS.PRIMARY,
   },
 });
+
+// 새로운 스타일 시스템 export
+export * from "./globalStyles";

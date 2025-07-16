@@ -20,6 +20,19 @@ import { useCompany } from "../hooks/useCompany";
 import { usePhoneCall } from "../hooks/usePhoneCall";
 import { useCallDetection } from "../hooks/useCallDetection";
 import { RootStackParamList } from "../navigation/AppNavigator";
+import { DeliveryRegistrationModal } from "../components";
+import {
+  generateInvoiceFromDelivery,
+  generateInvoiceText,
+  calculateProductStatistics,
+  calculateDashboardStats,
+} from "../services/invoiceService";
+import {
+  DeliveryFormData,
+  Invoice,
+  ProductStatistics,
+  DashboardStats,
+} from "../types";
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -40,8 +53,49 @@ const HomeScreen = () => {
   const [isBusinessTypeModalVisible, setIsBusinessTypeModalVisible] =
     useState(false);
   const [selectedBusinessType, setSelectedBusinessType] = useState<string>("");
+  const [isDeliveryModalVisible, setIsDeliveryModalVisible] = useState(false);
+  const [deliveries, setDeliveries] = useState<DeliveryFormData[]>([]);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
 
   const stats = getStats();
+
+  // 상품 통계 계산
+  const productStats = calculateProductStatistics(deliveries, companies);
+  const dashboardStats = calculateDashboardStats(
+    deliveries,
+    invoices,
+    companies
+  );
+
+  // 배송 등록 처리
+  const handleDeliverySubmit = (deliveryData: DeliveryFormData) => {
+    // 배송 데이터 저장
+    setDeliveries((prev) => [...prev, deliveryData]);
+
+    // 자동으로 계산서 생성
+    const company = companies.find((c) => c.id === deliveryData.companyId);
+    if (company) {
+      const invoice = generateInvoiceFromDelivery(deliveryData, company);
+      setInvoices((prev) => [...prev, invoice]);
+
+      // 계산서 텍스트 생성 및 출력 (Alert로 표시)
+      const invoiceText = generateInvoiceText(invoice);
+      Alert.alert(
+        "배송 등록 완료",
+        `배송이 등록되었고 계산서가 자동 생성되었습니다.\n\n계산서 번호: ${
+          invoice.invoiceNumber
+        }\n총액: ${invoice.totalWithTax.toLocaleString()}원`,
+        [
+          { text: "확인", style: "default" },
+          {
+            text: "계산서 보기",
+            onPress: () =>
+              Alert.alert("계산서", invoiceText, [{ text: "확인" }]),
+          },
+        ]
+      );
+    }
+  };
 
   // 전화 감지 토글
   const toggleCallDetection = () => {
@@ -63,6 +117,12 @@ const HomeScreen = () => {
     setIsBusinessTypeModalVisible(true);
   };
 
+  // 지역별 카드 클릭 핸들러
+  const handleRegionPress = (region: string) => {
+    setSelectedBusinessType(region);
+    setIsBusinessTypeModalVisible(true);
+  };
+
   // 거래처 상세 페이지로 이동
   const handleCompanyPress = (companyId: string) => {
     navigation.navigate("CompanyDetail", { companyId });
@@ -71,6 +131,11 @@ const HomeScreen = () => {
   // 거래처 타입별 필터링
   const getCompaniesByType = (type: string) => {
     return companies.filter((company) => company.type === type);
+  };
+
+  // 거래처 지역별 필터링
+  const getCompaniesByRegion = (region: string) => {
+    return companies.filter((company) => company.region === region);
   };
 
   // 거래처 타입 아이콘 가져오기
@@ -165,7 +230,13 @@ ${unknownNumberCount > 0 ? "• 미지의 번호를 처리해주세요" : ""}`,
 
   // 비즈니스 타입 모달 렌더링
   const renderBusinessTypeModal = () => {
-    const filteredCompanies = getCompaniesByType(selectedBusinessType);
+    const regions = ["순창", "담양", "장성", "기타"];
+    const isRegionFilter = regions.includes(selectedBusinessType);
+
+    const filteredCompanies = isRegionFilter
+      ? getCompaniesByRegion(selectedBusinessType)
+      : getCompaniesByType(selectedBusinessType);
+
     const typeColor = getTypeColor(selectedBusinessType);
     const typeIcon = getTypeIcon(selectedBusinessType);
 
@@ -218,8 +289,16 @@ ${unknownNumberCount > 0 ? "• 미지의 번호를 처리해주세요" : ""}`,
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <View style={styles.modalTitleContainer}>
-                <Ionicons name={typeIcon as any} size={24} color={typeColor} />
-                <Text style={styles.modalTitle}>{selectedBusinessType}</Text>
+                <Ionicons
+                  name={isRegionFilter ? "location" : (typeIcon as any)}
+                  size={24}
+                  color={typeColor}
+                />
+                <Text style={styles.modalTitle}>
+                  {isRegionFilter
+                    ? `${selectedBusinessType} 지역`
+                    : selectedBusinessType}
+                </Text>
               </View>
               <TouchableOpacity
                 style={styles.closeButton}
@@ -269,7 +348,9 @@ ${unknownNumberCount > 0 ? "• 미지의 번호를 처리해주세요" : ""}`,
                 <View style={styles.emptyState}>
                   <Ionicons name="business-outline" size={64} color="#9ca3af" />
                   <Text style={styles.emptyTitle}>
-                    등록된 {selectedBusinessType}가 없습니다
+                    {isRegionFilter
+                      ? `${selectedBusinessType} 지역에 등록된 거래처가 없습니다`
+                      : `등록된 ${selectedBusinessType}가 없습니다`}
                   </Text>
                   <Text style={styles.emptySubtitle}>
                     새로운 {selectedBusinessType}를 등록해보세요
@@ -332,15 +413,68 @@ ${unknownNumberCount > 0 ? "• 미지의 번호를 처리해주세요" : ""}`,
               <Text style={styles.statLabel}>통화 기록</Text>
             </TouchableOpacity>
 
-            <View style={styles.statCard}>
-              <Ionicons name="star" size={24} color="#f59e0b" />
-              <Text style={styles.statNumber}>
-                {companies.filter((c) => c.isFavorite).length}
+            <TouchableOpacity
+              style={[styles.statCard, { backgroundColor: "#10b981" }]}
+              onPress={() => setIsDeliveryModalVisible(true)}
+            >
+              <Ionicons name="cube" size={24} color="#ffffff" />
+              <Text style={[styles.statNumber, { color: "#ffffff" }]}>
+                {deliveries.length}
               </Text>
-              <Text style={styles.statLabel}>즐겨찾기</Text>
+              <Text style={[styles.statLabel, { color: "#ffffff" }]}>
+                배송 등록
+              </Text>
+            </TouchableOpacity>
+
+            <View style={styles.statCard}>
+              <Ionicons name="document-text" size={24} color="#f59e0b" />
+              <Text style={styles.statNumber}>{invoices.length}</Text>
+              <Text style={styles.statLabel}>계산서</Text>
             </View>
           </View>
         </View>
+
+        {/* 상품 통계 대시보드 */}
+        {productStats.length > 0 && (
+          <View style={styles.dashboardContainer}>
+            <Text style={styles.sectionTitle}>거래처별 상품 현황</Text>
+            {productStats.slice(0, 5).map((stat) => (
+              <View key={stat.companyId} style={styles.productStatCard}>
+                <View style={styles.productStatHeader}>
+                  <Text style={styles.productStatCompany}>
+                    {stat.companyName}
+                  </Text>
+                  <Text style={styles.productStatTotal}>
+                    {(
+                      stat.mukQuantity + stat.tofuBeansproutQuantity
+                    ).toLocaleString()}
+                    개
+                  </Text>
+                </View>
+                <View style={styles.productStatDetails}>
+                  <View style={styles.productStatItem}>
+                    <View style={styles.productStatIcon}>
+                      <Ionicons name="cube" size={16} color="#8b5cf6" />
+                    </View>
+                    <Text style={styles.productStatLabel}>묵류</Text>
+                    <Text style={styles.productStatValue}>
+                      {stat.mukQuantity.toLocaleString()}개
+                    </Text>
+                  </View>
+                  <View style={styles.productStatItem}>
+                    <View style={styles.productStatIcon}>
+                      <Ionicons name="leaf" size={16} color="#10b981" />
+                    </View>
+                    <Text style={styles.productStatLabel}>두부/콩나물</Text>
+                    <Text style={styles.productStatValue}>
+                      {stat.tofuBeansproutQuantity.toLocaleString()}개
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
 
         {/* 거래처 유형별 현황 */}
         <View style={styles.businessTypeContainer}>
@@ -392,6 +526,63 @@ ${unknownNumberCount > 0 ? "• 미지의 번호를 처리해주세요" : ""}`,
                 {stats.byType.공급업체}
               </Text>
               <Text style={styles.businessTypeDesc}>자재/서비스</Text>
+              <View style={styles.cardIndicator}>
+                <Ionicons name="chevron-forward" size={16} color="#9ca3af" />
+              </View>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* 지역별 현황 */}
+        <View style={styles.businessTypeContainer}>
+          <Text style={styles.sectionTitle}>지역별 현황</Text>
+          <View style={styles.businessTypeGrid}>
+            <TouchableOpacity
+              style={styles.businessTypeCard}
+              onPress={() => handleRegionPress("순창")}
+            >
+              <View style={styles.businessTypeHeader}>
+                <Ionicons name="location" size={20} color="#10b981" />
+                <Text style={styles.businessTypeTitle}>순창</Text>
+              </View>
+              <Text style={styles.businessTypeNumber}>
+                {getCompaniesByRegion("순창").length}
+              </Text>
+              <Text style={styles.businessTypeDesc}>순창 지역 업체</Text>
+              <View style={styles.cardIndicator}>
+                <Ionicons name="chevron-forward" size={16} color="#9ca3af" />
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.businessTypeCard}
+              onPress={() => handleRegionPress("담양")}
+            >
+              <View style={styles.businessTypeHeader}>
+                <Ionicons name="location" size={20} color="#3b82f6" />
+                <Text style={styles.businessTypeTitle}>담양</Text>
+              </View>
+              <Text style={styles.businessTypeNumber}>
+                {getCompaniesByRegion("담양").length}
+              </Text>
+              <Text style={styles.businessTypeDesc}>담양 지역 업체</Text>
+              <View style={styles.cardIndicator}>
+                <Ionicons name="chevron-forward" size={16} color="#9ca3af" />
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.businessTypeCard}
+              onPress={() => handleRegionPress("장성")}
+            >
+              <View style={styles.businessTypeHeader}>
+                <Ionicons name="location" size={20} color="#f59e0b" />
+                <Text style={styles.businessTypeTitle}>장성</Text>
+              </View>
+              <Text style={styles.businessTypeNumber}>
+                {getCompaniesByRegion("장성").length}
+              </Text>
+              <Text style={styles.businessTypeDesc}>장성 지역 업체</Text>
               <View style={styles.cardIndicator}>
                 <Ionicons name="chevron-forward" size={16} color="#9ca3af" />
               </View>
@@ -496,6 +687,14 @@ ${unknownNumberCount > 0 ? "• 미지의 번호를 처리해주세요" : ""}`,
 
       {/* 비즈니스 타입 모달 */}
       {renderBusinessTypeModal()}
+
+      {/* 배송등록 모달 */}
+      <DeliveryRegistrationModal
+        visible={isDeliveryModalVisible}
+        onClose={() => setIsDeliveryModalVisible(false)}
+        onSubmit={handleDeliverySubmit}
+        companies={companies}
+      />
     </SafeAreaView>
   );
 };
@@ -892,6 +1091,62 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     marginLeft: 6,
+  },
+  // 상품 통계 스타일
+  productStatCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  productStatHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  productStatCompany: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#171717",
+  },
+  productStatTotal: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#10b981",
+  },
+  productStatDetails: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  productStatItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  productStatIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: "#f3f4f6",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 8,
+  },
+  productStatLabel: {
+    fontSize: 12,
+    color: "#6b7280",
+    flex: 1,
+  },
+  productStatValue: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#171717",
   },
 });
 

@@ -47,10 +47,13 @@ export type CompanyType =
   | "하청업체"
   | "기타";
 
+export type CompanyRegion = "순창" | "담양" | "장성" | "기타";
+
 export interface Company {
   id: string;
   name: string;
   type: CompanyType;
+  region: CompanyRegion; // 지역 구분 추가
   address: string;
   phoneNumber: string;
   email?: string;
@@ -66,6 +69,7 @@ export interface Company {
 export interface CompanyFormData {
   name: string;
   type: CompanyType;
+  region: CompanyRegion; // 지역 구분 추가
   address: string;
   phoneNumber: string;
   email: string;
@@ -77,6 +81,7 @@ export interface CompanyFormData {
 export interface CompanyFormErrors {
   name?: string;
   type?: string;
+  region?: string;
   address?: string;
   phoneNumber?: string;
   email?: string;
@@ -164,4 +169,191 @@ export interface ProductSelectionFormData {
   unitPrice: number;
   deliveryDate: Date;
   memo?: string;
+}
+
+// 테마 관련 타입 정의
+export type ThemeMode = "light" | "dark" | "system";
+
+export interface Theme {
+  mode: ThemeMode;
+  colors: {
+    primary: string;
+    secondary: string;
+    background: string;
+    surface: string;
+    card: string;
+    text: string;
+    textSecondary: string;
+    border: string;
+    notification: string;
+    success: string;
+    warning: string;
+    error: string;
+    white: string;
+    black: string;
+  };
+}
+
+// 설정 관련 타입 정의
+export interface AppSettings {
+  theme: ThemeMode;
+  language: "ko" | "en";
+  notifications: {
+    pushEnabled: boolean;
+    soundEnabled: boolean;
+    vibrationEnabled: boolean;
+    callAlerts: boolean;
+    creditAlerts: boolean;
+    deliveryAlerts: boolean;
+  };
+  backup: {
+    autoBackup: boolean;
+    backupFrequency: "daily" | "weekly" | "monthly";
+    lastBackupDate?: Date;
+  };
+  dataManagement: {
+    autoDeleteOldData: boolean;
+    dataRetentionDays: number;
+  };
+}
+
+// 알림 관련 타입 정의
+export type NotificationType = "call" | "credit" | "delivery" | "system";
+export type NotificationPriority = "low" | "normal" | "high" | "urgent";
+
+export interface Notification {
+  id: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  priority: NotificationPriority;
+  data?: any; // 알림과 관련된 추가 데이터
+  timestamp: Date;
+  isRead: boolean;
+  actionUrl?: string; // 알림 클릭 시 이동할 화면
+}
+
+// 데이터 내보내기 관련 타입 정의
+export type ExportFormat = "excel" | "csv" | "json";
+export type ExportDataType =
+  | "companies"
+  | "credits"
+  | "deliveries"
+  | "statistics"
+  | "all";
+
+export interface ExportOptions {
+  format: ExportFormat;
+  dataType: ExportDataType;
+  dateRange?: {
+    startDate: Date;
+    endDate: Date;
+  };
+  includeDeleted: boolean;
+  companyIds?: string[]; // 특정 업체만 내보내기
+}
+
+export interface ExportResult {
+  success: boolean;
+  filePath?: string;
+  fileName?: string;
+  recordCount: number;
+  error?: string;
+}
+
+// QR코드 관련 타입 정의
+export type QRCodeType = "company" | "contact" | "website" | "text";
+
+export interface QRCodeData {
+  type: QRCodeType;
+  company?: Company;
+  contactInfo?: {
+    name: string;
+    phone: string;
+    email?: string;
+    address?: string;
+  };
+  website?: string;
+  text?: string;
+}
+
+export interface QRCodeOptions {
+  size: number;
+  backgroundColor: string;
+  foregroundColor: string;
+  errorCorrectionLevel: "L" | "M" | "Q" | "H";
+  includeMargin: boolean;
+}
+
+// 배송등록 관련 타입 정의
+export type DeliveryStatus = "배송준비" | "배송중" | "배송완료" | "취소";
+
+export interface DeliveryItem {
+  productId: string;
+  productName: string;
+  category: ProductCategory;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+}
+
+export interface DeliveryFormData {
+  companyId: string;
+  companyName: string;
+  deliveryDate: Date;
+  items: DeliveryItem[];
+  totalAmount: number;
+  memo?: string;
+  status: DeliveryStatus;
+}
+
+// 계산서 관련 타입 정의
+export type InvoiceType = "과세" | "면세";
+export type InvoiceStatus = "발행" | "취소" | "수정";
+
+export interface InvoiceItem {
+  productId: string;
+  productName: string;
+  category: ProductCategory;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+  taxType: InvoiceType; // 과세/면세 구분
+}
+
+export interface Invoice {
+  id: string;
+  invoiceNumber: string; // 계산서 번호
+  companyId: string;
+  company: Company;
+  deliveryId?: string; // 연결된 배송 ID
+  items: InvoiceItem[];
+  totalAmount: number;
+  taxAmount: number; // 부가세액 (과세 항목만)
+  totalWithTax: number; // 총액 (부가세 포함)
+  invoiceDate: Date;
+  status: InvoiceStatus;
+  memo?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// 통계 관련 타입 확장
+export interface ProductStatistics {
+  companyId: string;
+  companyName: string;
+  // 묵류 통계 (과세)
+  mukQuantity: number; // 묵 총 수량
+  mukAmount: number; // 묵 총 금액
+  // 두부, 콩나물 통계 (면세)
+  tofuBeansproutQuantity: number; // 두부+콩나물 총 수량
+  tofuBeansproutAmount: number; // 두부+콩나물 총 금액
+}
+
+export interface DashboardStats {
+  totalCompanies: number;
+  totalDeliveries: number;
+  totalInvoices: number;
+  monthlyRevenue: number;
+  topCompanies: ProductStatistics[];
 }

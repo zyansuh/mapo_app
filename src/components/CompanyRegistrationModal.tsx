@@ -10,9 +10,14 @@ import {
   Platform,
   Alert,
 } from "react-native";
-import { CompanyFormData, CompanyFormErrors, CompanyType } from "../types";
+import {
+  CompanyFormData,
+  CompanyFormErrors,
+  CompanyType,
+  CompanyRegion,
+} from "../types";
 import { COLORS, SIZES } from "../constants";
-import { isValidEmail, isValidPhoneNumber } from "../utils";
+import { validateEmail, validatePhoneNumber } from "../utils";
 import TextInput from "./TextInput";
 import Picker from "./Picker";
 import Button from "./Button";
@@ -33,12 +38,20 @@ const companyTypeOptions = [
   { label: "기타", value: "기타" },
 ];
 
+const companyRegionOptions = [
+  { label: "순창", value: "순창" },
+  { label: "담양", value: "담양" },
+  { label: "장성", value: "장성" },
+  { label: "기타", value: "기타" },
+];
+
 export const CompanyRegistrationModal: React.FC<
   CompanyRegistrationModalProps
 > = ({ visible, onClose, onSubmit, editData }) => {
   const [formData, setFormData] = useState<CompanyFormData>({
     name: "",
     type: "고객사",
+    region: "순창",
     address: "",
     phoneNumber: "",
     email: "",
@@ -60,6 +73,7 @@ export const CompanyRegistrationModal: React.FC<
       setFormData({
         name: "",
         type: "고객사",
+        region: "순창",
         address: "",
         phoneNumber: "",
         email: "",
@@ -85,12 +99,12 @@ export const CompanyRegistrationModal: React.FC<
 
     if (!formData.phoneNumber.trim()) {
       newErrors.phoneNumber = "전화번호는 필수입니다.";
-    } else if (!isValidPhoneNumber(formData.phoneNumber)) {
+    } else if (!validatePhoneNumber(formData.phoneNumber)) {
       newErrors.phoneNumber = "올바른 전화번호 형식이 아닙니다.";
     }
 
     // 선택 필드 검증
-    if (formData.email && !isValidEmail(formData.email)) {
+    if (formData.email && !validateEmail(formData.email)) {
       newErrors.email = "올바른 이메일 형식이 아닙니다.";
     }
 
@@ -182,6 +196,18 @@ export const CompanyRegistrationModal: React.FC<
                 updateFormData("type", value as CompanyType)
               }
               error={errors.type}
+              required
+            />
+
+            {/* 지역 구분 (필수) */}
+            <Picker
+              label="지역 구분"
+              options={companyRegionOptions}
+              selectedValue={formData.region}
+              onValueChange={(value) =>
+                updateFormData("region", value as CompanyRegion)
+              }
+              error={errors.region}
               required
             />
 

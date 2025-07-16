@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   Alert,
   Linking,
   SafeAreaView,
+  Modal,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
@@ -30,6 +31,7 @@ import {
   CreditRecord,
   ProductSelectionFormData,
 } from "../types";
+import { QRCodeModal } from "../components/QRCodeModal";
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 type RouteProps = RouteProp<RootStackParamList, "CompanyDetail">;
@@ -61,11 +63,203 @@ export const CompanyDetailScreen: React.FC = () => {
   const company = getCompanyById(companyId);
 
   const [activeTab, setActiveTab] = useState<TabType>("info");
+  const [showProductSelection, setShowProductSelection] = useState(false);
+  const [showQRCode, setShowQRCode] = useState(false);
+
+  // 샘플 상품 데이터 생성 함수
+  const createSampleProducts = (companyId: string): Product[] => [
+    // 두부 카테고리
+    {
+      id: "1",
+      name: "착한손두부",
+      category: "두부",
+      price: 2500,
+      unit: "모",
+      description: "신선한 착한손두부",
+      companyId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      id: "2",
+      name: "고소한손두부",
+      category: "두부",
+      price: 2800,
+      unit: "모",
+      description: "고소한 맛의 손두부",
+      companyId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      id: "3",
+      name: "순두부",
+      category: "두부",
+      price: 3000,
+      unit: "모",
+      description: "부드러운 순두부",
+      companyId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      id: "4",
+      name: "맛두부",
+      category: "두부",
+      price: 3200,
+      unit: "모",
+      description: "맛있는 두부",
+      companyId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      id: "5",
+      name: "판두부",
+      category: "두부",
+      price: 2200,
+      unit: "판",
+      description: "판 형태의 두부",
+      companyId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      id: "6",
+      name: "모두부",
+      category: "두부",
+      price: 2700,
+      unit: "모",
+      description: "모 형태의 두부",
+      companyId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      id: "7",
+      name: "콩물",
+      category: "두부",
+      price: 1500,
+      unit: "병",
+      description: "신선한 콩물",
+      companyId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    // 콩나물 카테고리
+    {
+      id: "8",
+      name: "시루콩나물",
+      category: "콩나물",
+      price: 1800,
+      unit: "봉지",
+      description: "시루에서 기른 콩나물",
+      companyId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      id: "9",
+      name: "박스콩나물",
+      category: "콩나물",
+      price: 12000,
+      unit: "박스",
+      description: "박스 단위 콩나물",
+      companyId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      id: "10",
+      name: "두절콩나물",
+      category: "콩나물",
+      price: 2200,
+      unit: "봉지",
+      description: "두절 콩나물",
+      companyId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    // 묵류 카테고리
+    {
+      id: "11",
+      name: "도토리묵小",
+      category: "묵류",
+      price: 2500,
+      unit: "개",
+      description: "소형 도토리묵",
+      companyId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      id: "12",
+      name: "도토리묵大",
+      category: "묵류",
+      price: 4000,
+      unit: "개",
+      description: "대형 도토리묵",
+      companyId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      id: "13",
+      name: "도토리420",
+      category: "묵류",
+      price: 3500,
+      unit: "개",
+      description: "도토리420 묵",
+      companyId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      id: "14",
+      name: "검정깨묵",
+      category: "묵류",
+      price: 3200,
+      unit: "개",
+      description: "검정깨로 만든 묵",
+      companyId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      id: "15",
+      name: "우뭇가사리",
+      category: "묵류",
+      price: 2800,
+      unit: "개",
+      description: "우뭇가사리 묵",
+      companyId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      id: "16",
+      name: "청포묵",
+      category: "묵류",
+      price: 3000,
+      unit: "개",
+      description: "신선한 청포묵",
+      companyId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+  ];
 
   // 샘플 데이터 - 실제 앱에서는 API에서 가져와야 함
   const [deliveries, setDeliveries] = useState<ProductDelivery[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [creditRecords, setCreditRecords] = useState<CreditRecord[]>([]);
+
+  // company가 로드되면 샘플 상품 데이터 설정
+  useEffect(() => {
+    if (company && products.length === 0) {
+      setProducts(createSampleProducts(company.id));
+    }
+  }, [company, products.length]);
 
   if (!company) {
     return (
@@ -158,8 +352,38 @@ export const CompanyDetailScreen: React.FC = () => {
   };
 
   const handleSelectProduct = (formData: ProductSelectionFormData) => {
-    Alert.alert("성공", "상품 선택이 완료되었습니다!");
-    // 실제 앱에서는 API 호출로 배송 등록
+    try {
+      // 선택된 상품 정보 찾기
+      const selectedProduct = products.find((p) => p.id === formData.productId);
+
+      if (!selectedProduct) {
+        Alert.alert("오류", "선택된 상품을 찾을 수 없습니다.");
+        return;
+      }
+
+      // 새로운 배송 기록 생성
+      const newDelivery: ProductDelivery = {
+        id: Date.now().toString(),
+        productId: formData.productId,
+        product: selectedProduct,
+        companyId: company.id,
+        quantity: formData.quantity,
+        unitPrice: formData.unitPrice,
+        totalPrice: formData.quantity * formData.unitPrice,
+        deliveryDate: formData.deliveryDate,
+        status: "배송중",
+        memo: formData.memo,
+        createdAt: new Date(),
+      };
+
+      // 배송 목록에 추가
+      setDeliveries((prev) => [newDelivery, ...prev]);
+
+      Alert.alert("완료", `${selectedProduct.name} 배송이 등록되었습니다!`);
+    } catch (error) {
+      console.error("배송 등록 오류:", error);
+      Alert.alert("오류", "배송 등록 중 오류가 발생했습니다.");
+    }
   };
 
   // 외상 관리 관련 핸들러
@@ -377,6 +601,15 @@ export const CompanyDetailScreen: React.FC = () => {
     }
   };
 
+  const handleQRCodeGenerate = () => {
+    setShowQRCode(true);
+  };
+
+  const handleProductConfirm = (deliveries: ProductDelivery[]) => {
+    setDeliveries((prev) => [...prev, ...deliveries]);
+    setShowProductSelection(false);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       {/* 헤더 섹션 */}
@@ -418,6 +651,42 @@ export const CompanyDetailScreen: React.FC = () => {
       <View style={[styles.content, { paddingBottom: insets.bottom }]}>
         {renderTabContent()}
       </View>
+
+      {/* Product Selection Modal */}
+      {showProductSelection && (
+        <Modal
+          visible={showProductSelection}
+          animationType="slide"
+          onRequestClose={() => setShowProductSelection(false)}
+        >
+          <View style={{ flex: 1, padding: 20 }}>
+            <TouchableOpacity
+              style={{ padding: 10, alignSelf: "flex-end" }}
+              onPress={() => setShowProductSelection(false)}
+            >
+              <Text style={{ fontSize: 18 }}>✕</Text>
+            </TouchableOpacity>
+            <ProductSelection
+              companyId={company.id}
+              products={[]} // TODO: 실제 상품 목록 연결
+              onAddProduct={() => {}}
+              onSelectProduct={(formData) => {
+                // TODO: 실제 배송 등록 로직 구현
+                console.log("선택된 상품:", formData);
+                setShowProductSelection(false);
+              }}
+            />
+          </View>
+        </Modal>
+      )}
+
+      {/* QR Code Modal */}
+      <QRCodeModal
+        visible={showQRCode}
+        onClose={() => setShowQRCode(false)}
+        company={company}
+        title={`${company.name} QR 코드`}
+      />
     </SafeAreaView>
   );
 };

@@ -6,10 +6,12 @@ import {
   StyleSheet,
   TextInputProps,
   ViewStyle,
+  StyleProp,
+  TextStyle,
 } from "react-native";
 import { COLORS, SIZES } from "../constants";
 
-interface InputProps extends TextInputProps {
+interface InputProps extends Omit<TextInputProps, "style"> {
   label?: string;
   error?: string;
   style?: ViewStyle;

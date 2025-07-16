@@ -11,8 +11,10 @@ import {
   CompanyEditScreen,
   SearchScreen,
   StatisticsScreen,
+  SettingsScreen,
 } from "../screens";
 import { COLORS } from "../constants";
+import { ThemeProvider } from "../hooks/useTheme";
 
 export type RootStackParamList = {
   Main: undefined;
@@ -25,6 +27,7 @@ export type TabParamList = {
   Companies: undefined;
   Search: undefined;
   Statistics: undefined;
+  Settings: undefined;
 };
 
 const Tab = createBottomTabNavigator<TabParamList>();
@@ -70,6 +73,8 @@ const TabNavigator = () => {
             iconName = focused ? "🔍" : "🔎";
           } else if (route.name === "Statistics") {
             iconName = focused ? "📊" : "📈";
+          } else if (route.name === "Settings") {
+            iconName = focused ? "⚙️" : "⚙️";
           } else {
             iconName = "📋";
           }
@@ -98,43 +103,50 @@ const TabNavigator = () => {
         component={StatisticsScreen}
         options={{ tabBarLabel: "통계" }}
       />
+      <Tab.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{ tabBarLabel: "설정" }}
+      />
     </Tab.Navigator>
   );
 };
 
 export const AppNavigator = () => {
   return (
-    <NavigationContainer>
-      <Stack.Navigator
-        initialRouteName="Main"
-        screenOptions={{
-          headerStyle: {
-            backgroundColor: COLORS.PRIMARY,
-          },
-          headerTintColor: COLORS.WHITE,
-          headerTitleStyle: {
-            fontWeight: "bold",
-          },
-        }}
-      >
-        <Stack.Screen
-          name="Main"
-          component={TabNavigator}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="CompanyDetail"
-          component={CompanyDetailScreen}
-          options={{ title: "업체 상세" }}
-        />
-        <Stack.Screen
-          name="CompanyEdit"
-          component={CompanyEditScreen}
-          options={({ route }) => ({
-            title: route.params?.companyId ? "업체 수정" : "업체 등록",
-          })}
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <ThemeProvider>
+      <NavigationContainer>
+        <Stack.Navigator
+          initialRouteName="Main"
+          screenOptions={{
+            headerStyle: {
+              backgroundColor: COLORS.PRIMARY,
+            },
+            headerTintColor: COLORS.WHITE,
+            headerTitleStyle: {
+              fontWeight: "bold",
+            },
+          }}
+        >
+          <Stack.Screen
+            name="Main"
+            component={TabNavigator}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="CompanyDetail"
+            component={CompanyDetailScreen}
+            options={{ title: "업체 상세" }}
+          />
+          <Stack.Screen
+            name="CompanyEdit"
+            component={CompanyEditScreen}
+            options={({ route }) => ({
+              title: route.params?.companyId ? "업체 수정" : "업체 등록",
+            })}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </ThemeProvider>
   );
 };

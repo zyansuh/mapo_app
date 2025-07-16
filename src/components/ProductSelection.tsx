@@ -204,7 +204,7 @@ const sampleProducts: Product[] = [
     category: "묵류",
     price: 3000,
     unit: "개",
-    description: "청포로 만든 묵",
+    description: "신선한 청포묵",
     companyId: "1",
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -228,6 +228,8 @@ export const ProductSelection: React.FC<ProductSelectionProps> = ({
   const [isProductAddModalVisible, setIsProductAddModalVisible] =
     useState(false);
   const [isCategorySelectModalVisible, setIsCategorySelectModalVisible] =
+    useState(false);
+  const [isCategoryDropdownVisible, setIsCategoryDropdownVisible] =
     useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [newCategoryName, setNewCategoryName] = useState("");
@@ -727,6 +729,68 @@ export const ProductSelection: React.FC<ProductSelectionProps> = ({
     </Modal>
   );
 
+  const renderCategoryDropdown = () => (
+    <Modal
+      visible={isCategoryDropdownVisible}
+      transparent
+      animationType="fade"
+      onRequestClose={() => setIsCategoryDropdownVisible(false)}
+    >
+      <TouchableOpacity
+        style={styles.dropdownOverlay}
+        activeOpacity={1}
+        onPress={() => setIsCategoryDropdownVisible(false)}
+      >
+        <View style={styles.dropdownContent}>
+          {allCategories.map((category) => (
+            <TouchableOpacity
+              key={category}
+              style={[
+                styles.dropdownItem,
+                selectedCategory === category && styles.dropdownItemSelected,
+              ]}
+              onPress={() => {
+                setSelectedCategory(category);
+                setIsCategoryDropdownVisible(false);
+              }}
+            >
+              <Text
+                style={[
+                  styles.dropdownItemText,
+                  selectedCategory === category &&
+                    styles.dropdownItemTextSelected,
+                  { color: getCategoryColor(category) },
+                ]}
+              >
+                {category}
+              </Text>
+              {selectedCategory === category && (
+                <Ionicons
+                  name="checkmark"
+                  size={16}
+                  color={getCategoryColor(category)}
+                />
+              )}
+            </TouchableOpacity>
+          ))}
+
+          <View style={styles.dropdownSeparator} />
+
+          <TouchableOpacity
+            style={styles.dropdownAddButton}
+            onPress={() => {
+              setIsCategoryDropdownVisible(false);
+              handleAddCategory();
+            }}
+          >
+            <Ionicons name="add" size={16} color="#525252" />
+            <Text style={styles.dropdownAddText}>새 카테고리 추가</Text>
+          </TouchableOpacity>
+        </View>
+      </TouchableOpacity>
+    </Modal>
+  );
+
   const renderCategorySelectModal = () => (
     <Modal
       visible={isCategorySelectModalVisible}
@@ -1012,28 +1076,25 @@ export const ProductSelection: React.FC<ProductSelectionProps> = ({
         </TouchableOpacity>
       </View>
 
-      {/* 카테고리 필터 */}
+      {/* 카테고리 드롭다운 */}
       <View style={styles.categorySection}>
         <View style={styles.categorySectionHeader}>
           <Text style={styles.sectionTitle}>카테고리</Text>
-          <TouchableOpacity
-            style={styles.addCategoryHeaderButton}
-            onPress={handleAddCategory}
+        </View>
+        <TouchableOpacity
+          style={styles.categoryDropdownButton}
+          onPress={() => setIsCategoryDropdownVisible(true)}
+        >
+          <Text
+            style={[
+              styles.categoryDropdownText,
+              { color: getCategoryColor(selectedCategory) },
+            ]}
           >
-            <Ionicons name="add-circle-outline" size={16} color="#525252" />
-            <Text style={styles.addCategoryHeaderText}>추가</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.categoryContainer}>
-          <FlatList
-            data={allCategories}
-            renderItem={renderCategoryItem}
-            keyExtractor={(item) => item}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.categoryList}
-          />
-        </View>
+            {selectedCategory}
+          </Text>
+          <Ionicons name="chevron-down" size={20} color="#737373" />
+        </TouchableOpacity>
       </View>
 
       {/* 상품 목록 */}
@@ -1056,6 +1117,7 @@ export const ProductSelection: React.FC<ProductSelectionProps> = ({
         }
       />
 
+      {renderCategoryDropdown()}
       {renderCategoryModal()}
       {renderCategorySelectModal()}
       {renderSelectionModal()}
@@ -1472,5 +1534,74 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#ffffff",
     textAlign: "center",
+  },
+  // 드롭다운 관련 스타일
+  categoryDropdownButton: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#F5F5F5",
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "#E5E5E5",
+  },
+  categoryDropdownText: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  dropdownOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
+    justifyContent: "flex-start",
+    paddingTop: 120,
+    paddingHorizontal: 20,
+  },
+  dropdownContent: {
+    backgroundColor: "#ffffff",
+    borderRadius: 12,
+    paddingVertical: 8,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  dropdownItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  dropdownItemSelected: {
+    backgroundColor: "#F0F9FF",
+  },
+  dropdownItemText: {
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  dropdownItemTextSelected: {
+    fontWeight: "600",
+  },
+  dropdownSeparator: {
+    height: 1,
+    backgroundColor: "#E5E5E5",
+    marginVertical: 4,
+  },
+  dropdownAddButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  dropdownAddText: {
+    fontSize: 14,
+    color: "#525252",
+    marginLeft: 8,
   },
 });
