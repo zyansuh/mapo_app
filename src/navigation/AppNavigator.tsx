@@ -2,7 +2,7 @@ import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
-import { Text, Platform } from "react-native";
+import { Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   HomeScreen,
@@ -14,7 +14,7 @@ import {
   SettingsScreen,
 } from "../screens";
 import { COLORS } from "../constants";
-import { ThemeProvider } from "../hooks/useTheme";
+import { Ionicons } from "@expo/vector-icons";
 
 export type RootStackParamList = {
   Main: undefined;
@@ -24,14 +24,14 @@ export type RootStackParamList = {
 
 export type TabParamList = {
   Home: undefined;
-  Companies: undefined;
+  CompanyList: undefined;
   Search: undefined;
   Statistics: undefined;
   Settings: undefined;
 };
 
-const Tab = createBottomTabNavigator<TabParamList>();
 const Stack = createStackNavigator<RootStackParamList>();
+const Tab = createBottomTabNavigator<TabParamList>();
 
 const TabNavigator = () => {
   const insets = useSafeAreaInsets();
@@ -39,74 +39,72 @@ const TabNavigator = () => {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        headerShown: false,
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName: any;
+
+          if (route.name === "Home") {
+            iconName = focused ? "home" : "home-outline";
+          } else if (route.name === "CompanyList") {
+            iconName = focused ? "business" : "business-outline";
+          } else if (route.name === "Search") {
+            iconName = focused ? "search" : "search-outline";
+          } else if (route.name === "Statistics") {
+            iconName = focused ? "stats-chart" : "stats-chart-outline";
+          } else if (route.name === "Settings") {
+            iconName = focused ? "settings" : "settings-outline";
+          }
+
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: COLORS.PRIMARY,
+        tabBarInactiveTintColor: "#8E8E93",
         tabBarStyle: {
-          backgroundColor: "#F5F5F5", // NEUTRAL_100
+          backgroundColor: "#FFFFFF",
+          borderTopColor: "#E5E5EA",
           borderTopWidth: 1,
-          borderTopColor: "#D4D4D4", // NEUTRAL_300
           height:
-            Platform.OS === "ios" ? 85 + insets.bottom : 70 + insets.bottom,
+            Platform.OS === "ios"
+              ? 80 + insets.bottom
+              : 70 + Math.max(insets.bottom, 10),
           paddingBottom:
-            Platform.OS === "ios" ? 20 + insets.bottom : 10 + insets.bottom,
+            Platform.OS === "ios"
+              ? insets.bottom + 5
+              : Math.max(insets.bottom, 10),
           paddingTop: 8,
-          paddingHorizontal: 20,
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          elevation: 8,
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: -2 },
+          paddingHorizontal: 10,
+          elevation: 8, // Android shadow
+          shadowColor: "#000", // iOS shadow
+          shadowOffset: { width: 0, height: -3 },
           shadowOpacity: 0.1,
           shadowRadius: 3,
         },
-        tabBarActiveTintColor: "#404040", // NEUTRAL_700
-        tabBarInactiveTintColor: "#A3A3A3", // NEUTRAL_400
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName: string;
-
-          if (route.name === "Home") {
-            iconName = focused ? "🏠" : "🏡";
-          } else if (route.name === "Companies") {
-            iconName = focused ? "🏢" : "🏬";
-          } else if (route.name === "Search") {
-            iconName = focused ? "🔍" : "🔎";
-          } else if (route.name === "Statistics") {
-            iconName = focused ? "📊" : "📈";
-          } else if (route.name === "Settings") {
-            iconName = focused ? "⚙️" : "⚙️";
-          } else {
-            iconName = "📋";
-          }
-
-          return <Text style={{ fontSize: size }}>{iconName}</Text>;
-        },
+        headerShown: false,
       })}
     >
       <Tab.Screen
         name="Home"
         component={HomeScreen}
-        options={{ tabBarLabel: "홈" }}
+        options={{ title: "홈" }}
       />
       <Tab.Screen
-        name="Companies"
+        name="CompanyList"
         component={CompanyListScreen}
-        options={{ tabBarLabel: "업체 목록" }}
+        options={{ title: "거래처" }}
       />
       <Tab.Screen
         name="Search"
         component={SearchScreen}
-        options={{ tabBarLabel: "검색" }}
+        options={{ title: "검색" }}
       />
       <Tab.Screen
         name="Statistics"
         component={StatisticsScreen}
-        options={{ tabBarLabel: "통계" }}
+        options={{ title: "통계" }}
       />
       <Tab.Screen
         name="Settings"
         component={SettingsScreen}
-        options={{ tabBarLabel: "설정" }}
+        options={{ title: "설정" }}
       />
     </Tab.Navigator>
   );
@@ -114,39 +112,43 @@ const TabNavigator = () => {
 
 export const AppNavigator = () => {
   return (
-    <ThemeProvider>
-      <NavigationContainer>
-        <Stack.Navigator
-          initialRouteName="Main"
-          screenOptions={{
-            headerStyle: {
-              backgroundColor: COLORS.PRIMARY,
-            },
-            headerTintColor: COLORS.WHITE,
-            headerTitleStyle: {
-              fontWeight: "bold",
-            },
-          }}
-        >
-          <Stack.Screen
-            name="Main"
-            component={TabNavigator}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="CompanyDetail"
-            component={CompanyDetailScreen}
-            options={{ title: "업체 상세" }}
-          />
-          <Stack.Screen
-            name="CompanyEdit"
-            component={CompanyEditScreen}
-            options={({ route }) => ({
-              title: route.params?.companyId ? "업체 수정" : "업체 등록",
-            })}
-          />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </ThemeProvider>
+    <NavigationContainer>
+      <Stack.Navigator
+        initialRouteName="Main"
+        screenOptions={{
+          headerStyle: {
+            backgroundColor: COLORS.PRIMARY,
+          },
+          headerTintColor: "#FFFFFF",
+          headerTitleStyle: {
+            fontWeight: "bold",
+          },
+        }}
+      >
+        <Stack.Screen
+          name="Main"
+          component={TabNavigator}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="CompanyDetail"
+          component={CompanyDetailScreen}
+          options={({ route }) => ({
+            title: "거래처 상세",
+            headerBackTitle: "뒤로",
+          })}
+        />
+        <Stack.Screen
+          name="CompanyEdit"
+          component={CompanyEditScreen}
+          options={({ route }) => ({
+            title: (route.params as any)?.companyId
+              ? "거래처 수정"
+              : "거래처 등록",
+            headerBackTitle: "뒤로",
+          })}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 };

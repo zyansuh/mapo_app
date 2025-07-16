@@ -31,13 +31,16 @@ export const generateInvoiceFromDelivery = (
     // 카테고리에 따른 과세/면세 구분
     const taxType: InvoiceType = item.category === "묵류" ? "과세" : "면세";
 
+    // totalPrice 계산
+    const totalPrice = item.price * item.quantity;
+
     return {
       productId: item.productId,
-      productName: item.productName,
+      productName: item.name,
       category: item.category,
       quantity: item.quantity,
-      unitPrice: item.unitPrice,
-      totalPrice: item.totalPrice,
+      unitPrice: item.price,
+      totalPrice,
       taxType,
     };
   });
@@ -71,7 +74,7 @@ export const generateInvoiceFromDelivery = (
     totalAmount,
     taxAmount,
     totalWithTax,
-    invoiceDate: deliveryData.deliveryDate,
+    invoiceDate: new Date(deliveryData.date),
     status: "발행",
     memo: deliveryData.memo,
     createdAt: now,
@@ -205,10 +208,10 @@ export const calculateProductStatistics = (
 
       if (item.category === "묵류") {
         stat.mukQuantity += item.quantity;
-        stat.mukAmount += item.totalPrice;
+        stat.mukAmount += item.price * item.quantity;
       } else if (item.category === "두부" || item.category === "콩나물") {
         stat.tofuBeansproutQuantity += item.quantity;
-        stat.tofuBeansproutAmount += item.totalPrice;
+        stat.tofuBeansproutAmount += item.price * item.quantity;
       }
     });
   });

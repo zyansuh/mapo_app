@@ -31,7 +31,8 @@ import {
   CreditRecord,
   ProductSelectionFormData,
 } from "../types";
-import { QRCodeModal } from "../components/QRCodeModal";
+import { generateId } from "../utils";
+import { QRCodeModal } from "../components/modals/QRCodeModal";
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 type RouteProps = RouteProp<RootStackParamList, "CompanyDetail">;
@@ -563,10 +564,43 @@ export const CompanyDetailScreen: React.FC = () => {
     </View>
   );
 
+  // 재고 관리 함수들
+  const handleAddInventoryProduct = (
+    product: Omit<Product, "id" | "createdAt" | "updatedAt">
+  ) => {
+    const newProduct: Product = {
+      ...product,
+      id: generateId(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    setProducts([...products, newProduct]);
+  };
+
+  const handleUpdateInventoryProduct = (
+    id: string,
+    updatedProduct: Partial<Product>
+  ) => {
+    setProducts(
+      products.map((p) =>
+        p.id === id ? { ...p, ...updatedProduct, updatedAt: new Date() } : p
+      )
+    );
+  };
+
+  const handleDeleteInventoryProduct = (id: string) => {
+    setProducts(products.filter((p) => p.id !== id));
+  };
+
   // 재고 관리 탭 컨텐츠
   const renderInventoryTab = () => (
     <View style={styles.tabContent}>
-      <InventoryManagement companyId={company.id} />
+      <InventoryManagement
+        products={products}
+        onAddProduct={handleAddInventoryProduct}
+        onUpdateProduct={handleUpdateInventoryProduct}
+        onDeleteProduct={handleDeleteInventoryProduct}
+      />
     </View>
   );
 

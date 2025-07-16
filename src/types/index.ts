@@ -289,22 +289,27 @@ export interface QRCodeOptions {
 export type DeliveryStatus = "배송준비" | "배송중" | "배송완료" | "취소";
 
 export interface DeliveryItem {
+  id: string;
   productId: string;
-  productName: string;
+  name: string;
   category: ProductCategory;
   quantity: number;
-  unitPrice: number;
-  totalPrice: number;
+  unit: string;
+  price: number;
 }
 
 export interface DeliveryFormData {
+  id: string;
   companyId: string;
-  companyName: string;
-  deliveryDate: Date;
   items: DeliveryItem[];
   totalAmount: number;
+  date: string; // ISO 날짜 문자열
   memo?: string;
-  status: DeliveryStatus;
+  // 결제 관련 정보
+  paymentMethod: PaymentMethod;
+  isCredit: boolean; // 외상 여부
+  dueDate?: string; // 외상인 경우 지불 기한 (ISO 날짜 문자열)
+  creditMemo?: string; // 외상 관련 메모
 }
 
 // 계산서 관련 타입 정의

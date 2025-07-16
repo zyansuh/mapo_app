@@ -6,11 +6,3 @@ export { useCallAnalytics } from "./useCallAnalytics";
 export { useCallDetection } from "./useCallDetection";
 export { useCompany } from "./useCompany";
 export { usePhoneCall } from "./usePhoneCall";
-
-// 새로운 훅들
-export { useTheme, ThemeProvider } from "./useTheme";
-export {
-  useKeyboardShortcuts,
-  globalShortcutManager,
-  commonShortcuts,
-} from "./useKeyboardShortcuts";

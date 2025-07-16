@@ -20,13 +20,14 @@ import { useCompany } from "../hooks/useCompany";
 import { usePhoneCall } from "../hooks/usePhoneCall";
 import { useCallDetection } from "../hooks/useCallDetection";
 import { RootStackParamList } from "../navigation/AppNavigator";
-import { DeliveryRegistrationModal } from "../components";
+import { DeliveryRegistrationModal, InvoiceViewModal } from "../components";
 import {
   generateInvoiceFromDelivery,
   generateInvoiceText,
   calculateProductStatistics,
   calculateDashboardStats,
 } from "../services/invoiceService";
+import { generateId } from "../utils";
 import {
   DeliveryFormData,
   Invoice,
@@ -54,8 +55,105 @@ const HomeScreen = () => {
     useState(false);
   const [selectedBusinessType, setSelectedBusinessType] = useState<string>("");
   const [isDeliveryModalVisible, setIsDeliveryModalVisible] = useState(false);
+  const [isInvoiceModalVisible, setIsInvoiceModalVisible] = useState(false);
   const [deliveries, setDeliveries] = useState<DeliveryFormData[]>([]);
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [invoices, setInvoices] = useState<Invoice[]>([
+    // 샘플 계산서 데이터
+    {
+      id: "sample1",
+      invoiceNumber: "INV-20241220-001",
+      companyId: "1",
+      company: {
+        id: "1",
+        name: "순창농협",
+        type: "고객사",
+        region: "순창",
+        address: "전북 순창군 순창읍",
+        phoneNumber: "063-650-1234",
+        contactPerson: "김순창",
+        email: "",
+        businessNumber: "",
+        memo: "",
+        createdAt: new Date(2024, 11, 1),
+        updatedAt: new Date(2024, 11, 1),
+      },
+      items: [
+        {
+          productId: "11",
+          productName: "도토리묵",
+          category: "묵류",
+          quantity: 10,
+          unitPrice: 3000,
+          totalPrice: 30000,
+          taxType: "과세",
+        },
+        {
+          productId: "12",
+          productName: "청포묵",
+          category: "묵류",
+          quantity: 5,
+          unitPrice: 3500,
+          totalPrice: 17500,
+          taxType: "과세",
+        },
+      ],
+      totalAmount: 47500,
+      taxAmount: 4750,
+      totalWithTax: 52250,
+      invoiceDate: new Date(2024, 11, 20),
+      status: "발행",
+      createdAt: new Date(2024, 11, 20),
+      updatedAt: new Date(2024, 11, 20),
+      memo: "샘플 과세 계산서",
+    },
+    {
+      id: "sample2",
+      invoiceNumber: "INV-20241220-002",
+      companyId: "2",
+      company: {
+        id: "2",
+        name: "담양마트",
+        type: "고객사",
+        region: "담양",
+        address: "전남 담양군 담양읍",
+        phoneNumber: "061-380-5678",
+        contactPerson: "박담양",
+        email: "",
+        businessNumber: "",
+        memo: "",
+        createdAt: new Date(2024, 11, 1),
+        updatedAt: new Date(2024, 11, 1),
+      },
+      items: [
+        {
+          productId: "1",
+          productName: "순두부",
+          category: "두부",
+          quantity: 20,
+          unitPrice: 1500,
+          totalPrice: 30000,
+          taxType: "면세",
+        },
+        {
+          productId: "8",
+          productName: "콩나물",
+          category: "콩나물",
+          quantity: 15,
+          unitPrice: 2000,
+          totalPrice: 30000,
+          taxType: "면세",
+        },
+      ],
+      totalAmount: 60000,
+      taxAmount: 0,
+      totalWithTax: 60000,
+      invoiceDate: new Date(2024, 11, 19),
+      status: "발행",
+      createdAt: new Date(2024, 11, 19),
+      updatedAt: new Date(2024, 11, 19),
+      memo: "샘플 면세 계산서",
+    },
+  ]);
 
   const stats = getStats();
 
@@ -78,22 +176,67 @@ const HomeScreen = () => {
       const invoice = generateInvoiceFromDelivery(deliveryData, company);
       setInvoices((prev) => [...prev, invoice]);
 
-      // 계산서 텍스트 생성 및 출력 (Alert로 표시)
-      const invoiceText = generateInvoiceText(invoice);
-      Alert.alert(
-        "배송 등록 완료",
-        `배송이 등록되었고 계산서가 자동 생성되었습니다.\n\n계산서 번호: ${
-          invoice.invoiceNumber
-        }\n총액: ${invoice.totalWithTax.toLocaleString()}원`,
-        [
-          { text: "확인", style: "default" },
-          {
-            text: "계산서 보기",
-            onPress: () =>
-              Alert.alert("계산서", invoiceText, [{ text: "확인" }]),
-          },
-        ]
-      );
+      // 외상 처리인 경우 외상 기록 생성
+      if (deliveryData.isCredit) {
+        const creditRecord = {
+          id: generateId(),
+          companyId: deliveryData.companyId,
+          amount: deliveryData.totalAmount,
+          paidAmount: 0,
+          remainingAmount: deliveryData.totalAmount,
+          dueDate:
+            deliveryData.dueDate ||
+            new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 기본 30일
+          status: "정상" as const,
+          description: deliveryData.creditMemo || `${company.name} 배송 외상`,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        // TODO: 외상 기록 저장 로직 추가 (현재는 상태 관리가 없음)
+        console.log("외상 기록 생성:", creditRecord);
+
+        // 외상 처리 완료 알림
+        Alert.alert(
+          "배송 등록 완료 (외상)",
+          `배송이 등록되고 외상 처리되었습니다.\n\n거래처: ${
+            company.name
+          }\n외상 금액: ${deliveryData.totalAmount.toLocaleString()}원\n지불 기한: ${
+            deliveryData.dueDate
+              ? new Date(deliveryData.dueDate).toLocaleDateString()
+              : new Date(
+                  Date.now() + 30 * 24 * 60 * 60 * 1000
+                ).toLocaleDateString()
+          }`,
+          [
+            { text: "확인", style: "default" },
+            {
+              text: "계산서 보기",
+              onPress: () => {
+                const invoiceText = generateInvoiceText(invoice);
+                Alert.alert("계산서", invoiceText, [{ text: "확인" }]);
+              },
+            },
+          ]
+        );
+      } else {
+        // 즉시 결제 완료 알림
+        const invoiceText = generateInvoiceText(invoice);
+        Alert.alert(
+          "배송 등록 완료",
+          `배송이 등록되었고 계산서가 자동 생성되었습니다.\n\n계산서 번호: ${
+            invoice.invoiceNumber
+          }\n총액: ${invoice.totalWithTax.toLocaleString()}원`,
+          [
+            { text: "확인", style: "default" },
+            {
+              text: "계산서 보기",
+              onPress: () =>
+                Alert.alert("계산서", invoiceText, [{ text: "확인" }]),
+            },
+          ]
+        );
+      }
     }
   };
 
@@ -426,11 +569,14 @@ ${unknownNumberCount > 0 ? "• 미지의 번호를 처리해주세요" : ""}`,
               </Text>
             </TouchableOpacity>
 
-            <View style={styles.statCard}>
+            <TouchableOpacity
+              style={styles.statCard}
+              onPress={() => setIsInvoiceModalVisible(true)}
+            >
               <Ionicons name="document-text" size={24} color="#f59e0b" />
               <Text style={styles.statNumber}>{invoices.length}</Text>
               <Text style={styles.statLabel}>계산서</Text>
-            </View>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -533,62 +679,183 @@ ${unknownNumberCount > 0 ? "• 미지의 번호를 처리해주세요" : ""}`,
           </View>
         </View>
 
-        {/* 지역별 현황 */}
-        <View style={styles.businessTypeContainer}>
-          <Text style={styles.sectionTitle}>지역별 현황</Text>
-          <View style={styles.businessTypeGrid}>
-            <TouchableOpacity
-              style={styles.businessTypeCard}
-              onPress={() => handleRegionPress("순창")}
-            >
-              <View style={styles.businessTypeHeader}>
-                <Ionicons name="location" size={20} color="#10b981" />
-                <Text style={styles.businessTypeTitle}>순창</Text>
-              </View>
-              <Text style={styles.businessTypeNumber}>
-                {getCompaniesByRegion("순창").length}
-              </Text>
-              <Text style={styles.businessTypeDesc}>순창 지역 업체</Text>
-              <View style={styles.cardIndicator}>
-                <Ionicons name="chevron-forward" size={16} color="#9ca3af" />
-              </View>
-            </TouchableOpacity>
+        {/* 업체별 영수증 현황 */}
+        {invoices.length > 0 && (
+          <View style={styles.businessTypeContainer}>
+            <Text style={styles.sectionTitle}>업체별 영수증 현황</Text>
+            <View style={styles.invoiceStatsGrid}>
+              {/* 과세 영수증 현황 */}
+              <TouchableOpacity
+                style={[styles.invoiceStatCard, { backgroundColor: "#f3e8ff" }]}
+                onPress={() => {
+                  setIsInvoiceModalVisible(true);
+                }}
+              >
+                <View style={styles.invoiceStatHeader}>
+                  <View
+                    style={[
+                      styles.invoiceStatIcon,
+                      { backgroundColor: "#8b5cf6" },
+                    ]}
+                  >
+                    <Ionicons name="cube" size={24} color="#ffffff" />
+                  </View>
+                  <Text style={[styles.invoiceStatTitle, { color: "#8b5cf6" }]}>
+                    과세 영수증
+                  </Text>
+                </View>
+                <Text style={[styles.invoiceStatNumber, { color: "#8b5cf6" }]}>
+                  {
+                    invoices.filter((invoice) =>
+                      invoice.items.some((item) => item.taxType === "과세")
+                    ).length
+                  }
+                  건
+                </Text>
+                <Text style={styles.invoiceStatDesc}>묵류 (부가세 포함)</Text>
+                <View style={styles.invoiceStatAmount}>
+                  <Text
+                    style={[styles.invoiceStatAmountText, { color: "#8b5cf6" }]}
+                  >
+                    {invoices
+                      .filter((invoice) =>
+                        invoice.items.some((item) => item.taxType === "과세")
+                      )
+                      .reduce((sum, invoice) => sum + invoice.taxAmount, 0)
+                      .toLocaleString()}
+                    원 세액
+                  </Text>
+                </View>
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.businessTypeCard}
-              onPress={() => handleRegionPress("담양")}
-            >
-              <View style={styles.businessTypeHeader}>
-                <Ionicons name="location" size={20} color="#3b82f6" />
-                <Text style={styles.businessTypeTitle}>담양</Text>
-              </View>
-              <Text style={styles.businessTypeNumber}>
-                {getCompaniesByRegion("담양").length}
-              </Text>
-              <Text style={styles.businessTypeDesc}>담양 지역 업체</Text>
-              <View style={styles.cardIndicator}>
-                <Ionicons name="chevron-forward" size={16} color="#9ca3af" />
-              </View>
-            </TouchableOpacity>
+              {/* 면세 영수증 현황 */}
+              <TouchableOpacity
+                style={[styles.invoiceStatCard, { backgroundColor: "#f0fdf4" }]}
+                onPress={() => {
+                  setIsInvoiceModalVisible(true);
+                }}
+              >
+                <View style={styles.invoiceStatHeader}>
+                  <View
+                    style={[
+                      styles.invoiceStatIcon,
+                      { backgroundColor: "#10b981" },
+                    ]}
+                  >
+                    <Ionicons name="leaf" size={24} color="#ffffff" />
+                  </View>
+                  <Text style={[styles.invoiceStatTitle, { color: "#10b981" }]}>
+                    면세 영수증
+                  </Text>
+                </View>
+                <Text style={[styles.invoiceStatNumber, { color: "#10b981" }]}>
+                  {
+                    invoices.filter((invoice) =>
+                      invoice.items.some((item) => item.taxType === "면세")
+                    ).length
+                  }
+                  건
+                </Text>
+                <Text style={styles.invoiceStatDesc}>두부, 콩나물 (면세)</Text>
+                <View style={styles.invoiceStatAmount}>
+                  <Text
+                    style={[styles.invoiceStatAmountText, { color: "#10b981" }]}
+                  >
+                    {invoices
+                      .filter((invoice) =>
+                        invoice.items.some((item) => item.taxType === "면세")
+                      )
+                      .reduce((sum, invoice) => {
+                        const taxFreeAmount = invoice.items
+                          .filter((item) => item.taxType === "면세")
+                          .reduce(
+                            (itemSum, item) => itemSum + item.totalPrice,
+                            0
+                          );
+                        return sum + taxFreeAmount;
+                      }, 0)
+                      .toLocaleString()}
+                    원 매출
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
 
-            <TouchableOpacity
-              style={styles.businessTypeCard}
-              onPress={() => handleRegionPress("장성")}
-            >
-              <View style={styles.businessTypeHeader}>
-                <Ionicons name="location" size={20} color="#f59e0b" />
-                <Text style={styles.businessTypeTitle}>장성</Text>
-              </View>
-              <Text style={styles.businessTypeNumber}>
-                {getCompaniesByRegion("장성").length}
-              </Text>
-              <Text style={styles.businessTypeDesc}>장성 지역 업체</Text>
-              <View style={styles.cardIndicator}>
-                <Ionicons name="chevron-forward" size={16} color="#9ca3af" />
-              </View>
-            </TouchableOpacity>
+            {/* 업체별 상세 */}
+            <View style={styles.companyInvoiceList}>
+              {productStats.slice(0, 3).map((stat) => {
+                const companyInvoices = invoices.filter(
+                  (inv) => inv.companyId === stat.companyId
+                );
+                const taxableCount = companyInvoices.filter((inv) =>
+                  inv.items.some((item) => item.taxType === "과세")
+                ).length;
+                const taxFreeCount = companyInvoices.filter((inv) =>
+                  inv.items.some((item) => item.taxType === "면세")
+                ).length;
+
+                return (
+                  <View key={stat.companyId} style={styles.companyInvoiceCard}>
+                    <View style={styles.companyInvoiceHeader}>
+                      <Text style={styles.companyInvoiceName}>
+                        {stat.companyName}
+                      </Text>
+                      <Text style={styles.companyInvoiceTotal}>
+                        총 {companyInvoices.length}건
+                      </Text>
+                    </View>
+                    <View style={styles.companyInvoiceDetails}>
+                      <View style={styles.companyInvoiceItem}>
+                        <View
+                          style={[
+                            styles.companyInvoiceBadge,
+                            { backgroundColor: "#f3e8ff" },
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.companyInvoiceBadgeText,
+                              { color: "#8b5cf6" },
+                            ]}
+                          >
+                            과세
+                          </Text>
+                        </View>
+                        <Text style={styles.companyInvoiceCount}>
+                          {taxableCount}건
+                        </Text>
+                        <Text style={styles.companyInvoiceProduct}>묵류</Text>
+                      </View>
+                      <View style={styles.companyInvoiceItem}>
+                        <View
+                          style={[
+                            styles.companyInvoiceBadge,
+                            { backgroundColor: "#f0fdf4" },
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.companyInvoiceBadgeText,
+                              { color: "#10b981" },
+                            ]}
+                          >
+                            면세
+                          </Text>
+                        </View>
+                        <Text style={styles.companyInvoiceCount}>
+                          {taxFreeCount}건
+                        </Text>
+                        <Text style={styles.companyInvoiceProduct}>
+                          두부/콩나물
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
           </View>
-        </View>
+        )}
 
         {/* 비즈니스 도구 */}
         <View style={styles.toolsContainer}>
@@ -694,6 +961,13 @@ ${unknownNumberCount > 0 ? "• 미지의 번호를 처리해주세요" : ""}`,
         onClose={() => setIsDeliveryModalVisible(false)}
         onSubmit={handleDeliverySubmit}
         companies={companies}
+      />
+
+      {/* 계산서 조회 모달 */}
+      <InvoiceViewModal
+        visible={isInvoiceModalVisible}
+        onClose={() => setIsInvoiceModalVisible(false)}
+        invoices={invoices}
       />
     </SafeAreaView>
   );
@@ -1147,6 +1421,113 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     color: "#171717",
+  },
+  // 영수증 현황 스타일
+  invoiceStatsGrid: {
+    flexDirection: "row",
+    gap: 12,
+    marginBottom: 16,
+  },
+  invoiceStatCard: {
+    flex: 1,
+    padding: 16,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  invoiceStatHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+    gap: 8,
+  },
+  invoiceStatIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  invoiceStatTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  invoiceStatNumber: {
+    fontSize: 24,
+    fontWeight: "700",
+    marginBottom: 4,
+  },
+  invoiceStatDesc: {
+    fontSize: 12,
+    color: "#6b7280",
+    marginBottom: 8,
+  },
+  invoiceStatAmount: {
+    alignItems: "flex-end",
+  },
+  invoiceStatAmountText: {
+    fontSize: 11,
+    fontWeight: "600",
+  },
+  // 업체별 영수증 리스트
+  companyInvoiceList: {
+    gap: 8,
+  },
+  companyInvoiceCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 8,
+    padding: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  companyInvoiceHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  companyInvoiceName: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#171717",
+  },
+  companyInvoiceTotal: {
+    fontSize: 12,
+    color: "#6b7280",
+    fontWeight: "600",
+  },
+  companyInvoiceDetails: {
+    flexDirection: "row",
+    gap: 16,
+  },
+  companyInvoiceItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  companyInvoiceBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  companyInvoiceBadgeText: {
+    fontSize: 10,
+    fontWeight: "600",
+  },
+  companyInvoiceCount: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#171717",
+  },
+  companyInvoiceProduct: {
+    fontSize: 11,
+    color: "#6b7280",
   },
 });
 

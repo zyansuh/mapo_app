@@ -312,22 +312,18 @@ export const SearchScreen: React.FC = () => {
             <View style={styles.filterItem}>
               <Text style={styles.filterLabel}>거래처 유형</Text>
               <Select
-                label=""
                 value={typeFilter}
                 onValueChange={setTypeFilter}
                 options={FILTER_OPTIONS}
-                style={styles.filterSelect}
               />
             </View>
 
             <View style={styles.filterItem}>
               <Text style={styles.filterLabel}>정렬 기준</Text>
               <Select
-                label=""
                 value={sortBy}
                 onValueChange={setSortBy}
                 options={SORT_OPTIONS}
-                style={styles.filterSelect}
               />
             </View>
           </View>

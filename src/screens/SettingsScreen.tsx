@@ -10,13 +10,28 @@ import {
   Modal,
   Pressable,
 } from "react-native";
-import { useTheme } from "../hooks/useTheme";
 import { ThemeMode, ExportOptions } from "../types";
 import { exportService } from "../services/exportService";
 import { useCompany } from "../hooks/useCompany";
 
-export const SettingsScreen = () => {
-  const { theme, themeMode, setThemeMode, isDark } = useTheme();
+const SettingsScreen = () => {
+  // 정적 테마 설정
+  const theme = {
+    colors: {
+      primary: "#007bff",
+      secondary: "#6c757d",
+      text: "#343a40",
+      textSecondary: "#6c757d",
+      background: "#f8f9fa",
+      white: "#ffffff",
+      border: "#e0e0e0",
+      success: "#28a745",
+      error: "#dc3545",
+    },
+  };
+  const themeMode: ThemeMode = "light";
+  const setThemeMode = (mode: ThemeMode) => {}; // 임시 함수
+  const isDark = false;
   const { companies } = useCompany();
   const [themeModalVisible, setThemeModalVisible] = useState(false);
   const [exportModalVisible, setExportModalVisible] = useState(false);
@@ -501,3 +516,5 @@ const createStyles = (colors: any) =>
       marginTop: 4,
     },
   });
+
+export default SettingsScreen;

@@ -12,21 +12,30 @@ import {
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { CompanyType, CompanyRegion } from "../types";
 import { useCompany } from "../hooks";
-import { useTheme } from "../hooks/useTheme";
 import { useLocalization } from "../localization/i18n";
-import { createScaledStyles } from "../styles/globalStyles";
+import { AddressSearchModal } from "../components/modals/AddressSearchModal";
 import {
   useKeyboardShortcuts,
   commonShortcuts,
 } from "../hooks/useKeyboardShortcuts";
 
+// 정적 색상 정의
+const COLORS = {
+  primary: "#007bff",
+  text: "#343a40",
+  textSecondary: "#6c757d",
+  white: "#ffffff",
+};
+
 export default function CompanyEditScreen() {
   const navigation = useNavigation();
   const route = useRoute();
-  const { theme } = useTheme();
   const { t } = useLocalization();
   const { companies, addCompany, updateCompany } = useCompany();
   const { companyId } = (route.params as any) || {};
+
+  // 주소 검색 모달 상태 추가
+  const [addressModalVisible, setAddressModalVisible] = useState(false);
 
   const existingCompany = companyId
     ? companies.find((c) => c.id === companyId)
@@ -87,7 +96,53 @@ export default function CompanyEditScreen() {
     navigation.goBack();
   }
 
-  const styles = createScaledStyles(theme.colors);
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: "#f8f9fa",
+    },
+    scrollContainer: {
+      flex: 1,
+    },
+    contentContainer: {
+      padding: 20,
+      paddingTop: 0,
+    },
+    textMedium: {
+      fontSize: 16,
+    },
+    textNormal: {
+      fontSize: 14,
+    },
+    textSmall: {
+      fontSize: 12,
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: "#ced4da",
+      borderRadius: 8,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      fontSize: 14,
+      color: COLORS.text,
+    },
+    buttonPrimary: {
+      backgroundColor: COLORS.primary,
+      paddingVertical: 12,
+      paddingHorizontal: 20,
+      borderRadius: 8,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    buttonSecondary: {
+      backgroundColor: "#e9ecef",
+      paddingVertical: 12,
+      paddingHorizontal: 20,
+      borderRadius: 8,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+  });
 
   return (
     <SafeAreaView style={styles.container}>
@@ -95,25 +150,21 @@ export default function CompanyEditScreen() {
         <View style={styles.contentContainer}>
           {/* 업체명 */}
           <View style={localStyles.inputGroup}>
-            <Text style={[styles.textMedium, localStyles.label]}>
-              {t("company.name")} *
-            </Text>
+            <Text style={[styles.textMedium, localStyles.label]}>업체명 *</Text>
             <TextInput
-              style={[styles.input, { color: theme.colors.text }]}
+              style={[styles.input, { color: COLORS.text }]}
               value={formData.name}
               onChangeText={(text) =>
                 setFormData((prev) => ({ ...prev, name: text }))
               }
               placeholder="업체명을 입력하세요"
-              placeholderTextColor={theme.colors.textSecondary}
+              placeholderTextColor={COLORS.textSecondary}
             />
           </View>
 
           {/* 업체구분 */}
           <View style={localStyles.inputGroup}>
-            <Text style={[styles.textMedium, localStyles.label]}>
-              {t("company.type")}
-            </Text>
+            <Text style={[styles.textMedium, localStyles.label]}>업체구분</Text>
             <View style={localStyles.radioGroup}>
               {(
                 ["고객사", "협력업체", "공급업체", "하청업체"] as CompanyType[]
@@ -123,7 +174,7 @@ export default function CompanyEditScreen() {
                   style={[
                     localStyles.radioOption,
                     formData.type === type && {
-                      backgroundColor: theme.colors.primary + "20",
+                      backgroundColor: COLORS.primary + "20",
                     },
                   ]}
                   onPress={() => setFormData((prev) => ({ ...prev, type }))}
@@ -133,9 +184,7 @@ export default function CompanyEditScreen() {
                       styles.textNormal,
                       {
                         color:
-                          formData.type === type
-                            ? theme.colors.primary
-                            : theme.colors.text,
+                          formData.type === type ? COLORS.primary : COLORS.text,
                       },
                     ]}
                   >
@@ -148,9 +197,7 @@ export default function CompanyEditScreen() {
 
           {/* 지역 */}
           <View style={localStyles.inputGroup}>
-            <Text style={[styles.textMedium, localStyles.label]}>
-              {t("company.region")}
-            </Text>
+            <Text style={[styles.textMedium, localStyles.label]}>지역</Text>
             <View style={localStyles.radioGroup}>
               {(["순창", "담양", "장성", "기타"] as CompanyRegion[]).map(
                 (region) => (
@@ -159,7 +206,7 @@ export default function CompanyEditScreen() {
                     style={[
                       localStyles.radioOption,
                       formData.region === region && {
-                        backgroundColor: theme.colors.primary + "20",
+                        backgroundColor: COLORS.primary + "20",
                       },
                     ]}
                     onPress={() => setFormData((prev) => ({ ...prev, region }))}
@@ -170,8 +217,8 @@ export default function CompanyEditScreen() {
                         {
                           color:
                             formData.region === region
-                              ? theme.colors.primary
-                              : theme.colors.text,
+                              ? COLORS.primary
+                              : COLORS.text,
                         },
                       ]}
                     >
@@ -185,140 +232,143 @@ export default function CompanyEditScreen() {
 
           {/* 전화번호 */}
           <View style={localStyles.inputGroup}>
-            <Text style={[styles.textMedium, localStyles.label]}>
-              {t("company.phoneNumber")} *
-            </Text>
+            <Text style={[styles.textMedium, localStyles.label]}>전화번호</Text>
             <TextInput
-              style={[styles.input, { color: theme.colors.text }]}
+              style={[styles.input, { color: COLORS.text }]}
               value={formData.phoneNumber}
               onChangeText={(text) =>
                 setFormData((prev) => ({ ...prev, phoneNumber: text }))
               }
               placeholder="010-1234-5678"
-              placeholderTextColor={theme.colors.textSecondary}
+              placeholderTextColor={COLORS.textSecondary}
               keyboardType="phone-pad"
             />
           </View>
 
-          {/* 주소 */}
+          {/* 주소 - 카카오맵 검색 */}
           <View style={localStyles.inputGroup}>
-            <Text style={[styles.textMedium, localStyles.label]}>
-              {t("company.address")}
-            </Text>
-            <TextInput
-              style={[styles.input, { color: theme.colors.text }]}
-              value={formData.address}
-              onChangeText={(text) =>
-                setFormData((prev) => ({ ...prev, address: text }))
-              }
-              placeholder="주소를 입력하세요"
-              placeholderTextColor={theme.colors.textSecondary}
-              multiline
-              numberOfLines={2}
-            />
+            <Text style={[styles.textMedium, localStyles.label]}>주소</Text>
+            <TouchableOpacity
+              style={[styles.input, localStyles.addressInput]}
+              onPress={() => setAddressModalVisible(true)}
+            >
+              <Text
+                style={[
+                  styles.textNormal,
+                  {
+                    color: formData.address
+                      ? COLORS.text
+                      : COLORS.textSecondary,
+                  },
+                ]}
+              >
+                {formData.address || "주소를 검색하세요"}
+              </Text>
+              <Text style={[styles.textSmall, { color: COLORS.primary }]}>
+                🔍 검색
+              </Text>
+            </TouchableOpacity>
           </View>
 
           {/* 이메일 */}
           <View style={localStyles.inputGroup}>
-            <Text style={[styles.textMedium, localStyles.label]}>
-              {t("company.email")}
-            </Text>
+            <Text style={[styles.textMedium, localStyles.label]}>이메일</Text>
             <TextInput
-              style={[styles.input, { color: theme.colors.text }]}
+              style={[styles.input, { color: COLORS.text }]}
               value={formData.email}
               onChangeText={(text) =>
                 setFormData((prev) => ({ ...prev, email: text }))
               }
               placeholder="email@example.com"
-              placeholderTextColor={theme.colors.textSecondary}
+              placeholderTextColor={COLORS.textSecondary}
               keyboardType="email-address"
               autoCapitalize="none"
             />
           </View>
 
-          {/* 담당자 */}
+          {/* 담당자명 */}
           <View style={localStyles.inputGroup}>
-            <Text style={[styles.textMedium, localStyles.label]}>
-              {t("company.contactPerson")}
-            </Text>
+            <Text style={[styles.textMedium, localStyles.label]}>담당자명</Text>
             <TextInput
-              style={[styles.input, { color: theme.colors.text }]}
+              style={[styles.input, { color: COLORS.text }]}
               value={formData.contactPerson}
               onChangeText={(text) =>
                 setFormData((prev) => ({ ...prev, contactPerson: text }))
               }
               placeholder="담당자명을 입력하세요"
-              placeholderTextColor={theme.colors.textSecondary}
+              placeholderTextColor={COLORS.textSecondary}
             />
           </View>
 
           {/* 사업자등록번호 */}
           <View style={localStyles.inputGroup}>
             <Text style={[styles.textMedium, localStyles.label]}>
-              {t("company.businessNumber")}
+              사업자등록번호
             </Text>
             <TextInput
-              style={[styles.input, { color: theme.colors.text }]}
+              style={[styles.input, { color: COLORS.text }]}
               value={formData.businessNumber}
               onChangeText={(text) =>
                 setFormData((prev) => ({ ...prev, businessNumber: text }))
               }
               placeholder="123-45-67890"
-              placeholderTextColor={theme.colors.textSecondary}
+              placeholderTextColor={COLORS.textSecondary}
             />
           </View>
 
           {/* 메모 */}
           <View style={localStyles.inputGroup}>
-            <Text style={[styles.textMedium, localStyles.label]}>
-              {t("company.memo")}
-            </Text>
+            <Text style={[styles.textMedium, localStyles.label]}>메모</Text>
             <TextInput
-              style={[styles.input, { color: theme.colors.text, height: 80 }]}
+              style={[styles.input, { color: COLORS.text, height: 80 }]}
               value={formData.memo}
               onChangeText={(text) =>
                 setFormData((prev) => ({ ...prev, memo: text }))
               }
               placeholder="메모를 입력하세요"
-              placeholderTextColor={theme.colors.textSecondary}
+              placeholderTextColor={COLORS.textSecondary}
               multiline
               numberOfLines={3}
               textAlignVertical="top"
             />
           </View>
 
-          {/* 버튼들 */}
+          {/* 저장 버튼 */}
           <View style={localStyles.buttonContainer}>
             <TouchableOpacity
               style={[styles.buttonSecondary, localStyles.button]}
-              onPress={handleCancel}
+              onPress={() => navigation.goBack()}
             >
-              <Text
-                style={[styles.textMedium, { color: theme.colors.primary }]}
-              >
-                {t("common.cancel")}
+              <Text style={[styles.textMedium, { color: COLORS.primary }]}>
+                취소
               </Text>
             </TouchableOpacity>
-
             <TouchableOpacity
               style={[styles.buttonPrimary, localStyles.button]}
               onPress={handleSave}
             >
-              <Text style={[styles.textMedium, { color: theme.colors.white }]}>
-                {t("common.save")}
+              <Text style={[styles.textMedium, { color: COLORS.white }]}>
+                저장
               </Text>
             </TouchableOpacity>
           </View>
 
+          {/* 도움말 */}
           <View style={localStyles.helpText}>
-            <Text
-              style={[styles.textSmall, { color: theme.colors.textSecondary }]}
-            >
+            <Text style={[styles.textSmall, { color: COLORS.textSecondary }]}>
               💡 단축키: Ctrl+S (저장), ESC (취소)
             </Text>
           </View>
         </View>
       </ScrollView>
+      <AddressSearchModal
+        visible={addressModalVisible}
+        onClose={() => setAddressModalVisible(false)}
+        onSelectAddress={(address) => {
+          setFormData((prev) => ({ ...prev, address }));
+          setAddressModalVisible(false);
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -357,5 +407,17 @@ const localStyles = StyleSheet.create({
   helpText: {
     marginTop: 16,
     alignItems: "center",
+  },
+  addressInput: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: "#ced4da",
+    borderRadius: 8,
+    fontSize: 14,
+    color: COLORS.text,
   },
 });
