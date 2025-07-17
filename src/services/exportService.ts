@@ -330,19 +330,21 @@ export class ExportService {
       "생성일",
     ];
 
-    const rows = deliveries.map((delivery) => [
-      delivery.id,
-      delivery.productId,
-      delivery.product.name,
-      delivery.companyId,
-      delivery.quantity.toString(),
-      delivery.unitPrice.toLocaleString(),
-      delivery.totalPrice.toLocaleString(),
-      delivery.deliveryDate.toLocaleDateString(),
-      delivery.status,
-      delivery.memo || "",
-      delivery.createdAt.toLocaleDateString(),
-    ]);
+    const rows = deliveries.flatMap((delivery) =>
+      delivery.items.map((item) => [
+        delivery.id,
+        item.productId,
+        item.product?.name || item.name,
+        delivery.companyId,
+        item.quantity.toString(),
+        item.unitPrice.toLocaleString(),
+        item.totalPrice.toLocaleString(),
+        delivery.deliveryDate.toLocaleDateString(),
+        delivery.status,
+        delivery.memo || "",
+        delivery.createdAt.toLocaleDateString(),
+      ])
+    );
 
     return this.arrayToCSV([headers, ...rows]);
   }

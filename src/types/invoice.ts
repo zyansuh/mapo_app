@@ -4,7 +4,14 @@ import { ProductCategory } from "./product";
 
 // 계산서 관련 타입 정의
 export type InvoiceType = "과세" | "면세";
-export type InvoiceStatus = "임시저장" | "발행" | "취소" | "수정";
+export type InvoiceStatus =
+  | "임시저장"
+  | "발행"
+  | "취소"
+  | "수정"
+  | "발행완료"
+  | "미수금"
+  | "수금완료";
 export type PaymentStatus = "미결제" | "부분결제" | "완료";
 export type PaymentMethod =
   | "현금"
@@ -45,6 +52,7 @@ export interface Invoice extends BaseEntity {
   taxableAmount: number; // 과세 대상 금액
   taxAmount: number; // 부가세액
   totalAmount: number; // 총액
+  totalWithTax: number; // 세금 포함 총액
 
   // 날짜 관련
   invoiceDate: Date;
@@ -58,6 +66,7 @@ export interface Invoice extends BaseEntity {
 
   // 기타
   memo?: string;
+  notes?: string;
   internalMemo?: string;
   reference?: string; // 참조번호
 

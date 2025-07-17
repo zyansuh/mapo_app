@@ -13,6 +13,8 @@ export const COLORS = {
   BLACK: "#000000",
   LIGHT_GRAY: "#f8f9fa",
   DARK_GRAY: "#343a40",
+  BACKGROUND: "#ffffff",
+  GRAY: "#6c757d",
 };
 
 export const SIZES = {
@@ -22,4 +24,7 @@ export const SIZES = {
   LG: 24,
   XL: 32,
   XXL: 48,
+  SMALL: 8,
+  MEDIUM: 16,
+  LARGE: 24,
 };

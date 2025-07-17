@@ -99,7 +99,8 @@ class StorageService implements IStorageService {
       if (this.isWeb) {
         return Object.keys(localStorage);
       } else {
-        return await AsyncStorage.getAllKeys();
+        const keys = await AsyncStorage.getAllKeys();
+        return [...keys]; // readonly 배열을 mutable 배열로 변환
       }
     } catch (error) {
       console.error("Storage getAllKeys error:", error);

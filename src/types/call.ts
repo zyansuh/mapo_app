@@ -23,6 +23,15 @@ export type CallStatus =
 
 export type CallType = "incoming" | "outgoing" | "missed";
 
+export interface CallHistoryItem {
+  id: string;
+  phoneNumber: string;
+  companyName?: string;
+  timestamp: Date;
+  duration?: number;
+  type: CallType;
+}
+
 export interface CallRecord extends BaseEntity {
   phoneNumber: string;
   type: CallType;

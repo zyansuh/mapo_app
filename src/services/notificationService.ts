@@ -1,11 +1,8 @@
 import * as Notifications from "expo-notifications";
-import * as Device from "expo-device";
-import Constants from "expo-constants";
 import { Platform } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Notification, NotificationType, NotificationPriority } from "../types";
 
-// 알림 표시 설정
+// 알림 기본 설정
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -16,13 +13,10 @@ Notifications.setNotificationHandler({
   }),
 });
 
-const NOTIFICATION_STORAGE_KEY = "@mapo_notifications";
-const PUSH_TOKEN_STORAGE_KEY = "@mapo_push_token";
-
 export class NotificationService {
   private static instance: NotificationService;
-  private pushToken: string | null = null;
-  private notifications: Notification[] = [];
+  private isInitialized = false;
+  private notificationHistory: Notification[] = [];
 
   static getInstance(): NotificationService {
     if (!NotificationService.instance) {
@@ -31,360 +25,331 @@ export class NotificationService {
     return NotificationService.instance;
   }
 
-  // 푸시 알림 권한 요청 및 토큰 획득
-  async registerForPushNotifications(): Promise<string | null> {
-    if (!Device.isDevice) {
-      console.warn("푸시 알림은 실제 기기에서만 작동합니다.");
-      return null;
-    }
-
-    // 기존 권한 상태 확인
-    const { status: existingStatus } =
-      await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
-
-    // 권한이 없으면 요청
-    if (existingStatus !== "granted") {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
-    }
-
-    if (finalStatus !== "granted") {
-      console.warn("푸시 알림 권한이 거부되었습니다.");
-      return null;
-    }
+  // 알림 서비스 초기화
+  async initialize(): Promise<boolean> {
+    if (this.isInitialized) return true;
 
     try {
-      // 푸시 토큰 획득
-      const token = await Notifications.getExpoPushTokenAsync({
-        projectId: Constants.expoConfig?.extra?.eas?.projectId,
-      });
+      // 알림 권한 요청
+      const { status: existingStatus } =
+        await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
 
-      this.pushToken = token.data;
-      await AsyncStorage.setItem(PUSH_TOKEN_STORAGE_KEY, token.data);
+      if (existingStatus !== "granted") {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
 
-      console.log("푸시 토큰:", token.data);
-      return token.data;
+      if (finalStatus !== "granted") {
+        console.warn("푸시 알림 권한이 거부되었습니다.");
+        return false;
+      }
+
+      // Android 알림 채널 설정
+      if (Platform.OS === "android") {
+        await this.setupAndroidChannels();
+      }
+
+      // 푸시 토큰 가져오기 (개발 환경에서는 생략)
+      if (!__DEV__) {
+        const token = await Notifications.getExpoPushTokenAsync();
+        console.log("푸시 토큰:", token.data);
+      }
+
+      this.isInitialized = true;
+      return true;
     } catch (error) {
-      console.error("푸시 토큰 획득 실패:", error);
-      return null;
+      console.error("알림 서비스 초기화 실패:", error);
+      return false;
     }
   }
 
-  // 안드로이드 알림 채널 설정
-  async setupAndroidNotificationChannel() {
-    if (Platform.OS === "android") {
-      await Notifications.setNotificationChannelAsync("default", {
-        name: "Default",
-        importance: Notifications.AndroidImportance.MAX,
-        vibrationPattern: [0, 250, 250, 250],
-        lightColor: "#FF231F7C",
-      });
+  // Android 알림 채널 설정
+  private async setupAndroidChannels(): Promise<void> {
+    await Notifications.setNotificationChannelAsync("call-notifications", {
+      name: "전화 알림",
+      importance: Notifications.AndroidImportance.HIGH,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: "#FF231F7C",
+      sound: "default",
+    });
 
-      // 통화 알림 채널
-      await Notifications.setNotificationChannelAsync("call", {
-        name: "통화 알림",
-        importance: Notifications.AndroidImportance.HIGH,
-        vibrationPattern: [0, 1000, 500, 1000],
-        sound: "default",
-      });
+    await Notifications.setNotificationChannelAsync("business-notifications", {
+      name: "비즈니스 알림",
+      importance: Notifications.AndroidImportance.DEFAULT,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: "#FF231F7C",
+      sound: "default",
+    });
 
-      // 외상 알림 채널
-      await Notifications.setNotificationChannelAsync("credit", {
-        name: "외상 알림",
-        importance: Notifications.AndroidImportance.DEFAULT,
-        vibrationPattern: [0, 250, 250, 250],
-      });
-
-      // 배송 알림 채널
-      await Notifications.setNotificationChannelAsync("delivery", {
-        name: "배송 알림",
-        importance: Notifications.AndroidImportance.DEFAULT,
-        vibrationPattern: [0, 250, 250, 250],
-      });
-    }
+    await Notifications.setNotificationChannelAsync("system-notifications", {
+      name: "시스템 알림",
+      importance: Notifications.AndroidImportance.LOW,
+    });
   }
 
-  // 로컬 알림 전송
-  async sendLocalNotification(
-    type: NotificationType,
+  // 즉시 알림 표시
+  async showNotification(
     title: string,
     message: string,
-    data?: any,
-    priority: NotificationPriority = "normal"
-  ): Promise<string> {
-    const notificationId = `notification_${Date.now()}`;
+    type: NotificationType = "system",
+    priority: NotificationPriority = "normal",
+    data?: any
+  ): Promise<string | null> {
+    try {
+      if (!this.isInitialized) {
+        await this.initialize();
+      }
 
-    // 알림 데이터 생성
-    const notification: Notification = {
-      id: notificationId,
-      type,
-      title,
-      message,
-      priority,
-      data,
-      timestamp: new Date(),
-      isRead: false,
-    };
+      const channelId = this.getChannelId(type);
+      const notification: Notification = {
+        id: Date.now().toString(),
+        type,
+        title,
+        message,
+        priority,
+        data,
+        timestamp: new Date(),
+        isRead: false,
+      };
 
-    // 메모리와 저장소에 추가
-    this.notifications.unshift(notification);
-    await this.saveNotifications();
+      // 알림 히스토리에 추가
+      this.notificationHistory.unshift(notification);
 
-    // 실제 알림 전송
-    const channelId = this.getChannelId(type);
-    const scheduledNotificationId =
-      await Notifications.scheduleNotificationAsync({
+      // 최대 100개까지만 유지
+      if (this.notificationHistory.length > 100) {
+        this.notificationHistory = this.notificationHistory.slice(0, 100);
+      }
+
+      const notificationId = await Notifications.scheduleNotificationAsync({
         content: {
           title,
           body: message,
-          data: { ...data, notificationId },
-          categoryIdentifier: type,
-          priority: this.getPriorityLevel(priority),
+          data: { ...data, notificationId: notification.id },
         },
-        trigger: null, // 즉시 전송
-        identifier: notificationId,
+        trigger: null, // 즉시 표시
+        ...(Platform.OS === "android" && { channelId }),
       });
 
-    return scheduledNotificationId;
+      return notificationId;
+    } catch (error) {
+      console.error("알림 표시 실패:", error);
+      return null;
+    }
   }
 
-  // 예약 알림 전송
+  // 예약 알림 설정
   async scheduleNotification(
-    type: NotificationType,
     title: string,
     message: string,
     triggerDate: Date,
-    data?: any,
-    priority: NotificationPriority = "normal"
-  ): Promise<string> {
-    const notificationId = `scheduled_${Date.now()}`;
+    type: NotificationType = "system",
+    priority: NotificationPriority = "normal",
+    data?: any
+  ): Promise<string | null> {
+    try {
+      if (!this.isInitialized) {
+        await this.initialize();
+      }
 
-    const notification: Notification = {
-      id: notificationId,
-      type,
-      title,
-      message,
-      priority,
-      data,
-      timestamp: new Date(),
-      isRead: false,
-    };
+      const channelId = this.getChannelId(type);
+      const notification: Notification = {
+        id: Date.now().toString(),
+        type,
+        title,
+        message,
+        priority,
+        data,
+        timestamp: triggerDate,
+        isRead: false,
+      };
 
-    this.notifications.unshift(notification);
-    await this.saveNotifications();
-
-    const scheduledNotificationId =
-      await Notifications.scheduleNotificationAsync({
+      const notificationId = await Notifications.scheduleNotificationAsync({
         content: {
           title,
           body: message,
-          data: { ...data, notificationId },
-          categoryIdentifier: type,
-          priority: this.getPriorityLevel(priority),
+          data: { ...data, notificationId: notification.id },
         },
         trigger: {
-          type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
-          seconds: Math.floor((triggerDate.getTime() - Date.now()) / 1000),
+          type: Notifications.SchedulableTriggerInputTypes.DATE,
+          date: triggerDate,
         },
-        identifier: notificationId,
+        ...(Platform.OS === "android" && { channelId }),
       });
 
-    return scheduledNotificationId;
-  }
-
-  // 특정 업체의 외상 만료 알림
-  async schedulePaymentDueNotification(
-    companyName: string,
-    amount: number,
-    dueDate: Date
-  ) {
-    const title = "외상 결제 알림";
-    const message = `${companyName}의 외상 ${amount.toLocaleString()}원이 ${dueDate.toLocaleDateString()}에 만료됩니다.`;
-
-    // 만료일 1일 전에 알림
-    const notificationDate = new Date(dueDate);
-    notificationDate.setDate(notificationDate.getDate() - 1);
-    notificationDate.setHours(9, 0, 0, 0); // 오전 9시
-
-    if (notificationDate > new Date()) {
-      return await this.scheduleNotification(
-        "credit",
-        title,
-        message,
-        notificationDate,
-        { companyName, amount, dueDate: dueDate.toISOString() },
-        "high"
-      );
+      return notificationId;
+    } catch (error) {
+      console.error("예약 알림 설정 실패:", error);
+      return null;
     }
   }
 
-  // 배송 완료 알림
-  async sendDeliveryCompletedNotification(
-    companyName: string,
-    productNames: string[]
-  ) {
-    const title = "배송 완료";
-    const message = `${companyName}에 ${productNames.join(
-      ", "
-    )} 배송이 완료되었습니다.`;
-
-    return await this.sendLocalNotification(
-      "delivery",
-      title,
-      message,
-      { companyName, productNames },
-      "normal"
-    );
+  // 특정 알림 취소
+  async cancelNotification(notificationId: string): Promise<void> {
+    try {
+      await Notifications.cancelScheduledNotificationAsync(notificationId);
+    } catch (error) {
+      console.error("알림 취소 실패:", error);
+    }
   }
 
-  // 통화 종료 후 알림
-  async sendCallEndNotification(
+  // 모든 알림 취소
+  async cancelAllNotifications(): Promise<void> {
+    try {
+      await Notifications.cancelAllScheduledNotificationsAsync();
+    } catch (error) {
+      console.error("모든 알림 취소 실패:", error);
+    }
+  }
+
+  // 비즈니스 관련 알림들
+  async notifyIncomingCall(
     phoneNumber: string,
-    duration: number,
     companyName?: string
-  ) {
-    const title = "통화 종료";
-    const durationText = this.formatCallDuration(duration);
-    const message = companyName
-      ? `${companyName}(${phoneNumber})와의 통화가 종료되었습니다. (${durationText})`
-      : `${phoneNumber}와의 통화가 종료되었습니다. (${durationText})`;
+  ): Promise<void> {
+    const title = companyName ? `${companyName}에서 전화` : "수신 전화";
+    const message = `전화번호: ${phoneNumber}`;
 
-    return await this.sendLocalNotification(
+    await this.showNotification(title, message, "call", "urgent", {
+      phoneNumber,
+      companyName,
+      action: "incoming_call",
+    });
+  }
+
+  async notifyUnknownNumber(phoneNumber: string): Promise<void> {
+    await this.showNotification(
+      "미지의 번호",
+      `${phoneNumber}에서 전화가 왔습니다. 거래처로 등록하시겠습니까?`,
       "call",
-      title,
-      message,
-      { phoneNumber, duration, companyName },
-      "normal"
+      "high",
+      { phoneNumber, action: "unknown_number" }
     );
   }
 
-  // 알림 목록 조회
-  async getNotifications(): Promise<Notification[]> {
-    if (this.notifications.length === 0) {
-      await this.loadNotifications();
-    }
-    return this.notifications.sort(
-      (a, b) => b.timestamp.getTime() - a.timestamp.getTime()
+  async notifyDeliveryReminder(
+    deliveryNumber: string,
+    companyName: string
+  ): Promise<void> {
+    await this.showNotification(
+      "배송 알림",
+      `${companyName} - ${deliveryNumber} 배송이 예정되어 있습니다.`,
+      "delivery",
+      "normal",
+      { deliveryNumber, companyName, action: "delivery_reminder" }
     );
   }
 
-  // 알림 읽음 처리
-  async markAsRead(notificationId: string): Promise<void> {
-    const notification = this.notifications.find(
+  async notifyInvoiceDue(
+    invoiceNumber: string,
+    companyName: string,
+    amount: number
+  ): Promise<void> {
+    await this.showNotification(
+      "결제 기한 알림",
+      `${companyName} - ${invoiceNumber} (${amount.toLocaleString()}원) 결제 기한이 임박했습니다.`,
+      "invoice",
+      "high",
+      { invoiceNumber, companyName, amount, action: "invoice_due" }
+    );
+  }
+
+  async notifyDataBackup(): Promise<void> {
+    await this.showNotification(
+      "데이터 백업 완료",
+      "비즈니스 데이터가 성공적으로 백업되었습니다.",
+      "system",
+      "low",
+      { action: "backup_complete" }
+    );
+  }
+
+  // 알림 히스토리 관리
+  getNotificationHistory(): Notification[] {
+    return this.notificationHistory;
+  }
+
+  getUnreadNotifications(): Notification[] {
+    return this.notificationHistory.filter((n) => !n.isRead);
+  }
+
+  markAsRead(notificationId: string): void {
+    const notification = this.notificationHistory.find(
       (n) => n.id === notificationId
     );
     if (notification) {
       notification.isRead = true;
-      await this.saveNotifications();
     }
   }
 
-  // 모든 알림 읽음 처리
-  async markAllAsRead(): Promise<void> {
-    this.notifications.forEach((n) => (n.isRead = true));
-    await this.saveNotifications();
+  markAllAsRead(): void {
+    this.notificationHistory.forEach((n) => (n.isRead = true));
   }
 
-  // 알림 삭제
-  async deleteNotification(notificationId: string): Promise<void> {
-    this.notifications = this.notifications.filter(
-      (n) => n.id !== notificationId
-    );
-    await this.saveNotifications();
-
-    // 예약된 알림도 취소
-    await Notifications.cancelScheduledNotificationAsync(notificationId);
+  clearHistory(): void {
+    this.notificationHistory = [];
   }
 
-  // 모든 알림 삭제
-  async clearAllNotifications(): Promise<void> {
-    this.notifications = [];
-    await this.saveNotifications();
-    await Notifications.cancelAllScheduledNotificationsAsync();
-  }
-
-  // 읽지 않은 알림 개수
-  getUnreadCount(): number {
-    return this.notifications.filter((n) => !n.isRead).length;
-  }
-
-  // 헬퍼 메서드들
+  // 헬퍼 메서드
   private getChannelId(type: NotificationType): string {
     switch (type) {
       case "call":
-        return "call";
+        return "call-notifications";
       case "credit":
-        return "credit";
       case "delivery":
-        return "delivery";
+      case "invoice":
+        return "business-notifications";
+      case "system":
       default:
-        return "default";
+        return "system-notifications";
     }
   }
 
-  private getPriorityLevel(
-    priority: NotificationPriority
-  ): Notifications.AndroidNotificationPriority {
-    switch (priority) {
-      case "low":
-        return Notifications.AndroidNotificationPriority.LOW;
-      case "high":
-        return Notifications.AndroidNotificationPriority.HIGH;
-      case "urgent":
-        return Notifications.AndroidNotificationPriority.MAX;
-      default:
-        return Notifications.AndroidNotificationPriority.DEFAULT;
-    }
+  // 알림 설정 관리
+  async getBadgeCount(): Promise<number> {
+    return await Notifications.getBadgeCountAsync();
   }
 
-  private formatCallDuration(seconds: number): string {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const remainingSeconds = seconds % 60;
-
-    if (hours > 0) {
-      return `${hours}시간 ${minutes}분 ${remainingSeconds}초`;
-    } else if (minutes > 0) {
-      return `${minutes}분 ${remainingSeconds}초`;
-    } else {
-      return `${remainingSeconds}초`;
-    }
+  async setBadgeCount(count: number): Promise<void> {
+    await Notifications.setBadgeCountAsync(count);
   }
 
-  private async saveNotifications(): Promise<void> {
-    try {
-      const notificationsData = this.notifications.map((n) => ({
-        ...n,
-        timestamp: n.timestamp.toISOString(),
-      }));
-      await AsyncStorage.setItem(
-        NOTIFICATION_STORAGE_KEY,
-        JSON.stringify(notificationsData)
-      );
-    } catch (error) {
-      console.error("알림 저장 실패:", error);
-    }
+  async clearBadge(): Promise<void> {
+    await Notifications.setBadgeCountAsync(0);
   }
 
-  private async loadNotifications(): Promise<void> {
-    try {
-      const notificationsData = await AsyncStorage.getItem(
-        NOTIFICATION_STORAGE_KEY
-      );
-      if (notificationsData) {
-        const parsed = JSON.parse(notificationsData);
-        this.notifications = parsed.map((n: any) => ({
-          ...n,
-          timestamp: new Date(n.timestamp),
-        }));
-      }
-    } catch (error) {
-      console.error("알림 로드 실패:", error);
-      this.notifications = [];
+  // 테스트용 알림들
+  async sendTestNotification(): Promise<void> {
+    await this.showNotification(
+      "테스트 알림",
+      "알림 기능이 정상적으로 작동합니다!",
+      "system",
+      "normal",
+      { action: "test" }
+    );
+  }
+
+  // 정기 알림 설정 (매일 오후 6시)
+  async setupDailyReports(): Promise<void> {
+    const now = new Date();
+    const sixPM = new Date();
+    sixPM.setHours(18, 0, 0, 0);
+
+    // 오늘 6시가 이미 지났으면 내일로 설정
+    if (now > sixPM) {
+      sixPM.setDate(sixPM.getDate() + 1);
     }
+
+    await this.scheduleNotification(
+      "일일 비즈니스 리포트",
+      "오늘의 거래처 활동과 통화 현황을 확인하세요.",
+      sixPM,
+      "system",
+      "normal",
+      { action: "daily_report" }
+    );
   }
 }
 
-// 싱글톤 인스턴스 내보내기
+// 전역 인스턴스
 export const notificationService = NotificationService.getInstance();

@@ -10,7 +10,7 @@ import {
   TextInput,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { CompanyType, CompanyRegion } from "../types";
+import { CompanyType, CompanyRegion, CompanyStatus } from "../types";
 import { useCompany } from "../hooks";
 import { useLocalization } from "../localization/i18n";
 import { AddressSearchModal } from "../components/modals/AddressSearchModal";
@@ -45,12 +45,15 @@ export default function CompanyEditScreen() {
     name: existingCompany?.name || "",
     type: existingCompany?.type || ("고객사" as CompanyType),
     region: existingCompany?.region || ("순창" as CompanyRegion),
+    status: existingCompany?.status || ("활성" as CompanyStatus),
     phoneNumber: existingCompany?.phoneNumber || "",
     address: existingCompany?.address || "",
     email: existingCompany?.email || "",
     contactPerson: existingCompany?.contactPerson || "",
+    contactPhone: existingCompany?.contactPhone || "",
     businessNumber: existingCompany?.businessNumber || "",
     memo: existingCompany?.memo || "",
+    tags: existingCompany?.tags || [],
   });
 
   // 키보드 단축키 설정

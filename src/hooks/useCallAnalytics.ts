@@ -1,14 +1,5 @@
 import { useMemo } from "react";
-import { CallAnalytics, Company } from "../types";
-
-interface CallHistoryItem {
-  id: string;
-  phoneNumber: string;
-  companyName?: string;
-  timestamp: Date;
-  duration?: number;
-  type: "outgoing" | "incoming" | "missed";
-}
+import { CallAnalytics, Company, CallHistoryItem } from "../types";
 
 export const useCallAnalytics = (
   callHistory: CallHistoryItem[],
@@ -56,6 +47,7 @@ export const useCallAnalytics = (
       .map((company) => ({
         company,
         callCount: callsByCompany[company.id] || 0,
+        totalDuration: 0, // 실제로는 해당 회사와의 총 통화 시간
       }))
       .filter((item) => item.callCount > 0)
       .sort((a, b) => b.callCount - a.callCount)
@@ -66,12 +58,16 @@ export const useCallAnalytics = (
       outgoingCalls,
       incomingCalls,
       missedCalls,
+      totalDuration: 0, // 실제로는 통화 기록에서 계산
+      averageDuration: 0, // 실제로는 총 시간 / 통화 횟수
       callsByCompany,
       callsByDate: {},
       callsByWeek: {},
       callsByMonth,
+      callsByHour: {}, // 시간대별 통화량
       favoriteCompanies,
       mostContactedCompanies,
+      peakCallTimes: [], // 피크 시간대
     };
   }, [callHistory, companies]);
 

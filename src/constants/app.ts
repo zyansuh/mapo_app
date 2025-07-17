@@ -4,7 +4,7 @@ export const APP_INFO = {
   VERSION: "2.0.0",
   BUILD_NUMBER: "2024010100",
   AUTHOR: "Mapo Development Team",
-  DESCRIPTION: "사업자를 위한 통합 관리 솔루션",
+  DESCRIPTION: "마포종합식품 관리프로그램",
 } as const;
 
 // API 관련 상수

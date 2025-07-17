@@ -111,7 +111,7 @@ export const InvoiceViewModal: React.FC<InvoiceViewModalProps> = ({
 
     filteredInvoices.forEach((invoice) => {
       const companyId = invoice.companyId;
-      const companyName = invoice.company.name;
+      const companyName = invoice.company?.name || "회사명 없음";
 
       if (!summaryMap.has(companyId)) {
         summaryMap.set(companyId, {
@@ -363,7 +363,9 @@ export const InvoiceViewModal: React.FC<InvoiceViewModalProps> = ({
         filteredInvoices.map((invoice) => (
           <View key={invoice.id} style={listStyles.card}>
             <View style={listStyles.cardHeader}>
-              <Text style={listStyles.cardTitle}>{invoice.company.name}</Text>
+              <Text style={listStyles.cardTitle}>
+                {invoice.company?.name || "회사명 없음"}
+              </Text>
               <Text style={[modalStyles.label, { fontSize: 12 }]}>
                 {new Date(invoice.invoiceDate).toLocaleDateString()}
               </Text>

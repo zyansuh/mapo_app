@@ -15,6 +15,9 @@ export type RootStackParamList = {
   Search: { initialQuery?: string };
   CreditManagement: { companyId?: string };
   InventoryManagement: undefined;
+  ProductManagement: undefined;
+  InvoiceManagement: undefined;
+  DeliveryManagement: undefined;
 };
 
 export type TabParamList = {

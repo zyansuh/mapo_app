@@ -83,6 +83,7 @@ export interface DeliveryItem {
   category: ProductCategory;
   quantity: number;
   unit: string;
+  price: number; // 단가 (unitPrice와 동일한 의미)
   unitPrice: number;
   totalPrice: number;
   discountRate?: number; // 할인율
@@ -118,6 +119,7 @@ export interface DeliveryFormData {
   companyId: string;
   items: DeliveryItem[];
   totalAmount: number;
+  date: string; // ISO 날짜 문자열
   deliveryDate: string; // ISO 날짜 문자열
   requestedDate?: string;
   driverName?: string;
@@ -159,11 +161,17 @@ export interface ProductStatistics {
   productId: string;
   productName: string;
   category: ProductCategory;
+  companyId: string;
+  companyName: string;
   totalQuantity: number;
   totalAmount: number;
   averagePrice: number;
   deliveryCount: number;
   lastDeliveryDate?: Date;
+  mukQuantity: number;
+  mukAmount: number;
+  tofuBeansproutQuantity: number;
+  tofuBeansproutAmount: number;
   topCompanies: Array<{
     companyId: string;
     companyName: string;

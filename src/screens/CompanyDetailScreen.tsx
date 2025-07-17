@@ -18,6 +18,7 @@ import { StackNavigationProp } from "@react-navigation/stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { RootStackParamList } from "../types";
+import { QRCodeGenerator } from "../components/QRCodeGenerator";
 import { useCompany } from "../hooks";
 import { useTheme } from "../hooks/useTheme";
 import DeliveryRegistrationModal from "../components/modals/DeliveryRegistrationModal";
@@ -39,6 +40,7 @@ const CompanyDetailScreen = () => {
     "info"
   );
   const [isDeliveryModalVisible, setIsDeliveryModalVisible] = useState(false);
+  const [qrModalVisible, setQrModalVisible] = useState(false);
   const [deliveries, setDeliveries] = useState<any[]>([]);
 
   if (!company) {
@@ -357,16 +359,28 @@ const CompanyDetailScreen = () => {
         <Text style={[styles.headerTitle, { color: theme.colors.text }]}>
           {company.name}
         </Text>
-        <TouchableOpacity
-          style={styles.editButton}
-          onPress={() => navigation.navigate("CompanyEdit", { companyId })}
-        >
-          <Ionicons
-            name="create-outline"
-            size={24}
-            color={theme.colors.primary}
-          />
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            style={styles.qrButton}
+            onPress={() => setQrModalVisible(true)}
+          >
+            <Ionicons
+              name="qr-code-outline"
+              size={24}
+              color={theme.colors.secondary}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.editButton}
+            onPress={() => navigation.navigate("CompanyEdit", { companyId })}
+          >
+            <Ionicons
+              name="create-outline"
+              size={24}
+              color={theme.colors.primary}
+            />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* 탭 메뉴 */}
@@ -410,6 +424,16 @@ const CompanyDetailScreen = () => {
           company={company}
         />
       )}
+
+      {/* QR 코드 모달 */}
+      {company && (
+        <QRCodeGenerator
+          visible={qrModalVisible}
+          onClose={() => setQrModalVisible(false)}
+          data={company}
+          type="company"
+        />
+      )}
     </SafeAreaView>
   );
 };
@@ -434,6 +458,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "600",
     marginLeft: 8,
+  },
+  headerActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  qrButton: {
+    padding: 8,
   },
   editButton: {
     padding: 8,

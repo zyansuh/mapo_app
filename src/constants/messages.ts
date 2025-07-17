@@ -158,7 +158,7 @@ export const INFO_MESSAGES = {
     CALL_HISTORY: "통화 기록이 없습니다.",
   },
   TUTORIAL: {
-    WELCOME: "마포 비즈니스 매니저에 오신 것을 환영합니다!",
+    WELCOME: "마포종합식품 매니저에 오신 것을 환영합니다!",
     ADD_COMPANY: "첫 번째 회사를 등록해보세요.",
     CREATE_INVOICE: "계산서를 발행해보세요.",
     MANAGE_PRODUCTS: "상품을 관리해보세요.",

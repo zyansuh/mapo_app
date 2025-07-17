@@ -15,12 +15,13 @@ import { useCompany } from "../hooks/useCompany";
 import { usePhoneCall } from "../hooks/usePhoneCall";
 import { useCallAnalytics } from "../hooks/useCallAnalytics";
 import { Company } from "../types";
+import { StatisticsCharts } from "../components/charts/BusinessChart";
+import { useCall } from "../providers/CallProvider";
 
 const StatisticsScreen = () => {
   const insets = useSafeAreaInsets();
   const { companies, toggleFavorite } = useCompany();
-  const { callHistory } = usePhoneCall();
-  const { analytics } = useCallAnalytics(callHistory, companies);
+  const { callHistory, analytics } = useCall();
 
   const [refreshing, setRefreshing] = useState(false);
 
@@ -242,7 +243,7 @@ const StatisticsScreen = () => {
             </Text>
           </View>
           {analytics.favoriteCompanies.length > 0 ? (
-            analytics.favoriteCompanies.map((company) => (
+            analytics.favoriteCompanies.map((company: any) => (
               <View key={company.id} style={styles.favoriteItem}>
                 <View style={styles.favoriteInfo}>
                   <Text style={styles.favoriteCompanyName}>{company.name}</Text>
@@ -282,36 +283,42 @@ const StatisticsScreen = () => {
         <View style={styles.topCompaniesContainer}>
           <Text style={styles.sectionTitle}>통화 활발도 순위</Text>
           {analytics.mostContactedCompanies.length > 0 ? (
-            analytics.mostContactedCompanies.slice(0, 5).map((item, index) => (
-              <View key={item.company.id} style={styles.topCompanyItem}>
-                <View
-                  style={[
-                    styles.rankBadge,
-                    { backgroundColor: index < 3 ? "#f59e0b" : "#6b7280" },
-                  ]}
-                >
-                  <Text style={styles.rankNumber}>{index + 1}</Text>
+            analytics.mostContactedCompanies
+              .slice(0, 5)
+              .map((item: any, index: number) => (
+                <View key={item.company.id} style={styles.topCompanyItem}>
+                  <View
+                    style={[
+                      styles.rankBadge,
+                      { backgroundColor: index < 3 ? "#f59e0b" : "#6b7280" },
+                    ]}
+                  >
+                    <Text style={styles.rankNumber}>{index + 1}</Text>
+                  </View>
+                  <View style={styles.topCompanyInfo}>
+                    <Text style={styles.topCompanyName}>
+                      {item.company.name}
+                    </Text>
+                    <Text style={styles.topCompanyType}>
+                      {item.company.type}
+                    </Text>
+                  </View>
+                  <View style={styles.callCountContainer}>
+                    <Text style={styles.callCount}>{item.callCount}</Text>
+                    <Text style={styles.callCountLabel}>통화</Text>
+                  </View>
+                  <TouchableOpacity
+                    style={styles.favoriteIconButton}
+                    onPress={() => handleToggleFavorite(item.company)}
+                  >
+                    <Ionicons
+                      name={item.company.isFavorite ? "star" : "star-outline"}
+                      size={20}
+                      color={item.company.isFavorite ? "#f59e0b" : "#9ca3af"}
+                    />
+                  </TouchableOpacity>
                 </View>
-                <View style={styles.topCompanyInfo}>
-                  <Text style={styles.topCompanyName}>{item.company.name}</Text>
-                  <Text style={styles.topCompanyType}>{item.company.type}</Text>
-                </View>
-                <View style={styles.callCountContainer}>
-                  <Text style={styles.callCount}>{item.callCount}</Text>
-                  <Text style={styles.callCountLabel}>통화</Text>
-                </View>
-                <TouchableOpacity
-                  style={styles.favoriteIconButton}
-                  onPress={() => handleToggleFavorite(item.company)}
-                >
-                  <Ionicons
-                    name={item.company.isFavorite ? "star" : "star-outline"}
-                    size={20}
-                    color={item.company.isFavorite ? "#f59e0b" : "#9ca3af"}
-                  />
-                </TouchableOpacity>
-              </View>
-            ))
+              ))
           ) : (
             <View style={styles.noDataContainer}>
               <Ionicons name="bar-chart-outline" size={32} color="#9ca3af" />
@@ -330,12 +337,12 @@ const StatisticsScreen = () => {
             {Object.entries(analytics.callsByMonth)
               .sort(([a], [b]) => b.localeCompare(a))
               .slice(0, 6)
-              .map(([month, count]) => (
+              .map(([month, count]: any) => (
                 <View key={month} style={styles.monthlyItem}>
                   <Text style={styles.monthlyLabel}>
                     {month.split("-")[1]}월
                   </Text>
-                  <Text style={styles.monthlyCount}>{count}</Text>
+                  <Text style={styles.monthlyCount}>{String(count)}</Text>
                   <Text style={styles.monthlyUnit}>건</Text>
                 </View>
               ))}
@@ -346,6 +353,12 @@ const StatisticsScreen = () => {
               <Text style={styles.noDataText}>월별 데이터가 없습니다</Text>
             </View>
           )}
+        </View>
+
+        {/* 시각화 차트 */}
+        <View style={styles.chartsContainer}>
+          <Text style={styles.sectionTitle}>데이터 시각화</Text>
+          <StatisticsCharts companies={companies} callHistory={callHistory} />
         </View>
 
         <View style={[styles.bottomSpacer, { height: 80 + insets.bottom }]} />
@@ -737,6 +750,18 @@ const styles = StyleSheet.create({
   monthlyUnit: {
     fontSize: 10,
     color: "#9ca3af",
+  },
+  chartsContainer: {
+    backgroundColor: "#ffffff",
+    marginHorizontal: 16,
+    marginBottom: 16,
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   bottomSpacer: {
     // height는 동적으로 설정됨

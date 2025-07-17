@@ -13,26 +13,25 @@ import {
 import { ThemeMode, ExportOptions } from "../types";
 import { exportService } from "../services/exportService";
 import { useCompany } from "../hooks/useCompany";
+import { useTheme } from "../hooks/useTheme";
+import { useCall } from "../providers/CallProvider";
+import { notificationService } from "../services/notificationService";
 
 const SettingsScreen = () => {
-  // 정적 테마 설정
-  const theme = {
-    colors: {
-      primary: "#007bff",
-      secondary: "#6c757d",
-      text: "#343a40",
-      textSecondary: "#6c757d",
-      background: "#f8f9fa",
-      white: "#ffffff",
-      border: "#e0e0e0",
-      success: "#28a745",
-      error: "#dc3545",
-    },
-  };
-  const themeMode: ThemeMode = "light";
-  const setThemeMode = (mode: ThemeMode) => {}; // 임시 함수
-  const isDark = false;
+  // 실제 테마 훅 사용
+  const { theme, themeMode, setThemeMode, isDark } = useTheme();
   const { companies } = useCompany();
+  const {
+    isDetectionActive,
+    startDetection,
+    stopDetection,
+    enableNotifications,
+    setEnableNotifications,
+    enableAutoDetection,
+    setEnableAutoDetection,
+    unknownNumberCount,
+    callHistory,
+  } = useCall();
   const [themeModalVisible, setThemeModalVisible] = useState(false);
   const [exportModalVisible, setExportModalVisible] = useState(false);
   const [notifications, setNotifications] = useState({
@@ -155,6 +154,87 @@ const SettingsScreen = () => {
             <Text style={styles.settingValue}>
               {themeOptions.find((option) => option.value === themeMode)?.label}
             </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* 전화 기능 설정 */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>전화 기능</Text>
+
+          <View style={styles.settingItem}>
+            <View style={styles.settingLeft}>
+              <Text style={styles.settingIcon}>📱</Text>
+              <Text style={styles.settingText}>자동 전화 감지</Text>
+            </View>
+            <Switch
+              value={enableAutoDetection}
+              onValueChange={setEnableAutoDetection}
+              trackColor={{
+                false: theme.colors.border,
+                true: theme.colors.primary,
+              }}
+            />
+          </View>
+
+          <View style={styles.settingItem}>
+            <View style={styles.settingLeft}>
+              <Text style={styles.settingIcon}>🔔</Text>
+              <Text style={styles.settingText}>전화 알림</Text>
+            </View>
+            <Switch
+              value={enableNotifications}
+              onValueChange={setEnableNotifications}
+              trackColor={{
+                false: theme.colors.border,
+                true: theme.colors.primary,
+              }}
+            />
+          </View>
+
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={isDetectionActive ? stopDetection : startDetection}
+          >
+            <View style={styles.settingLeft}>
+              <Text style={styles.settingIcon}>
+                {isDetectionActive ? "🟢" : "🔴"}
+              </Text>
+              <Text style={styles.settingText}>
+                전화 감지 {isDetectionActive ? "중지" : "시작"}
+              </Text>
+            </View>
+            <Text style={styles.settingValue}>
+              {isDetectionActive ? "활성" : "비활성"}
+            </Text>
+          </TouchableOpacity>
+
+          {unknownNumberCount > 0 && (
+            <View style={styles.settingItem}>
+              <View style={styles.settingLeft}>
+                <Text style={styles.settingIcon}>❓</Text>
+                <Text style={styles.settingText}>미지의 번호</Text>
+              </View>
+              <Text style={styles.settingValue}>{unknownNumberCount}개</Text>
+            </View>
+          )}
+
+          <View style={styles.settingItem}>
+            <View style={styles.settingLeft}>
+              <Text style={styles.settingIcon}>📞</Text>
+              <Text style={styles.settingText}>통화 기록</Text>
+            </View>
+            <Text style={styles.settingValue}>{callHistory.length}건</Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={() => notificationService.sendTestNotification()}
+          >
+            <View style={styles.settingLeft}>
+              <Text style={styles.settingIcon}>🔔</Text>
+              <Text style={styles.settingText}>알림 테스트</Text>
+            </View>
+            <Text style={styles.settingArrow}>›</Text>
           </TouchableOpacity>
         </View>
 

@@ -39,22 +39,22 @@ const HomeScreen = () => {
       title: "상품 관리",
       icon: "cube" as const,
       color: theme.colors.success,
-      onPress: () => {},
-      count: 0,
+      onPress: () => navigation.navigate("ProductManagement"),
+      count: 3,
     },
     {
       title: "계산서 관리",
       icon: "document-text" as const,
       color: theme.colors.warning,
-      onPress: () => {},
-      count: 0,
+      onPress: () => navigation.navigate("InvoiceManagement"),
+      count: 3,
     },
     {
       title: "배송 관리",
       icon: "car" as const,
       color: theme.colors.secondary,
-      onPress: () => {},
-      count: 0,
+      onPress: () => navigation.navigate("DeliveryManagement"),
+      count: 3,
     },
   ];
 

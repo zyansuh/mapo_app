@@ -1,14 +1,6 @@
 import { useState } from "react";
 import { Alert, Linking } from "react-native";
-
-interface CallHistoryItem {
-  id: string;
-  phoneNumber: string;
-  companyName?: string;
-  timestamp: Date;
-  duration?: number;
-  type: "outgoing" | "incoming" | "missed";
-}
+import { CallHistoryItem } from "../types";
 
 export const usePhoneCall = () => {
   const [callHistory, setCallHistory] = useState<CallHistoryItem[]>([]);

@@ -32,16 +32,22 @@ export const generateInvoiceFromDelivery = (
     const taxType: InvoiceType = item.category === "묵류" ? "과세" : "면세";
 
     // totalPrice 계산
-    const totalPrice = item.price * item.quantity;
+    const totalPrice = item.unitPrice * item.quantity;
+    const taxRate = taxType === "과세" ? 10 : 0;
+    const taxAmount = taxType === "과세" ? totalPrice * 0.1 : 0;
 
     return {
+      id: `item_${Date.now()}_${Math.random()}`,
       productId: item.productId,
       productName: item.name,
       category: item.category,
       quantity: item.quantity,
-      unitPrice: item.price,
+      unit: item.unit || "개",
+      unitPrice: item.unitPrice,
       totalPrice,
       taxType,
+      taxRate,
+      taxAmount,
     };
   });
 
@@ -68,14 +74,19 @@ export const generateInvoiceFromDelivery = (
   const invoice: Invoice = {
     id: generateId(),
     invoiceNumber,
+    invoiceType: "과세",
     companyId: company.id,
     company,
     items: invoiceItems,
+    subtotalAmount: totalAmount,
+    discountAmount: 0,
+    taxableAmount,
     totalAmount,
     taxAmount,
     totalWithTax,
     invoiceDate: new Date(deliveryData.date),
     status: "발행",
+    paymentStatus: "미결제",
     memo: deliveryData.memo,
     createdAt: now,
     updatedAt: now,
@@ -112,10 +123,10 @@ export const generateInvoiceText = (invoice: Invoice): string => {
 
 -------------------------------------------
 [거래처 정보]
-회사명: ${company.name}
-주소: ${company.address}
-전화번호: ${company.phoneNumber}
-${company.businessNumber ? `사업자등록번호: ${company.businessNumber}` : ""}
+회사명: ${company?.name || "정보 없음"}
+주소: ${company?.address || "정보 없음"}
+전화번호: ${company?.phoneNumber || "정보 없음"}
+${company?.businessNumber ? `사업자등록번호: ${company.businessNumber}` : ""}
 
 -------------------------------------------
 [상품 내역]
@@ -190,12 +201,20 @@ export const calculateProductStatistics = (
   // 거래처별 통계 초기화
   companies.forEach((company) => {
     stats[company.id] = {
+      productId: company.id,
+      productName: company.name,
+      category: "기타" as any,
       companyId: company.id,
       companyName: company.name,
+      totalQuantity: 0,
+      totalAmount: 0,
+      averagePrice: 0,
+      deliveryCount: 0,
       mukQuantity: 0,
       mukAmount: 0,
       tofuBeansproutQuantity: 0,
       tofuBeansproutAmount: 0,
+      topCompanies: [],
     };
   });
 
@@ -258,9 +277,12 @@ export const calculateDashboardStats = (
 
   return {
     totalCompanies: companies.length,
+    totalProducts: 0,
     totalDeliveries: deliveries.length,
     totalInvoices: invoices.length,
     monthlyRevenue,
+    outstandingAmount: 0,
     topCompanies,
+    recentActivities: [],
   };
 };

@@ -12,6 +12,9 @@ import {
   SearchScreen,
   StatisticsScreen,
   SettingsScreen,
+  ProductManagementScreen,
+  InvoiceManagementScreen,
+  DeliveryManagementScreen,
 } from "../screens";
 import { COLORS } from "../constants";
 import { Ionicons } from "@expo/vector-icons";
@@ -136,6 +139,27 @@ export const AppNavigator = () => {
               : "거래처 등록",
             headerBackTitle: "뒤로",
           })}
+        />
+        <Stack.Screen
+          name="ProductManagement"
+          component={ProductManagementScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="InvoiceManagement"
+          component={InvoiceManagementScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="DeliveryManagement"
+          component={DeliveryManagementScreen}
+          options={{
+            headerShown: false,
+          }}
         />
       </Stack.Navigator>
     </NavigationContainer>

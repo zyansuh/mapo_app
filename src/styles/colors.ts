@@ -2,6 +2,7 @@
 export const COLORS = {
   // 기본 배경 및 표면
   background: "#ffffff",
+  BACKGROUND: "#ffffff", // 기존 코드 호환성
   surface: "#f9fafb",
   border: "#e5e7eb",
 
@@ -12,16 +13,28 @@ export const COLORS = {
 
   // 주요 색상
   primary: "#3b82f6",
+  PRIMARY: "#3b82f6", // 기존 코드 호환성
+  SECONDARY: "#60a5fa",
   primaryLight: "#60a5fa",
   primaryDark: "#2563eb",
 
   // 기능별 색상
   white: "#ffffff",
+  WHITE: "#ffffff", // 기존 코드 호환성
   black: "#000000",
+  BLACK: "#000000", // 기존 코드 호환성
   success: "#10b981",
+  SUCCESS: "#10b981", // 기존 코드 호환성
   warning: "#f59e0b",
+  WARNING: "#f59e0b", // 기존 코드 호환성
   error: "#dc2626",
+  ERROR: "#dc2626", // 기존 코드 호환성
   info: "#3b82f6",
+
+  // 회색 톤
+  GRAY: "#6b7280",
+  LIGHT_GRAY: "#9ca3af",
+  DARK_GRAY: "#4b5563",
 
   // 투명도
   overlay: "rgba(0, 0, 0, 0.5)",
@@ -101,4 +114,19 @@ export const REGION_COLORS = {
     secondary: "#9ca3af",
     accent: "#4b5563",
   },
+} as const;
+
+// 크기 상수
+export const SIZES = {
+  XS: 8,
+  SM: 12,
+  MD: 16,
+  LG: 20,
+  XL: 24,
+  XXL: 32,
+
+  // 기존 코드 호환성
+  SMALL: 12,
+  MEDIUM: 16,
+  LARGE: 20,
 } as const;
