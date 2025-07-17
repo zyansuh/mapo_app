@@ -38,27 +38,6 @@ export interface CreditPayment {
   createdAt: Date;
 }
 
-// 알림 관련 타입
-export type NotificationType =
-  | "call"
-  | "credit"
-  | "delivery"
-  | "invoice"
-  | "system";
-export type NotificationPriority = "low" | "normal" | "high" | "urgent";
-
-export interface Notification {
-  id: string;
-  type: NotificationType;
-  title: string;
-  message: string;
-  priority: NotificationPriority;
-  data?: any; // 알림과 관련된 추가 데이터
-  timestamp: Date;
-  isRead: boolean;
-  actionUrl?: string; // 알림 클릭 시 이동할 화면
-}
-
 // 간단한 통계
 export interface DashboardStats {
   totalCompanies: number;

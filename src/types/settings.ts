@@ -17,7 +17,6 @@ export interface Theme {
     text: string;
     textSecondary: string;
     border: string;
-    notification: string;
     success: string;
     warning: string;
     error: string;
@@ -39,24 +38,6 @@ export interface Theme {
     h3: { fontSize: number; fontWeight: string };
     body: { fontSize: number; fontWeight: string };
     caption: { fontSize: number; fontWeight: string };
-  };
-}
-
-export interface NotificationSettings {
-  pushEnabled: boolean;
-  soundEnabled: boolean;
-  vibrationEnabled: boolean;
-  callAlerts: boolean;
-  creditAlerts: boolean;
-  deliveryAlerts: boolean;
-  invoiceAlerts: boolean;
-  systemAlerts: boolean;
-  emailNotifications: boolean;
-  smsNotifications: boolean;
-  quietHours: {
-    enabled: boolean;
-    startTime: string; // "HH:mm" 형식
-    endTime: string; // "HH:mm" 형식
   };
 }
 
@@ -83,9 +64,8 @@ export interface SecuritySettings {
 
 export interface AppSettings {
   version: string;
-  theme: ThemeMode;
+  theme: Theme;
   language: SupportedLanguage;
-  notifications: NotificationSettings;
   display: DisplaySettings;
   security: SecuritySettings;
 

@@ -17,7 +17,6 @@ import {
 import { ThemeMode } from "../types";
 import { useCompany } from "../hooks/useCompany";
 import { useTheme } from "../hooks/useTheme";
-import { notificationService } from "../services/notificationService";
 
 const SettingsScreen = () => {
   // 실제 테마 훅 사용
@@ -25,11 +24,6 @@ const SettingsScreen = () => {
   const { companies } = useCompany();
 
   const [themeModalVisible, setThemeModalVisible] = useState(false);
-  const [notifications, setNotifications] = useState({
-    vibrationEnabled: true,
-    callAlerts: true,
-    creditAlerts: true,
-  });
 
   const themeOptions = [
     { value: "light", label: "라이트 모드", icon: "☀️" },
@@ -62,81 +56,6 @@ const SettingsScreen = () => {
               {themeOptions.find((option) => option.value === themeMode)?.label}
             </Text>
           </TouchableOpacity>
-        </View>
-
-        {/* 전화 기능 설정 */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>전화 기능</Text>
-
-          <View style={styles.settingItem}>
-            <View style={styles.settingLeft}>
-              <Text style={styles.settingIcon}>📞</Text>
-              <Text style={styles.settingText}>전화 알림</Text>
-            </View>
-            <Switch
-              value={notifications.callAlerts}
-              onValueChange={(value) =>
-                setNotifications((prev) => ({ ...prev, callAlerts: value }))
-              }
-              trackColor={{
-                false: theme.colors.border,
-                true: theme.colors.primary,
-              }}
-            />
-          </View>
-
-          <TouchableOpacity
-            style={styles.settingItem}
-            onPress={() => notificationService.sendTestNotification()}
-          >
-            <View style={styles.settingLeft}>
-              <Text style={styles.settingIcon}>🔔</Text>
-              <Text style={styles.settingText}>알림 테스트</Text>
-            </View>
-            <Text style={styles.settingArrow}>›</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* 알림 설정 */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>알림 설정</Text>
-
-          <View style={styles.settingItem}>
-            <View style={styles.settingLeft}>
-              <Text style={styles.settingIcon}>📳</Text>
-              <Text style={styles.settingText}>진동</Text>
-            </View>
-            <Switch
-              value={notifications.vibrationEnabled}
-              onValueChange={(value) =>
-                setNotifications((prev) => ({
-                  ...prev,
-                  vibrationEnabled: value,
-                }))
-              }
-              trackColor={{
-                false: theme.colors.border,
-                true: theme.colors.primary,
-              }}
-            />
-          </View>
-
-          <View style={styles.settingItem}>
-            <View style={styles.settingLeft}>
-              <Text style={styles.settingIcon}>💳</Text>
-              <Text style={styles.settingText}>외상 알림</Text>
-            </View>
-            <Switch
-              value={notifications.creditAlerts}
-              onValueChange={(value) =>
-                setNotifications((prev) => ({ ...prev, creditAlerts: value }))
-              }
-              trackColor={{
-                false: theme.colors.border,
-                true: theme.colors.primary,
-              }}
-            />
-          </View>
         </View>
 
         {/* 정보 */}

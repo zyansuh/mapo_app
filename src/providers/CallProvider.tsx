@@ -27,8 +27,6 @@ interface CallContextType {
   analytics: any;
 
   // 설정
-  enableNotifications: boolean;
-  setEnableNotifications: (enabled: boolean) => void;
   enableAutoDetection: boolean;
   setEnableAutoDetection: (enabled: boolean) => void;
 }
@@ -70,7 +68,6 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
   const { analytics } = useCallAnalytics(callHistory, companies);
 
   // 설정 상태
-  const [enableNotifications, setEnableNotifications] = useState(true);
   const [enableAutoDetection, setEnableAutoDetection] = useState(false);
 
   // 앱 시작 시 초기화
@@ -105,7 +102,7 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
     }
   };
 
-  // 향상된 전화 걸기 (알림 포함)
+  // 향상된 전화 걸기
   const enhancedMakeCall = async (
     phoneNumber: string,
     companyName?: string
@@ -113,8 +110,8 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
     try {
       await makeCall(phoneNumber, companyName);
 
-      if (enableNotifications) {
-        // 통화 후 알림 표시
+      if (enableAutoDetection) {
+        // 통화 후 처리
         setTimeout(() => {
           Alert.alert(
             "통화 완료",
@@ -149,7 +146,7 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
       if (!isKnownNumber) {
         addTestUnknownNumber(phoneNumber);
 
-        if (enableNotifications) {
+        if (enableAutoDetection) {
           Alert.alert(
             "미지의 번호",
             `${phoneNumber}에서 전화가 왔습니다.\n거래처로 등록하시겠습니까?`,
@@ -204,8 +201,6 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
     analytics,
 
     // 설정
-    enableNotifications,
-    setEnableNotifications,
     enableAutoDetection,
     setEnableAutoDetection,
 

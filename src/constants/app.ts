@@ -88,16 +88,6 @@ export const REGEX_PATTERNS = {
   NUMBER_ONLY: /^[0-9]+$/,
 } as const;
 
-// 알림 관련 상수
-export const NOTIFICATION_TYPES = {
-  CALL: "call",
-  CREDIT: "credit",
-  DELIVERY: "delivery",
-  INVOICE: "invoice",
-  SYSTEM: "system",
-  UPDATE: "update",
-} as const;
-
 // 성능 관련 상수
 export const PERFORMANCE = {
   VIRTUAL_LIST_THRESHOLD: 50, // 이 개수 이상일 때 가상화 사용
