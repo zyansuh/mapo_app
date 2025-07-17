@@ -83,9 +83,9 @@ export const colorPalette = {
 // 지역별 색상 테마
 export const regionColors = {
   순창: {
-    primary: colorPalette.blue[600],
-    secondary: colorPalette.blue[400],
-    accent: colorPalette.blue[500],
+    primary: colorPalette.gray[600],
+    secondary: colorPalette.gray[400],
+    accent: colorPalette.gray[500],
   },
   담양: {
     primary: colorPalette.green[600],

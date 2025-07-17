@@ -12,11 +12,11 @@ export const COLORS = {
   textLight: "#9ca3af",
 
   // 주요 색상
-  primary: "#3b82f6",
-  PRIMARY: "#3b82f6", // 기존 코드 호환성
-  SECONDARY: "#60a5fa",
-  primaryLight: "#60a5fa",
-  primaryDark: "#2563eb",
+  primary: "#475569",
+  PRIMARY: "#475569", // 기존 코드 호환성
+  SECONDARY: "#64748b",
+  primaryLight: "#64748b",
+  primaryDark: "#334155",
 
   // 기능별 색상
   white: "#ffffff",
@@ -29,7 +29,7 @@ export const COLORS = {
   WARNING: "#f59e0b", // 기존 코드 호환성
   error: "#dc2626",
   ERROR: "#dc2626", // 기존 코드 호환성
-  info: "#3b82f6",
+  info: "#6b7280",
 
   // 회색 톤
   GRAY: "#6b7280",
@@ -88,14 +88,14 @@ export const STATUS_COLORS = {
   processing: {
     background: "#dbeafe",
     text: "#1e40af",
-    border: "#3b82f6",
+    border: "#6b7280",
   },
 } as const;
 
 // 지역별 색상 (기존 코드와 호환)
 export const REGION_COLORS = {
   순창: {
-    primary: "#3b82f6",
+    primary: "#6b7280",
     secondary: "#60a5fa",
     accent: "#2563eb",
   },

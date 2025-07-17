@@ -7,7 +7,6 @@ export * from "./common";
 // 도메인별 타입
 export * from "./company";
 export * from "./product";
-export * from "./invoice";
 export * from "./call";
 export * from "./settings";
 export * from "./navigation";
@@ -24,7 +23,7 @@ export interface CreditRecord {
   dueDate: Date; // 지불 기한
   status: CreditStatus;
   description?: string;
-  products?: any[]; // ProductDelivery[] 타입 참조
+  products?: any[]; // 상품 정보
   createdAt: Date;
   updatedAt: Date;
 }
@@ -60,58 +59,13 @@ export interface Notification {
   actionUrl?: string; // 알림 클릭 시 이동할 화면
 }
 
-// 데이터 내보내기 관련 타입
-export type ExportFormat = "excel" | "csv" | "json";
-export type ExportDataType =
-  | "companies"
-  | "products"
-  | "deliveries"
-  | "invoices"
-  | "credits"
-  | "calls"
-  | "statistics"
-  | "all";
-
-export interface ExportOptions {
-  format: ExportFormat;
-  dataType: ExportDataType;
-  dateRange?: {
-    startDate: Date;
-    endDate: Date;
-  };
-  includeDeleted: boolean;
-  companyIds?: string[]; // 특정 업체만 내보내기
-  filters?: Record<string, any>;
-}
-
-export interface ExportResult {
-  success: boolean;
-  filePath?: string;
-  fileName?: string;
-  recordCount: number;
-  fileSize?: number;
-  error?: string;
-}
-
-// 대시보드 통계
+// 간단한 통계
 export interface DashboardStats {
   totalCompanies: number;
-  totalProducts: number;
-  totalDeliveries: number;
-  totalInvoices: number;
-  monthlyRevenue: number;
-  outstandingAmount: number;
-  topCompanies: Array<{
-    companyId: string;
-    companyName: string;
-    totalAmount: number;
-    deliveryCount: number;
-  }>;
   recentActivities: Array<{
     id: string;
-    type: "delivery" | "invoice" | "payment" | "call";
+    type: "call";
     title: string;
     timestamp: Date;
-    amount?: number;
   }>;
 }

@@ -6,9 +6,9 @@ import { storage } from "../services/storage";
 // 기본 색상 팔레트
 const COLORS = {
   // Primary colors
-  primary: "#007bff",
-  primaryLight: "#66b3ff",
-  primaryDark: "#0056b3",
+  primary: "#475569",
+  primaryLight: "#64748b",
+  primaryDark: "#334155",
 
   // Secondary colors
   secondary: "#6c757d",

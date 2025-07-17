@@ -3,44 +3,32 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
-  Switch,
+  ScrollView,
   Alert,
+  Share,
+  Switch,
+  SafeAreaView,
+  StatusBar,
+  Platform,
   Modal,
   Pressable,
 } from "react-native";
-import { ThemeMode, ExportOptions } from "../types";
-import { exportService } from "../services/exportService";
+import { ThemeMode } from "../types";
 import { useCompany } from "../hooks/useCompany";
 import { useTheme } from "../hooks/useTheme";
-import { useCall } from "../providers/CallProvider";
 import { notificationService } from "../services/notificationService";
 
 const SettingsScreen = () => {
   // 실제 테마 훅 사용
-  const { theme, themeMode, setThemeMode, isDark } = useTheme();
+  const { theme, themeMode, setThemeMode } = useTheme();
   const { companies } = useCompany();
-  const {
-    isDetectionActive,
-    startDetection,
-    stopDetection,
-    enableNotifications,
-    setEnableNotifications,
-    enableAutoDetection,
-    setEnableAutoDetection,
-    unknownNumberCount,
-    callHistory,
-  } = useCall();
+
   const [themeModalVisible, setThemeModalVisible] = useState(false);
-  const [exportModalVisible, setExportModalVisible] = useState(false);
   const [notifications, setNotifications] = useState({
-    pushEnabled: true,
-    soundEnabled: true,
     vibrationEnabled: true,
     callAlerts: true,
     creditAlerts: true,
-    deliveryAlerts: true,
   });
 
   const themeOptions = [
@@ -49,90 +37,9 @@ const SettingsScreen = () => {
     { value: "system", label: "시스템 설정", icon: "⚙️" },
   ];
 
-  const exportOptions = [
-    {
-      format: "excel",
-      label: "Excel 파일",
-      icon: "📊",
-      description: ".xlsx 형식",
-    },
-    { format: "csv", label: "CSV 파일", icon: "📄", description: ".csv 형식" },
-    {
-      format: "json",
-      label: "JSON 파일",
-      icon: "🔧",
-      description: ".json 형식",
-    },
-  ];
-
-  const handleThemeChange = (mode: ThemeMode) => {
-    setThemeMode(mode);
+  const handleThemeChange = (newTheme: ThemeMode) => {
+    setThemeMode(newTheme);
     setThemeModalVisible(false);
-  };
-
-  const handleExportData = () => {
-    setExportModalVisible(true);
-  };
-
-  const performExport = async (format: "excel" | "csv" | "json") => {
-    setExportModalVisible(false);
-
-    try {
-      const options: ExportOptions = {
-        format: format,
-        dataType: "all",
-        includeDeleted: false,
-      };
-
-      const result = await exportService.exportData(
-        companies,
-        [], // TODO: 실제 외상 데이터 연결
-        [], // TODO: 실제 배송 데이터 연결
-        options
-      );
-
-      if (result.success) {
-        Alert.alert(
-          "내보내기 완료",
-          `${result.recordCount}개의 데이터가 ${result.fileName} 파일로 내보내졌습니다.`
-        );
-      } else {
-        Alert.alert("오류", result.error || "내보내기 중 오류가 발생했습니다.");
-      }
-    } catch (error) {
-      console.error("Export error:", error);
-      Alert.alert("오류", "내보내기 중 오류가 발생했습니다.");
-    }
-  };
-
-  const exportToExcel = () => performExport("excel");
-  const exportToCSV = () => performExport("csv");
-  const exportToJSON = () => performExport("json");
-
-  const handleBackup = () => {
-    Alert.alert("백업", "데이터를 백업하시겠습니까?", [
-      { text: "취소", style: "cancel" },
-      { text: "백업", onPress: () => performBackup() },
-    ]);
-  };
-
-  const performBackup = async () => {
-    try {
-      const result = await exportService.exportStatistics(companies, [], []);
-      if (result.success) {
-        Alert.alert(
-          "백업 완료",
-          `데이터가 ${result.fileName} 파일로 백업되었습니다.`
-        );
-      } else {
-        Alert.alert(
-          "백업 실패",
-          result.error || "백업 중 오류가 발생했습니다."
-        );
-      }
-    } catch (error) {
-      Alert.alert("백업 실패", "백업 중 오류가 발생했습니다.");
-    }
   };
 
   const styles = createStyles(theme.colors);
@@ -163,67 +70,19 @@ const SettingsScreen = () => {
 
           <View style={styles.settingItem}>
             <View style={styles.settingLeft}>
-              <Text style={styles.settingIcon}>📱</Text>
-              <Text style={styles.settingText}>자동 전화 감지</Text>
-            </View>
-            <Switch
-              value={enableAutoDetection}
-              onValueChange={setEnableAutoDetection}
-              trackColor={{
-                false: theme.colors.border,
-                true: theme.colors.primary,
-              }}
-            />
-          </View>
-
-          <View style={styles.settingItem}>
-            <View style={styles.settingLeft}>
-              <Text style={styles.settingIcon}>🔔</Text>
+              <Text style={styles.settingIcon}>📞</Text>
               <Text style={styles.settingText}>전화 알림</Text>
             </View>
             <Switch
-              value={enableNotifications}
-              onValueChange={setEnableNotifications}
+              value={notifications.callAlerts}
+              onValueChange={(value) =>
+                setNotifications((prev) => ({ ...prev, callAlerts: value }))
+              }
               trackColor={{
                 false: theme.colors.border,
                 true: theme.colors.primary,
               }}
             />
-          </View>
-
-          <TouchableOpacity
-            style={styles.settingItem}
-            onPress={isDetectionActive ? stopDetection : startDetection}
-          >
-            <View style={styles.settingLeft}>
-              <Text style={styles.settingIcon}>
-                {isDetectionActive ? "🟢" : "🔴"}
-              </Text>
-              <Text style={styles.settingText}>
-                전화 감지 {isDetectionActive ? "중지" : "시작"}
-              </Text>
-            </View>
-            <Text style={styles.settingValue}>
-              {isDetectionActive ? "활성" : "비활성"}
-            </Text>
-          </TouchableOpacity>
-
-          {unknownNumberCount > 0 && (
-            <View style={styles.settingItem}>
-              <View style={styles.settingLeft}>
-                <Text style={styles.settingIcon}>❓</Text>
-                <Text style={styles.settingText}>미지의 번호</Text>
-              </View>
-              <Text style={styles.settingValue}>{unknownNumberCount}개</Text>
-            </View>
-          )}
-
-          <View style={styles.settingItem}>
-            <View style={styles.settingLeft}>
-              <Text style={styles.settingIcon}>📞</Text>
-              <Text style={styles.settingText}>통화 기록</Text>
-            </View>
-            <Text style={styles.settingValue}>{callHistory.length}건</Text>
           </View>
 
           <TouchableOpacity
@@ -244,40 +103,6 @@ const SettingsScreen = () => {
 
           <View style={styles.settingItem}>
             <View style={styles.settingLeft}>
-              <Text style={styles.settingIcon}>🔔</Text>
-              <Text style={styles.settingText}>푸시 알림</Text>
-            </View>
-            <Switch
-              value={notifications.pushEnabled}
-              onValueChange={(value) =>
-                setNotifications((prev) => ({ ...prev, pushEnabled: value }))
-              }
-              trackColor={{
-                false: theme.colors.border,
-                true: theme.colors.primary,
-              }}
-            />
-          </View>
-
-          <View style={styles.settingItem}>
-            <View style={styles.settingLeft}>
-              <Text style={styles.settingIcon}>🔊</Text>
-              <Text style={styles.settingText}>알림음</Text>
-            </View>
-            <Switch
-              value={notifications.soundEnabled}
-              onValueChange={(value) =>
-                setNotifications((prev) => ({ ...prev, soundEnabled: value }))
-              }
-              trackColor={{
-                false: theme.colors.border,
-                true: theme.colors.primary,
-              }}
-            />
-          </View>
-
-          <View style={styles.settingItem}>
-            <View style={styles.settingLeft}>
               <Text style={styles.settingIcon}>📳</Text>
               <Text style={styles.settingText}>진동</Text>
             </View>
@@ -288,23 +113,6 @@ const SettingsScreen = () => {
                   ...prev,
                   vibrationEnabled: value,
                 }))
-              }
-              trackColor={{
-                false: theme.colors.border,
-                true: theme.colors.primary,
-              }}
-            />
-          </View>
-
-          <View style={styles.settingItem}>
-            <View style={styles.settingLeft}>
-              <Text style={styles.settingIcon}>📞</Text>
-              <Text style={styles.settingText}>통화 알림</Text>
-            </View>
-            <Switch
-              value={notifications.callAlerts}
-              onValueChange={(value) =>
-                setNotifications((prev) => ({ ...prev, callAlerts: value }))
               }
               trackColor={{
                 false: theme.colors.border,
@@ -329,47 +137,6 @@ const SettingsScreen = () => {
               }}
             />
           </View>
-
-          <View style={styles.settingItem}>
-            <View style={styles.settingLeft}>
-              <Text style={styles.settingIcon}>📦</Text>
-              <Text style={styles.settingText}>배송 알림</Text>
-            </View>
-            <Switch
-              value={notifications.deliveryAlerts}
-              onValueChange={(value) =>
-                setNotifications((prev) => ({ ...prev, deliveryAlerts: value }))
-              }
-              trackColor={{
-                false: theme.colors.border,
-                true: theme.colors.primary,
-              }}
-            />
-          </View>
-        </View>
-
-        {/* 데이터 관리 */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>데이터 관리</Text>
-
-          <TouchableOpacity
-            style={styles.settingItem}
-            onPress={handleExportData}
-          >
-            <View style={styles.settingLeft}>
-              <Text style={styles.settingIcon}>📤</Text>
-              <Text style={styles.settingText}>데이터 내보내기</Text>
-            </View>
-            <Text style={styles.settingArrow}>›</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.settingItem} onPress={handleBackup}>
-            <View style={styles.settingLeft}>
-              <Text style={styles.settingIcon}>💾</Text>
-              <Text style={styles.settingText}>데이터 백업</Text>
-            </View>
-            <Text style={styles.settingArrow}>›</Text>
-          </TouchableOpacity>
         </View>
 
         {/* 정보 */}
@@ -417,44 +184,6 @@ const SettingsScreen = () => {
             <TouchableOpacity
               style={styles.modalCloseButton}
               onPress={() => setThemeModalVisible(false)}
-            >
-              <Text style={styles.modalCloseText}>취소</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
-      {/* 내보내기 형식 선택 모달 */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={exportModalVisible}
-        onRequestClose={() => setExportModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>내보내기 형식 선택</Text>
-
-            {exportOptions.map((option) => (
-              <TouchableOpacity
-                key={option.format}
-                style={styles.exportOption}
-                onPress={() => performExport(option.format as any)}
-              >
-                <Text style={styles.themeIcon}>{option.icon}</Text>
-                <View style={styles.exportOptionText}>
-                  <Text style={styles.themeLabel}>{option.label}</Text>
-                  <Text style={styles.exportDescription}>
-                    {option.description}
-                  </Text>
-                </View>
-                <Text style={styles.settingArrow}>›</Text>
-              </TouchableOpacity>
-            ))}
-
-            <TouchableOpacity
-              style={styles.modalCloseButton}
-              onPress={() => setExportModalVisible(false)}
             >
               <Text style={styles.modalCloseText}>취소</Text>
             </TouchableOpacity>
@@ -574,26 +303,6 @@ const createStyles = (colors: any) =>
       color: colors.text,
       textAlign: "center",
       fontWeight: "500",
-    },
-    exportOption: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingVertical: 12,
-      paddingHorizontal: 16,
-      borderRadius: 8,
-      marginBottom: 8,
-      backgroundColor: colors.surface,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-    exportOptionText: {
-      flex: 1,
-      marginLeft: 12,
-    },
-    exportDescription: {
-      fontSize: 12,
-      color: colors.textSecondary,
-      marginTop: 4,
     },
   });
 

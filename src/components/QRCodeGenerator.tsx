@@ -12,14 +12,14 @@ import QRCode from "react-native-qrcode-svg";
 import { Ionicons } from "@expo/vector-icons";
 import * as Sharing from "expo-sharing";
 import * as FileSystem from "expo-file-system";
-import { Company, ProductDelivery } from "../types";
+import { Company } from "../types";
 import { useTheme } from "../hooks/useTheme";
 
 interface QRCodeGeneratorProps {
   visible: boolean;
   onClose: () => void;
-  data: Company | ProductDelivery | null;
-  type: "company" | "delivery";
+  data: Company | null;
+  type: "company";
 }
 
 export const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
@@ -34,58 +34,31 @@ export const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
   const generateQRData = () => {
     if (!data) return "";
 
-    if (type === "company") {
-      const company = data as Company;
-      return JSON.stringify({
-        type: "company",
-        id: company.id,
-        name: company.name,
-        phoneNumber: company.phoneNumber,
-        address: company.address,
-        businessNumber: company.businessNumber,
-        contactPerson: company.contactPerson,
-        email: company.email,
-      });
-    } else {
-      const delivery = data as ProductDelivery;
-      return JSON.stringify({
-        type: "delivery",
-        deliveryNumber: delivery.deliveryNumber,
-        companyId: delivery.companyId,
-        totalAmount: delivery.totalAmount,
-        deliveryDate: delivery.deliveryDate,
-        status: delivery.status,
-        trackingNumber: delivery.trackingNumber,
-        driverName: delivery.driverName,
-        driverPhone: delivery.driverPhone,
-      });
-    }
+    const company = data as Company;
+    return JSON.stringify({
+      type: "company",
+      id: company.id,
+      name: company.name,
+      phoneNumber: company.phoneNumber,
+      address: company.address,
+      businessNumber: company.businessNumber,
+      contactPerson: company.contactPerson,
+      email: company.email,
+    });
   };
 
   const getTitle = () => {
     if (!data) return "QR 코드";
 
-    if (type === "company") {
-      const company = data as Company;
-      return `${company.name} 거래처 정보`;
-    } else {
-      const delivery = data as ProductDelivery;
-      return `배송정보 ${delivery.deliveryNumber}`;
-    }
+    const company = data as Company;
+    return `${company.name} 거래처 정보`;
   };
 
   const getDescription = () => {
     if (!data) return "";
 
-    if (type === "company") {
-      const company = data as Company;
-      return `전화: ${company.phoneNumber}\n주소: ${company.address}`;
-    } else {
-      const delivery = data as ProductDelivery;
-      return `배송일: ${new Date(delivery.deliveryDate).toLocaleDateString(
-        "ko-KR"
-      )}\n상태: ${delivery.status}`;
-    }
+    const company = data as Company;
+    return `전화: ${company.phoneNumber}\n주소: ${company.address}`;
   };
 
   const handleShare = async () => {

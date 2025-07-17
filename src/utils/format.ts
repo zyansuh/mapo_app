@@ -103,23 +103,36 @@ export const formatPhoneNumber = (phoneNumber: string): string => {
   if (!phoneNumber) return "";
 
   // 숫자만 추출
-  const cleaned = phoneNumber.replace(/\D/g, "");
+  let cleaned = phoneNumber.replace(/\D/g, "");
 
-  // 휴대폰 번호 (010-0000-0000)
-  if (cleaned.length === 11 && cleaned.startsWith("010")) {
+  // 10으로 시작하는 경우 010으로 변경
+  if (cleaned.startsWith("10") && cleaned.length === 10) {
+    cleaned = "0" + cleaned;
+  }
+
+  // 휴대폰 번호 (010, 011 등으로 시작하는 11자리)
+  if (
+    cleaned.length === 11 &&
+    (cleaned.startsWith("010") ||
+      cleaned.startsWith("011") ||
+      cleaned.startsWith("016") ||
+      cleaned.startsWith("017") ||
+      cleaned.startsWith("018") ||
+      cleaned.startsWith("019"))
+  ) {
     return cleaned.replace(/(\d{3})(\d{4})(\d{4})/, "$1-$2-$3");
   }
 
-  // 일반 전화번호 (02-0000-0000, 031-000-0000)
+  // 지역번호 (10자리)
   if (cleaned.length === 10) {
-    if (cleaned.startsWith("02")) {
-      return cleaned.replace(/(\d{2})(\d{4})(\d{4})/, "$1-$2-$3");
-    } else {
-      return cleaned.replace(/(\d{3})(\d{3})(\d{4})/, "$1-$2-$3");
-    }
+    return cleaned.replace(/(\d{3})(\d{3})(\d{4})/, "$1-$2-$3");
   }
 
-  // 그 외의 경우 원본 반환
+  // 지역번호 (9자리)
+  if (cleaned.length === 9) {
+    return cleaned.replace(/(\d{2})(\d{3})(\d{4})/, "$1-$2-$3");
+  }
+
   return phoneNumber;
 };
 

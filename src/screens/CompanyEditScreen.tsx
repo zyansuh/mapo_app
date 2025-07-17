@@ -10,9 +10,16 @@ import {
   TextInput,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { CompanyType, CompanyRegion, CompanyStatus } from "../types";
+import { StackNavigationProp } from "@react-navigation/stack";
+import {
+  CompanyType,
+  CompanyRegion,
+  CompanyStatus,
+  RootStackParamList,
+} from "../types";
 import { useCompany } from "../hooks";
 import { useLocalization } from "../localization/i18n";
+import { formatPhoneNumber } from "../utils/format";
 import { AddressSearchModal } from "../components/modals/AddressSearchModal";
 import {
   useKeyboardShortcuts,
@@ -21,14 +28,16 @@ import {
 
 // 정적 색상 정의
 const COLORS = {
-  primary: "#007bff",
+  primary: "#6b7280",
   text: "#343a40",
   textSecondary: "#6c757d",
   white: "#ffffff",
 };
 
+type NavigationProp = StackNavigationProp<RootStackParamList>;
+
 export default function CompanyEditScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp>();
   const route = useRoute();
   const { t } = useLocalization();
   const { companies, addCompany, updateCompany } = useCompany();
@@ -65,7 +74,7 @@ export default function CompanyEditScreen() {
     [commonShortcuts.save(handleSave), commonShortcuts.cancel(handleCancel)]
   );
 
-  function handleSave() {
+  async function handleSave() {
     if (!formData.name.trim()) {
       Alert.alert(t("errors.invalidInput"), "업체명을 입력해주세요.");
       return;
@@ -78,21 +87,26 @@ export default function CompanyEditScreen() {
 
     const companyData = {
       ...formData,
-      id: companyId || `company_${Date.now()}`,
-      isFavorite: existingCompany?.isFavorite || false,
-      createdAt: existingCompany?.createdAt || new Date(),
-      updatedAt: new Date(),
+      tags: formData.tags || [],
     };
 
     if (companyId) {
+      // 기존 회사 수정
       updateCompany(companyId, companyData);
       Alert.alert(t("success.saved"), "업체 정보가 수정되었습니다.");
+      navigation.goBack();
     } else {
-      addCompany(companyData);
-      Alert.alert(t("success.saved"), "새 업체가 등록되었습니다.");
+      // 새 회사 추가
+      const newCompany = await addCompany(companyData);
+      if (newCompany) {
+        // 저장 후 바로 상세 페이지로 이동
+        navigation.navigate("CompanyDetail", {
+          companyId: newCompany.id,
+        });
+      } else {
+        Alert.alert("오류", "회사 등록에 실패했습니다.");
+      }
     }
-
-    navigation.goBack();
   }
 
   function handleCancel() {
@@ -239,9 +253,10 @@ export default function CompanyEditScreen() {
             <TextInput
               style={[styles.input, { color: COLORS.text }]}
               value={formData.phoneNumber}
-              onChangeText={(text) =>
-                setFormData((prev) => ({ ...prev, phoneNumber: text }))
-              }
+              onChangeText={(text) => {
+                const formatted = formatPhoneNumber(text);
+                setFormData((prev) => ({ ...prev, phoneNumber: formatted }));
+              }}
               placeholder="010-1234-5678"
               placeholderTextColor={COLORS.textSecondary}
               keyboardType="phone-pad"

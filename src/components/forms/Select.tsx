@@ -3,14 +3,12 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Modal,
-  ScrollView,
   StyleSheet,
+  Modal,
+  Pressable,
+  FlatList,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { formStyles } from "../styles/formStyles";
-import { modalStyles } from "../styles/modalStyles";
-import { COLORS } from "../../styles/colors";
 
 interface SelectOption {
   label: string;
@@ -32,113 +30,181 @@ const Select: React.FC<SelectProps> = ({
   placeholder = "선택하세요",
   error,
 }) => {
-  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
 
   const selectedOption = options.find((option) => option.value === value);
 
   const handleSelect = (selectedValue: string) => {
     onValueChange(selectedValue);
-    setIsModalVisible(false);
+    setIsVisible(false);
   };
+
+  const renderOption = ({ item }: { item: SelectOption }) => (
+    <TouchableOpacity
+      style={[
+        styles.optionItem,
+        value === item.value && styles.optionItemSelected,
+      ]}
+      onPress={() => handleSelect(item.value)}
+      activeOpacity={0.8}
+    >
+      <Text
+        style={[
+          styles.optionText,
+          value === item.value && styles.optionTextSelected,
+        ]}
+      >
+        {item.label}
+      </Text>
+      {value === item.value && (
+        <Ionicons name="checkmark" size={16} color="#475569" />
+      )}
+    </TouchableOpacity>
+  );
 
   return (
     <>
       <TouchableOpacity
         style={[
-          formStyles.pickerButton,
-          formStyles.picker,
-          error && formStyles.inputError,
+          styles.selectButton,
+          error && styles.selectButtonError,
+          isVisible && styles.selectButtonActive,
         ]}
-        onPress={() => setIsModalVisible(true)}
+        onPress={() => setIsVisible(true)}
+        activeOpacity={0.8}
       >
         <Text
           style={[
-            selectedOption
-              ? formStyles.pickerText
-              : formStyles.pickerPlaceholder,
+            styles.selectText,
+            !selectedOption && styles.selectPlaceholder,
           ]}
         >
           {selectedOption ? selectedOption.label : placeholder}
         </Text>
-        <Ionicons name="chevron-down" size={20} color={COLORS.textSecondary} />
+        <Ionicons name="chevron-down" size={18} color="#6b7280" />
       </TouchableOpacity>
 
       <Modal
-        visible={isModalVisible}
+        visible={isVisible}
         transparent
         animationType="fade"
-        onRequestClose={() => setIsModalVisible(false)}
+        onRequestClose={() => setIsVisible(false)}
       >
-        <View style={modalStyles.overlay}>
-          <View style={[modalStyles.container, styles.selectModal]}>
-            <View style={modalStyles.header}>
-              <Text style={modalStyles.title}>선택하세요</Text>
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setIsVisible(false)}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>선택하세요</Text>
               <TouchableOpacity
-                style={modalStyles.closeButton}
-                onPress={() => setIsModalVisible(false)}
+                onPress={() => setIsVisible(false)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
-                <Ionicons name="close" size={24} color={COLORS.text} />
+                <Ionicons name="close" size={24} color="#6b7280" />
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={modalStyles.content}>
-              {options.map((option) => (
-                <TouchableOpacity
-                  key={option.value}
-                  style={[
-                    styles.optionItem,
-                    value === option.value && styles.optionItemSelected,
-                  ]}
-                  onPress={() => handleSelect(option.value)}
-                >
-                  <Text
-                    style={[
-                      styles.optionText,
-                      value === option.value && styles.optionTextSelected,
-                    ]}
-                  >
-                    {option.label}
-                  </Text>
-                  {value === option.value && (
-                    <Ionicons
-                      name="checkmark"
-                      size={20}
-                      color={COLORS.primary}
-                    />
-                  )}
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+            <FlatList
+              data={options}
+              renderItem={renderOption}
+              keyExtractor={(item) => item.value}
+              style={styles.optionsList}
+              showsVerticalScrollIndicator={false}
+              ItemSeparatorComponent={() => <View style={styles.separator} />}
+            />
           </View>
-        </View>
+        </Pressable>
       </Modal>
     </>
   );
 };
 
 const styles = StyleSheet.create({
-  selectModal: {
+  selectButton: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    borderRadius: 8,
+    minHeight: 44,
+  },
+  selectButtonError: {
+    borderColor: "#dc2626",
+  },
+  selectButtonActive: {
+    borderColor: "#475569",
+  },
+  selectText: {
+    fontSize: 16,
+    color: "#111827",
+    flex: 1,
+  },
+  selectPlaceholder: {
+    color: "#9ca3af",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  modalContainer: {
+    backgroundColor: "#ffffff",
+    borderRadius: 12,
     maxHeight: "70%",
+    width: "100%",
+    maxWidth: 400,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f3f4f6",
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#111827",
+  },
+  optionsList: {
+    maxHeight: 300,
   },
   optionItem: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 15,
+    paddingVertical: 16,
     paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
   },
   optionItemSelected: {
-    backgroundColor: COLORS.primary + "10",
+    backgroundColor: "#f8fafc",
   },
   optionText: {
     fontSize: 16,
-    color: COLORS.text,
+    color: "#374151",
+    flex: 1,
   },
   optionTextSelected: {
-    color: COLORS.primary,
+    color: "#475569",
     fontWeight: "500",
+  },
+  separator: {
+    height: 1,
+    backgroundColor: "#f3f4f6",
   },
 });
 

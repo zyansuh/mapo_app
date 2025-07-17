@@ -9,12 +9,9 @@ import {
   CompanyListScreen,
   CompanyDetailScreen,
   CompanyEditScreen,
-  SearchScreen,
-  StatisticsScreen,
+  CompanyImportScreen,
+  DirectImportScreen,
   SettingsScreen,
-  ProductManagementScreen,
-  InvoiceManagementScreen,
-  DeliveryManagementScreen,
 } from "../screens";
 import { COLORS } from "../constants";
 import { Ionicons } from "@expo/vector-icons";
@@ -38,10 +35,6 @@ const TabNavigator = () => {
             iconName = focused ? "home" : "home-outline";
           } else if (route.name === "CompanyList") {
             iconName = focused ? "business" : "business-outline";
-          } else if (route.name === "Search") {
-            iconName = focused ? "search" : "search-outline";
-          } else if (route.name === "Statistics") {
-            iconName = focused ? "stats-chart" : "stats-chart-outline";
           } else if (route.name === "Settings") {
             iconName = focused ? "settings" : "settings-outline";
           }
@@ -82,16 +75,6 @@ const TabNavigator = () => {
         name="CompanyList"
         component={CompanyListScreen}
         options={{ title: "거래처" }}
-      />
-      <Tab.Screen
-        name="Search"
-        component={SearchScreen}
-        options={{ title: "검색" }}
-      />
-      <Tab.Screen
-        name="Statistics"
-        component={StatisticsScreen}
-        options={{ title: "통계" }}
       />
       <Tab.Screen
         name="Settings"
@@ -141,24 +124,19 @@ export const AppNavigator = () => {
           })}
         />
         <Stack.Screen
-          name="ProductManagement"
-          component={ProductManagementScreen}
+          name="CompanyImport"
+          component={CompanyImportScreen}
           options={{
-            headerShown: false,
+            title: "거래처 일괄 등록",
+            headerBackTitle: "뒤로",
           }}
         />
         <Stack.Screen
-          name="InvoiceManagement"
-          component={InvoiceManagementScreen}
+          name="DirectImport"
+          component={DirectImportScreen}
           options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="DeliveryManagement"
-          component={DeliveryManagementScreen}
-          options={{
-            headerShown: false,
+            title: "데이터베이스 직접 등록",
+            headerBackTitle: "뒤로",
           }}
         />
       </Stack.Navigator>

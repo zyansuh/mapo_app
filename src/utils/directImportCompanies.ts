@@ -1,9 +1,9 @@
-import { Company, CompanyType, CompanyRegion, CompanyStatus } from "../types";
-import { generateId } from "../utils";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Company, CompanyType, CompanyRegion } from "../types";
+import { STORAGE_KEYS } from "../constants/app";
 
 // CSV 데이터
-const csvData = `사업자번호	상호	성명	주소	담당자성명1	전화1	HP1	이메일1
-403-03-86421	(라)이랴꿍꿍	송형규	익산시 영등동 851-4				
+const csvData = `403-03-86421	(라)이랴꿍꿍	송형규	익산시 영등동 851-4				
 266-88-00933	(유)승일	김갑례	담양읍 중앙로 98-1	승일총무	1034886700	1088463063	kangbok1@hanmail.net
 409-86-20167	(주) 죽향산업개발	정광성	담양읍 지침1길 18 101호(대동파라시티)				
 418-81-08731	(주)다농	이동호	전주시 덕진구 시천로 96-14(송천동2가)				
@@ -29,7 +29,7 @@ const csvData = `사업자번호	상호	성명	주소	담당자성명1	전화1	H
 407-05-47803	구룡별관	장봉식	순창군 팔덕면 강천로113	장봉식	1096532392	1096532392	whang77@chol.com
 660-34-00689	국민닭갈비	김남경	순창군 순창읍 순창6길 10	김남경	1027981783	1027981783	whang77@chol.com
 409-19-67549	금성참숯갈비	황금례	담양군 금성면 원율리131-1	황금례	1056070282	1056070282	whang77@chol.com
-606-38-74899	금수한방 숫불가든	정금자	담양읍 향교리 256-2	정금자	1045403419	1045403419	whang77@chol.com
+606-38-74899	금수한방 숯불가든	정금자	담양읍 향교리 256-2	정금자	1045403419	1045403419	whang77@chol.com
 407-04-25990	김가네홍어집	장경자	순창읍 대동로105-1	장경자	1076530960	1076530960	whang77@chol.com
 409-19-50276	김밥나라	이용철	담양읍 중앙로 29	이용철			whang77@chol.com
 305-36-40890	김밥나라 빨간오뎅	김상은	순창읍 장류로 365	김상은	1036542976	1036542976	whang77@chol.com
@@ -234,147 +234,303 @@ const csvData = `사업자번호	상호	성명	주소	담당자성명1	전화1	H
 409-21-87058	황금소나무	윤석열	담양읍 천변5길 54-4	윤석열	1028362212	1028362212	whang77@chol.com
 821-19-00807	황독	남연옥	순창군 인계면 인덕로 427-128				
 372-73-00215	황후쟁반짜장	이진호	담양읍 지침3길 10	이진호	1050130626	1050130626	whang77@chol.com
-418-81-35015	후레쉬푸드	배희문	전주시 덕진구 송천중앙로233-16`;
+418-81-35015	후레쉬푸드	배희문	전주시 덕진구 송천중앙로233-16				`;
 
-// 지역별 분류 함수
-function classifyRegion(address: string): CompanyRegion {
+// 지역 분류 함수
+const classifyRegion = (address: string): CompanyRegion => {
   if (address.includes("순창")) return "순창";
   if (address.includes("담양")) return "담양";
   if (address.includes("장성")) return "장성";
   return "기타";
-}
+};
 
-// 업체 유형 분류 함수
-function classifyType(companyName: string): CompanyType {
-  // 공급업체 키워드
-  const supplierKeywords = [
-    "식품",
-    "농산",
-    "유통",
-    "식자재",
-    "종합식품",
-    "한우협동조합",
-    "농협",
-    "마트",
-  ];
-  // 협력업체 키워드
-  const partnerKeywords = [
-    "법인",
-    "주식회사",
-    "(주)",
-    "(유)",
-    "의료법인",
-    "농업회사법인",
-    "조합법인",
-  ];
+// 회사 타입 분류 함수
+const classifyCompanyType = (businessName: string): CompanyType => {
+  const name = businessName.toLowerCase();
 
-  // 정확한 매칭을 위해 키워드 체크
-  for (const keyword of supplierKeywords) {
-    if (companyName.includes(keyword)) return "공급업체";
+  // 식당, 요식업 관련
+  if (
+    name.includes("식당") ||
+    name.includes("국수") ||
+    name.includes("갈비") ||
+    name.includes("반점") ||
+    name.includes("국밥") ||
+    name.includes("횟집") ||
+    name.includes("회관") ||
+    name.includes("가든") ||
+    name.includes("냉면") ||
+    name.includes("부대찌개") ||
+    name.includes("감자탕") ||
+    name.includes("숯불") ||
+    name.includes("고기") ||
+    name.includes("삼겹살") ||
+    name.includes("bbq") ||
+    name.includes("치킨") ||
+    name.includes("찜") ||
+    name.includes("탕") ||
+    name.includes("카페") ||
+    name.includes("분식") ||
+    name.includes("김밥") ||
+    name.includes("순대") ||
+    name.includes("보쌈") ||
+    name.includes("포차") ||
+    name.includes("구이") ||
+    name.includes("밥상") ||
+    name.includes("한정식") ||
+    name.includes("백반") ||
+    name.includes("추어탕") ||
+    name.includes("어묵") ||
+    name.includes("홍어") ||
+    name.includes("장어") ||
+    name.includes("매운탕") ||
+    name.includes("동태탕") ||
+    name.includes("아구찜") ||
+    name.includes("코다리") ||
+    name.includes("소머리") ||
+    name.includes("닭갈비") ||
+    name.includes("쟁반짜장")
+  ) {
+    return "고객사";
   }
 
-  for (const keyword of partnerKeywords) {
-    if (companyName.includes(keyword)) return "협력업체";
+  // 마트, 유통업 관련
+  if (
+    name.includes("마트") ||
+    name.includes("슈퍼") ||
+    name.includes("상회") ||
+    name.includes("유통") ||
+    name.includes("식품") ||
+    name.includes("농산") ||
+    name.includes("종합") ||
+    name.includes("직판") ||
+    name.includes("농원") ||
+    name.includes("농업") ||
+    name.includes("농협")
+  ) {
+    return "공급업체";
   }
 
-  // 기본적으로 고객사로 분류
-  return "고객사";
-}
+  // 법인, 회사 관련
+  if (
+    name.includes("주식회사") ||
+    name.includes("(주)") ||
+    name.includes("유한회사") ||
+    name.includes("(유)") ||
+    name.includes("법인") ||
+    name.includes("협동조합") ||
+    name.includes("산업") ||
+    name.includes("개발") ||
+    name.includes("기술") ||
+    name.includes("시스템") ||
+    name.includes("서비스") ||
+    name.includes("컴퍼니")
+  ) {
+    return "협력업체";
+  }
+
+  return "고객사"; // 기본값
+};
 
 // 전화번호 포맷팅 함수
-function formatPhoneNumber(phone: string): string {
-  if (!phone) return "";
+const formatPhoneNumber = (phone: string): string => {
+  if (!phone || phone === "ㅂ" || phone === "ㅈ") return "";
 
   // 숫자만 추출
-  let numbers = phone.replace(/\D/g, "");
+  const numbers = phone.replace(/\D/g, "");
 
-  // 10으로 시작하는 경우 010으로 변경
-  if (numbers.startsWith("10") && numbers.length === 10) {
-    numbers = "0" + numbers;
+  if (numbers.length === 11) {
+    // 휴대폰 번호 (010-0000-0000)
+    return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7)}`;
+  } else if (numbers.length === 10) {
+    // 지역번호 (02-000-0000 또는 031-000-0000)
+    if (numbers.startsWith("02")) {
+      return `${numbers.slice(0, 2)}-${numbers.slice(2, 5)}-${numbers.slice(
+        5
+      )}`;
+    } else {
+      return `${numbers.slice(0, 3)}-${numbers.slice(3, 6)}-${numbers.slice(
+        6
+      )}`;
+    }
+  } else if (numbers.length === 9) {
+    // 지역번호 (02-000-0000)
+    return `${numbers.slice(0, 2)}-${numbers.slice(2, 5)}-${numbers.slice(5)}`;
   }
 
-  // 휴대폰 번호 (010, 011 등으로 시작하는 11자리)
-  if (
-    numbers.length === 11 &&
-    (numbers.startsWith("010") ||
-      numbers.startsWith("011") ||
-      numbers.startsWith("016") ||
-      numbers.startsWith("017") ||
-      numbers.startsWith("018") ||
-      numbers.startsWith("019"))
-  ) {
-    return `${numbers.substring(0, 3)}-${numbers.substring(
-      3,
-      7
-    )}-${numbers.substring(7)}`;
-  }
+  return phone; // 원본 반환
+};
 
-  // 지역번호 (10자리)
-  if (numbers.length === 10) {
-    return `${numbers.substring(0, 3)}-${numbers.substring(
-      3,
-      6
-    )}-${numbers.substring(6)}`;
-  }
+// 이메일 검증 함수
+const isValidEmail = (email: string): boolean => {
+  if (!email || email === "ㅂ" || email === "ㅈ") return false;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
 
-  // 지역번호 (9자리)
-  if (numbers.length === 9) {
-    return `${numbers.substring(0, 2)}-${numbers.substring(
-      2,
-      5
-    )}-${numbers.substring(5)}`;
-  }
-
-  return phone;
-}
-
-// CSV 파싱 및 Company 객체 변환 함수
-function parseCSVData(): Company[] {
+// CSV 파싱 및 회사 데이터 변환
+export const parseAndCreateCompanies = (): Company[] => {
   const lines = csvData.trim().split("\n");
   const companies: Company[] = [];
 
-  for (let i = 1; i < lines.length; i++) {
-    const row = lines[i].split("\t");
+  lines.forEach((line, index) => {
+    const columns = line.split("\t");
+    if (columns.length < 4) return; // 최소 필드가 없으면 스킵
 
-    if (row.length >= 4) {
-      const businessNumber = row[0]?.trim() || "";
-      const name = row[1]?.trim() || "";
-      const representative = row[2]?.trim() || "";
-      const address = row[3]?.trim() || "";
-      const contact = row[4]?.trim() || "";
-      const phone = formatPhoneNumber(row[5]?.trim() || "");
-      const mobile = formatPhoneNumber(row[6]?.trim() || "");
-      const email = row[7]?.trim() || "";
+    const [
+      businessNumber,
+      businessName,
+      ownerName,
+      address,
+      contactPerson = "",
+      phone1 = "",
+      phone2 = "",
+      email = "",
+    ] = columns;
 
-      if (businessNumber && name) {
-        const company: Company = {
-          id: generateId(),
-          businessNumber,
-          name,
-          type: classifyType(name),
-          region: classifyRegion(address),
-          status: "활성",
-          address,
-          phoneNumber: phone || mobile,
-          email,
-          contactPerson: contact || representative,
-          contactPhone: mobile,
-          memo: "",
-          isFavorite: false,
-          tags: [],
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
+    // 필수 필드 검증
+    if (!businessName.trim() || !address.trim()) return;
 
-        companies.push(company);
-      }
-    }
-  }
+    const currentDate = new Date();
+
+    const company: Company = {
+      id: `imported_${businessNumber.replace(
+        /[^0-9]/g,
+        ""
+      )}_${Date.now()}_${index}`,
+      name: businessName.trim(),
+      type: classifyCompanyType(businessName),
+      region: classifyRegion(address),
+      status: "활성",
+      address: address.trim(),
+      phoneNumber: formatPhoneNumber(phone1) || formatPhoneNumber(phone2) || "",
+      email: isValidEmail(email) ? email.trim() : undefined,
+      businessNumber: businessNumber.trim() || undefined,
+      contactPerson: contactPerson.trim() || ownerName.trim() || undefined,
+      contactPhone: formatPhoneNumber(phone2) || undefined,
+      memo: `일괄등록 - ${currentDate.toLocaleDateString()}`,
+      isFavorite: false,
+      tags: ["일괄등록"],
+      lastContactDate: undefined,
+      nextContactDate: undefined,
+      createdAt: currentDate,
+      updatedAt: currentDate,
+    };
+
+    companies.push(company);
+  });
 
   return companies;
-}
+};
 
-// 모든 회사 데이터를 반환하는 함수
-export const getInitialCompanies = (): Company[] => {
-  return parseCSVData();
+// AsyncStorage에 직접 저장하는 함수
+export const directImportToStorage = async (): Promise<{
+  success: number;
+  skipped: number;
+  errors: string[];
+}> => {
+  try {
+    // 새로운 회사 데이터 생성
+    const newCompanies = parseAndCreateCompanies();
+    console.log(`파싱된 회사 수: ${newCompanies.length}`);
+
+    // 기존 회사 데이터 로드
+    const existingData = await AsyncStorage.getItem(STORAGE_KEYS.COMPANIES);
+    const existingCompanies: Company[] = existingData
+      ? JSON.parse(existingData)
+      : [];
+
+    // 사업자번호로 중복 체크
+    const existingBusinessNumbers = new Set(
+      existingCompanies
+        .map((company) => company.businessNumber)
+        .filter((bn) => bn)
+    );
+
+    let successCount = 0;
+    let skippedCount = 0;
+    const errors: string[] = [];
+
+    // 중복되지 않은 회사만 추가
+    const companiesToAdd: Company[] = [];
+
+    newCompanies.forEach((company) => {
+      try {
+        if (
+          company.businessNumber &&
+          existingBusinessNumbers.has(company.businessNumber)
+        ) {
+          skippedCount++;
+          console.log(`중복 스킵: ${company.name} (${company.businessNumber})`);
+        } else {
+          companiesToAdd.push(company);
+          successCount++;
+        }
+      } catch (error) {
+        errors.push(
+          `${company.name}: ${
+            error instanceof Error ? error.message : "알 수 없는 오류"
+          }`
+        );
+      }
+    });
+
+    // 전체 회사 목록 업데이트
+    const updatedCompanies = [...existingCompanies, ...companiesToAdd];
+
+    // AsyncStorage에 저장
+    await AsyncStorage.setItem(
+      STORAGE_KEYS.COMPANIES,
+      JSON.stringify(updatedCompanies)
+    );
+
+    console.log(`✅ 직접 임포트 완료:
+    - 성공: ${successCount}개 
+    - 중복 스킵: ${skippedCount}개
+    - 오류: ${errors.length}개
+    - 총 회사 수: ${updatedCompanies.length}개`);
+
+    return {
+      success: successCount,
+      skipped: skippedCount,
+      errors,
+    };
+  } catch (error) {
+    console.error("직접 임포트 중 오류:", error);
+    throw error;
+  }
+};
+
+// 통계 정보 반환
+export const getImportStats = (): {
+  totalRows: number;
+  byRegion: Record<CompanyRegion, number>;
+  byType: Record<CompanyType, number>;
+} => {
+  const companies = parseAndCreateCompanies();
+
+  const byRegion: Record<CompanyRegion, number> = {
+    순창: 0,
+    담양: 0,
+    장성: 0,
+    기타: 0,
+  };
+
+  const byType: Record<CompanyType, number> = {
+    고객사: 0,
+    협력업체: 0,
+    공급업체: 0,
+    하청업체: 0,
+    기타: 0,
+  };
+
+  companies.forEach((company) => {
+    byRegion[company.region]++;
+    byType[company.type]++;
+  });
+
+  return {
+    totalRows: companies.length,
+    byRegion,
+    byType,
+  };
 };

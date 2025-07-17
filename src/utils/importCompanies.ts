@@ -1,8 +1,175 @@
-import { Company, CompanyType, CompanyRegion, CompanyStatus } from "../types";
-import { generateId } from "../utils";
+import { Company, CompanyType, CompanyRegion } from "../types";
+import { generateId } from "./index";
 
-// CSV 데이터
-const csvData = `사업자번호	상호	성명	주소	담당자성명1	전화1	HP1	이메일1
+// 원본 CSV 데이터 타입
+interface RawCompanyData {
+  businessNumber: string;
+  name: string;
+  ownerName: string;
+  address: string;
+  contactPerson: string;
+  phone: string;
+  mobile: string;
+  email: string;
+}
+
+// 지역 분류 함수
+const classifyRegion = (address: string): CompanyRegion => {
+  if (address.includes("순창")) return "순창";
+  if (address.includes("담양")) return "담양";
+  if (address.includes("장성")) return "장성";
+  return "기타";
+};
+
+// 업체 구분 분류 함수
+const classifyCompanyType = (name: string): CompanyType => {
+  const lowerName = name.toLowerCase();
+
+  // 식당, 카페 등 - 고객사
+  if (
+    lowerName.includes("식당") ||
+    lowerName.includes("카페") ||
+    lowerName.includes("음식점") ||
+    lowerName.includes("국수") ||
+    lowerName.includes("갈비") ||
+    lowerName.includes("횟집") ||
+    lowerName.includes("회관") ||
+    lowerName.includes("반점") ||
+    lowerName.includes("포차") ||
+    lowerName.includes("찜") ||
+    lowerName.includes("탕") ||
+    lowerName.includes("백반") ||
+    lowerName.includes("부대찌개") ||
+    lowerName.includes("감자탕")
+  ) {
+    return "고객사";
+  }
+
+  // 마트, 상회 등 - 고객사
+  if (
+    lowerName.includes("마트") ||
+    lowerName.includes("상회") ||
+    lowerName.includes("슈퍼") ||
+    lowerName.includes("유통")
+  ) {
+    return "고객사";
+  }
+
+  // 농업법인, 조합 등 - 공급업체
+  if (
+    lowerName.includes("농업") ||
+    lowerName.includes("법인") ||
+    lowerName.includes("조합") ||
+    lowerName.includes("농원") ||
+    lowerName.includes("식품")
+  ) {
+    return "공급업체";
+  }
+
+  // 주식회사, 유한회사 등 - 협력업체
+  if (
+    lowerName.includes("주식회사") ||
+    lowerName.includes("유한회사") ||
+    lowerName.includes("(주)") ||
+    lowerName.includes("(유)") ||
+    lowerName.includes("(라)")
+  ) {
+    return "협력업체";
+  }
+
+  return "고객사"; // 기본값
+};
+
+// 전화번호 포맷팅 함수
+const formatPhoneNumber = (phone: string): string => {
+  if (!phone) return "";
+
+  // 숫자만 추출
+  const numbersOnly = phone.replace(/\D/g, "");
+
+  // 10자리 또는 11자리 휴대폰 번호 포맷팅
+  if (numbersOnly.length === 10) {
+    return `${numbersOnly.slice(0, 3)}-${numbersOnly.slice(
+      3,
+      6
+    )}-${numbersOnly.slice(6)}`;
+  } else if (numbersOnly.length === 11) {
+    return `${numbersOnly.slice(0, 3)}-${numbersOnly.slice(
+      3,
+      7
+    )}-${numbersOnly.slice(7)}`;
+  }
+
+  return phone; // 원본 반환
+};
+
+// 원본 데이터를 Company 객체로 변환
+export const convertToCompany = (rawData: RawCompanyData): Company => {
+  const now = new Date();
+
+  return {
+    id: generateId(),
+    name: rawData.name.trim(),
+    type: classifyCompanyType(rawData.name),
+    region: classifyRegion(rawData.address),
+    status: "활성",
+    address: rawData.address.trim(),
+    phoneNumber: formatPhoneNumber(rawData.phone),
+    email: rawData.email.trim() || undefined,
+    businessNumber: rawData.businessNumber.trim(),
+    contactPerson:
+      rawData.contactPerson.trim() || rawData.ownerName.trim() || undefined,
+    contactPhone: formatPhoneNumber(rawData.mobile),
+    memo: undefined,
+    isFavorite: false,
+    tags: [],
+    createdAt: now,
+    updatedAt: now,
+  };
+};
+
+// CSV 문자열을 파싱하여 Company 배열로 변환
+export const parseCompaniesFromCSV = (csvText: string): Company[] => {
+  const lines = csvText.trim().split("\n");
+
+  // 헤더 라인 제거 (첫 번째 라인)
+  const dataLines = lines.slice(1);
+
+  const companies: Company[] = [];
+
+  dataLines.forEach((line, index) => {
+    try {
+      // 탭으로 구분된 데이터 파싱
+      const columns = line.split("\t");
+
+      if (columns.length >= 8) {
+        const rawData: RawCompanyData = {
+          businessNumber: columns[0] || "",
+          name: columns[1] || "",
+          ownerName: columns[2] || "",
+          address: columns[3] || "",
+          contactPerson: columns[4] || "",
+          phone: columns[5] || "",
+          mobile: columns[6] || "",
+          email: columns[7] || "",
+        };
+
+        // 회사명이 있는 경우만 처리
+        if (rawData.name.trim()) {
+          const company = convertToCompany(rawData);
+          companies.push(company);
+        }
+      }
+    } catch (error) {
+      console.warn(`라인 ${index + 2} 파싱 실패:`, error);
+    }
+  });
+
+  return companies;
+};
+
+// 제공된 거래처 데이터 (하드코딩)
+export const providedCompaniesData = `사업자번호	상호	성명	주소	담당자성명1	전화1	HP1	이메일1
 403-03-86421	(라)이랴꿍꿍	송형규	익산시 영등동 851-4				
 266-88-00933	(유)승일	김갑례	담양읍 중앙로 98-1	승일총무	1034886700	1088463063	kangbok1@hanmail.net
 409-86-20167	(주) 죽향산업개발	정광성	담양읍 지침1길 18 101호(대동파라시티)				
@@ -29,7 +196,7 @@ const csvData = `사업자번호	상호	성명	주소	담당자성명1	전화1	H
 407-05-47803	구룡별관	장봉식	순창군 팔덕면 강천로113	장봉식	1096532392	1096532392	whang77@chol.com
 660-34-00689	국민닭갈비	김남경	순창군 순창읍 순창6길 10	김남경	1027981783	1027981783	whang77@chol.com
 409-19-67549	금성참숯갈비	황금례	담양군 금성면 원율리131-1	황금례	1056070282	1056070282	whang77@chol.com
-606-38-74899	금수한방 숫불가든	정금자	담양읍 향교리 256-2	정금자	1045403419	1045403419	whang77@chol.com
+606-38-74899	금수한방 숯불가든	정금자	담양읍 향교리 256-2	정금자	1045403419	1045403419	whang77@chol.com
 407-04-25990	김가네홍어집	장경자	순창읍 대동로105-1	장경자	1076530960	1076530960	whang77@chol.com
 409-19-50276	김밥나라	이용철	담양읍 중앙로 29	이용철			whang77@chol.com
 305-36-40890	김밥나라 빨간오뎅	김상은	순창읍 장류로 365	김상은	1036542976	1036542976	whang77@chol.com
@@ -236,145 +403,28 @@ const csvData = `사업자번호	상호	성명	주소	담당자성명1	전화1	H
 372-73-00215	황후쟁반짜장	이진호	담양읍 지침3길 10	이진호	1050130626	1050130626	whang77@chol.com
 418-81-35015	후레쉬푸드	배희문	전주시 덕진구 송천중앙로233-16`;
 
-// 지역별 분류 함수
-function classifyRegion(address: string): CompanyRegion {
-  if (address.includes("순창")) return "순창";
-  if (address.includes("담양")) return "담양";
-  if (address.includes("장성")) return "장성";
-  return "기타";
-}
+// 제공된 거래처 데이터를 파싱하여 Company 배열로 변환
+export const parseProvidedCompanies = (): Company[] => {
+  return parseCompaniesFromCSV(providedCompaniesData);
+};
 
-// 업체 유형 분류 함수
-function classifyType(companyName: string): CompanyType {
-  // 공급업체 키워드
-  const supplierKeywords = [
-    "식품",
-    "농산",
-    "유통",
-    "식자재",
-    "종합식품",
-    "한우협동조합",
-    "농협",
-    "마트",
-  ];
-  // 협력업체 키워드
-  const partnerKeywords = [
-    "법인",
-    "주식회사",
-    "(주)",
-    "(유)",
-    "의료법인",
-    "농업회사법인",
-    "조합법인",
-  ];
+// 거래처 데이터 요약 함수
+export const getImportSummary = (companies: Company[]) => {
+  const summary = {
+    total: companies.length,
+    byType: {} as Record<CompanyType, number>,
+    byRegion: {} as Record<CompanyRegion, number>,
+    withEmail: companies.filter((c) => c.email).length,
+    withPhone: companies.filter((c) => c.phoneNumber).length,
+    withContactPhone: companies.filter((c) => c.contactPhone).length,
+  };
 
-  // 정확한 매칭을 위해 키워드 체크
-  for (const keyword of supplierKeywords) {
-    if (companyName.includes(keyword)) return "공급업체";
-  }
+  // 타입별 집계
+  companies.forEach((company) => {
+    summary.byType[company.type] = (summary.byType[company.type] || 0) + 1;
+    summary.byRegion[company.region] =
+      (summary.byRegion[company.region] || 0) + 1;
+  });
 
-  for (const keyword of partnerKeywords) {
-    if (companyName.includes(keyword)) return "협력업체";
-  }
-
-  // 기본적으로 고객사로 분류
-  return "고객사";
-}
-
-// 전화번호 포맷팅 함수
-function formatPhoneNumber(phone: string): string {
-  if (!phone) return "";
-
-  // 숫자만 추출
-  let numbers = phone.replace(/\D/g, "");
-
-  // 10으로 시작하는 경우 010으로 변경
-  if (numbers.startsWith("10") && numbers.length === 10) {
-    numbers = "0" + numbers;
-  }
-
-  // 휴대폰 번호 (010, 011 등으로 시작하는 11자리)
-  if (
-    numbers.length === 11 &&
-    (numbers.startsWith("010") ||
-      numbers.startsWith("011") ||
-      numbers.startsWith("016") ||
-      numbers.startsWith("017") ||
-      numbers.startsWith("018") ||
-      numbers.startsWith("019"))
-  ) {
-    return `${numbers.substring(0, 3)}-${numbers.substring(
-      3,
-      7
-    )}-${numbers.substring(7)}`;
-  }
-
-  // 지역번호 (10자리)
-  if (numbers.length === 10) {
-    return `${numbers.substring(0, 3)}-${numbers.substring(
-      3,
-      6
-    )}-${numbers.substring(6)}`;
-  }
-
-  // 지역번호 (9자리)
-  if (numbers.length === 9) {
-    return `${numbers.substring(0, 2)}-${numbers.substring(
-      2,
-      5
-    )}-${numbers.substring(5)}`;
-  }
-
-  return phone;
-}
-
-// CSV 파싱 및 Company 객체 변환 함수
-function parseCSVData(): Company[] {
-  const lines = csvData.trim().split("\n");
-  const companies: Company[] = [];
-
-  for (let i = 1; i < lines.length; i++) {
-    const row = lines[i].split("\t");
-
-    if (row.length >= 4) {
-      const businessNumber = row[0]?.trim() || "";
-      const name = row[1]?.trim() || "";
-      const representative = row[2]?.trim() || "";
-      const address = row[3]?.trim() || "";
-      const contact = row[4]?.trim() || "";
-      const phone = formatPhoneNumber(row[5]?.trim() || "");
-      const mobile = formatPhoneNumber(row[6]?.trim() || "");
-      const email = row[7]?.trim() || "";
-
-      if (businessNumber && name) {
-        const company: Company = {
-          id: generateId(),
-          businessNumber,
-          name,
-          type: classifyType(name),
-          region: classifyRegion(address),
-          status: "활성",
-          address,
-          phoneNumber: phone || mobile,
-          email,
-          contactPerson: contact || representative,
-          contactPhone: mobile,
-          memo: "",
-          isFavorite: false,
-          tags: [],
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-
-        companies.push(company);
-      }
-    }
-  }
-
-  return companies;
-}
-
-// 모든 회사 데이터를 반환하는 함수
-export const getInitialCompanies = (): Company[] => {
-  return parseCSVData();
+  return summary;
 };

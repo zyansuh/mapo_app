@@ -9,7 +9,12 @@ export const usePhoneCall = () => {
   // Linking API를 사용한 전화 걸기
   const makeCall = async (phoneNumber: string, companyName?: string) => {
     try {
-      const cleanPhoneNumber = phoneNumber.replace(/[^0-9]/g, "");
+      let cleanPhoneNumber = phoneNumber.replace(/[^0-9]/g, "");
+
+      // 10으로 시작하는 경우 010으로 변경
+      if (cleanPhoneNumber.startsWith("10") && cleanPhoneNumber.length === 10) {
+        cleanPhoneNumber = "0" + cleanPhoneNumber;
+      }
 
       if (!cleanPhoneNumber) {
         Alert.alert("오류", "올바른 전화번호가 아닙니다.");
@@ -23,7 +28,7 @@ export const usePhoneCall = () => {
         // 통화 기록 추가
         const callRecord: CallHistoryItem = {
           id: Date.now().toString(),
-          phoneNumber: cleanPhoneNumber,
+          phoneNumber: formatPhoneNumber(cleanPhoneNumber),
           companyName,
           timestamp: new Date(),
           type: "outgoing",
@@ -59,17 +64,44 @@ export const usePhoneCall = () => {
 
   // 전화번호 형식 정리
   const formatPhoneNumber = (phoneNumber: string): string => {
-    const cleaned = phoneNumber.replace(/[^0-9]/g, "");
+    let cleaned = phoneNumber.replace(/[^0-9]/g, "");
 
-    if (cleaned.length === 11 && cleaned.startsWith("010")) {
+    // 10으로 시작하는 경우 010으로 변경
+    if (cleaned.startsWith("10") && cleaned.length === 10) {
+      cleaned = "0" + cleaned;
+    }
+
+    // 휴대폰 번호 (010, 011 등으로 시작하는 11자리)
+    if (
+      cleaned.length === 11 &&
+      (cleaned.startsWith("010") ||
+        cleaned.startsWith("011") ||
+        cleaned.startsWith("016") ||
+        cleaned.startsWith("017") ||
+        cleaned.startsWith("018") ||
+        cleaned.startsWith("019"))
+    ) {
       return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 7)}-${cleaned.slice(
         7
       )}`;
-    } else if (cleaned.length === 10) {
+    }
+
+    // 지역번호 (10자리)
+    if (cleaned.length === 10) {
       return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 6)}-${cleaned.slice(
         6
       )}`;
-    } else if (cleaned.length === 8) {
+    }
+
+    // 지역번호 (9자리)
+    if (cleaned.length === 9) {
+      return `${cleaned.slice(0, 2)}-${cleaned.slice(2, 5)}-${cleaned.slice(
+        5
+      )}`;
+    }
+
+    // 기타 (8자리 등)
+    if (cleaned.length === 8) {
       return `${cleaned.slice(0, 4)}-${cleaned.slice(4)}`;
     }
 

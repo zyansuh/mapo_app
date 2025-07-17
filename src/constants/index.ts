@@ -4,7 +4,7 @@ export * from "./messages";
 
 // 기존 상수들도 호환성을 위해 re-export
 export const COLORS = {
-  PRIMARY: "#007bff",
+  PRIMARY: "#6b7280",
   SECONDARY: "#6c757d",
   SUCCESS: "#28a745",
   WARNING: "#ffc107",

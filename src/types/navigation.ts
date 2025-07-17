@@ -4,27 +4,14 @@ export type RootStackParamList = {
   Main: undefined;
   CompanyDetail: { companyId: string };
   CompanyEdit: { companyId?: string };
-  ProductDetail: { productId: string };
-  ProductEdit: { productId?: string };
-  InvoiceDetail: { invoiceId: string };
-  InvoiceEdit: { invoiceId?: string };
-  DeliveryDetail: { deliveryId: string };
-  DeliveryEdit: { deliveryId?: string };
+  CompanyImport: undefined;
+  DirectImport: undefined;
   Settings: undefined;
-  Statistics: undefined;
-  Search: { initialQuery?: string };
-  CreditManagement: { companyId?: string };
-  InventoryManagement: undefined;
-  ProductManagement: undefined;
-  InvoiceManagement: undefined;
-  DeliveryManagement: undefined;
 };
 
 export type TabParamList = {
   Home: undefined;
   CompanyList: undefined;
-  Search: undefined;
-  Statistics: undefined;
   Settings: undefined;
 };
 

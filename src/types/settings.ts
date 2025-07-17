@@ -60,26 +60,6 @@ export interface NotificationSettings {
   };
 }
 
-export interface BackupSettings {
-  autoBackup: boolean;
-  backupFrequency: "daily" | "weekly" | "monthly";
-  backupLocation: "local" | "cloud" | "both";
-  lastBackupDate?: Date;
-  maxBackupCount: number;
-  includeImages: boolean;
-  includeRecordings: boolean;
-  encryptBackup: boolean;
-}
-
-export interface DataManagementSettings {
-  autoDeleteOldData: boolean;
-  dataRetentionDays: number;
-  deleteCallRecordings: boolean;
-  recordingRetentionDays: number;
-  autoCleanup: boolean;
-  cleanupFrequency: "daily" | "weekly" | "monthly";
-}
-
 export interface DisplaySettings {
   dateFormat: DateFormat;
   timeFormat: TimeFormat;
@@ -106,8 +86,6 @@ export interface AppSettings {
   theme: ThemeMode;
   language: SupportedLanguage;
   notifications: NotificationSettings;
-  backup: BackupSettings;
-  dataManagement: DataManagementSettings;
   display: DisplaySettings;
   security: SecuritySettings;
 

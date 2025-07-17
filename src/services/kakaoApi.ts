@@ -1,6 +1,8 @@
 // 카카오 REST API를 사용한 주소 검색 서비스
 
-const KAKAO_REST_API_KEY = "79e0ebfe320bd60e62e40f9cf7bc2aa0"; // 카카오 REST API 키
+// 환경변수에서 카카오 API 키를 가져오거나 기본값 사용
+const KAKAO_REST_API_KEY =
+  process.env.KAKAO_REST_API_KEY || "79e0ebfe320bd60e62e40f9cf7bc2aa0";
 
 export interface KakaoAddressDocument {
   address_name: string;

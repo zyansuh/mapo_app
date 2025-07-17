@@ -6,20 +6,18 @@ import {
   TouchableOpacity,
   ScrollView,
   SafeAreaView,
+  Platform,
+  StatusBar,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCompany } from "../hooks/useCompany";
-import { RootStackParamList } from "../types";
 import { useTheme } from "../hooks/useTheme";
 
-type NavigationProp = StackNavigationProp<RootStackParamList>;
-
 const HomeScreen = () => {
-  const navigation = useNavigation<NavigationProp>();
+  const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const { companies, getStats } = useCompany();
   const { theme } = useTheme();
@@ -32,155 +30,170 @@ const HomeScreen = () => {
       title: "거래처 관리",
       icon: "business" as const,
       color: theme.colors.primary,
-      onPress: () => navigation.navigate("CompanyDetail", { companyId: "1" }),
+      onPress: () => navigation.jumpTo("CompanyList"),
       count: stats.total,
-    },
-    {
-      title: "상품 관리",
-      icon: "cube" as const,
-      color: theme.colors.success,
-      onPress: () => navigation.navigate("ProductManagement"),
-      count: 3,
-    },
-    {
-      title: "계산서 관리",
-      icon: "document-text" as const,
-      color: theme.colors.warning,
-      onPress: () => navigation.navigate("InvoiceManagement"),
-      count: 3,
-    },
-    {
-      title: "배송 관리",
-      icon: "car" as const,
-      color: theme.colors.secondary,
-      onPress: () => navigation.navigate("DeliveryManagement"),
-      count: 3,
     },
   ];
 
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: theme.colors.background }]}
-    >
-      <LinearGradient
-        colors={[theme.colors.primary, theme.colors.primary]}
-        style={[styles.header, { paddingTop: insets.top }]}
+    <>
+      <StatusBar
+        backgroundColor={theme.colors.primary}
+        barStyle={theme.mode === "dark" ? "light-content" : "light-content"}
+      />
+      <SafeAreaView
+        style={[styles.container, { backgroundColor: theme.colors.background }]}
       >
-        <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>마포 비즈니스 매니저</Text>
-          <Text style={styles.headerSubtitle}>사업 관리의 모든 것</Text>
-        </View>
-      </LinearGradient>
-
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.welcomeSection}>
-          <Text style={[styles.welcomeText, { color: theme.colors.text }]}>
-            안녕하세요! 👋
-          </Text>
-          <Text
-            style={[
-              styles.welcomeSubtext,
-              { color: theme.colors.textSecondary },
-            ]}
-          >
-            오늘도 효율적인 사업 관리를 도와드리겠습니다.
-          </Text>
-        </View>
-
-        <View style={styles.statsSection}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-            빠른 통계
-          </Text>
-          <View style={styles.statsGrid}>
-            <View
-              style={[styles.statCard, { backgroundColor: theme.colors.card }]}
+        <LinearGradient
+          colors={[theme.colors.primary, theme.colors.primary]}
+          style={[
+            styles.header,
+            { paddingTop: Platform.OS === "android" ? 20 : insets.top },
+          ]}
+        >
+          <View style={styles.headerContent}>
+            <Text style={[styles.headerTitle, { color: theme.colors.white }]}>
+              마포 비즈니스 매니저
+            </Text>
+            <Text
+              style={[
+                styles.headerSubtitle,
+                { color: theme.colors.white + "CC" },
+              ]}
             >
-              <Text
-                style={[styles.statNumber, { color: theme.colors.primary }]}
-              >
-                {stats.total}
-              </Text>
-              <Text
-                style={[
-                  styles.statLabel,
-                  { color: theme.colors.textSecondary },
-                ]}
-              >
-                총 거래처
-              </Text>
-            </View>
-            <View
-              style={[styles.statCard, { backgroundColor: theme.colors.card }]}
-            >
-              <Text
-                style={[styles.statNumber, { color: theme.colors.success }]}
-              >
-                {stats.favorites}
-              </Text>
-              <Text
-                style={[
-                  styles.statLabel,
-                  { color: theme.colors.textSecondary },
-                ]}
-              >
-                즐겨찾기
-              </Text>
-            </View>
+              사업 관리의 모든 것
+            </Text>
           </View>
-        </View>
+        </LinearGradient>
 
-        <View style={styles.menuSection}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-            주요 기능
-          </Text>
-          <View style={styles.menuGrid}>
-            {menuItems.map((item, index) => (
-              <TouchableOpacity
-                key={index}
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          <View style={styles.welcomeSection}>
+            <Text style={[styles.welcomeText, { color: theme.colors.text }]}>
+              안녕하세요! 👋
+            </Text>
+            <Text
+              style={[
+                styles.welcomeSubtext,
+                { color: theme.colors.textSecondary },
+              ]}
+            >
+              오늘도 효율적인 사업 관리를 도와드리겠습니다.
+            </Text>
+          </View>
+
+          <View style={styles.statsSection}>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+              빠른 통계
+            </Text>
+            <View style={styles.statsGrid}>
+              <View
                 style={[
-                  styles.menuItem,
+                  styles.statCard,
                   { backgroundColor: theme.colors.card },
                 ]}
-                onPress={item.onPress}
               >
-                <View
-                  style={[styles.menuIcon, { backgroundColor: item.color }]}
+                <Text
+                  style={[styles.statNumber, { color: theme.colors.primary }]}
                 >
-                  <Ionicons name={item.icon} size={24} color="white" />
-                </View>
-                <Text style={[styles.menuTitle, { color: theme.colors.text }]}>
-                  {item.title}
+                  {stats.total}
                 </Text>
                 <Text
                   style={[
-                    styles.menuCount,
+                    styles.statLabel,
                     { color: theme.colors.textSecondary },
                   ]}
                 >
-                  {item.count}개
+                  총 거래처
                 </Text>
-              </TouchableOpacity>
-            ))}
+              </View>
+              <View
+                style={[
+                  styles.statCard,
+                  { backgroundColor: theme.colors.card },
+                ]}
+              >
+                <Text
+                  style={[styles.statNumber, { color: theme.colors.success }]}
+                >
+                  {stats.favorites}
+                </Text>
+                <Text
+                  style={[
+                    styles.statLabel,
+                    { color: theme.colors.textSecondary },
+                  ]}
+                >
+                  즐겨찾기
+                </Text>
+              </View>
+            </View>
           </View>
-        </View>
 
-        <View style={styles.actionsSection}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-            빠른 작업
-          </Text>
-          <TouchableOpacity
-            style={[
-              styles.actionButton,
-              { backgroundColor: theme.colors.primary },
-            ]}
-            onPress={() => navigation.navigate("CompanyEdit", {})}
-          >
-            <Ionicons name="add" size={20} color="white" />
-            <Text style={styles.actionButtonText}>새 거래처 등록</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+          <View style={styles.menuSection}>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+              주요 기능
+            </Text>
+            <View style={styles.menuGrid}>
+              {menuItems.map((item, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.menuItem,
+                    { backgroundColor: theme.colors.card },
+                  ]}
+                  onPress={item.onPress}
+                >
+                  <View
+                    style={[styles.menuIcon, { backgroundColor: item.color }]}
+                  >
+                    <Ionicons
+                      name={item.icon}
+                      size={24}
+                      color={theme.colors.white}
+                    />
+                  </View>
+                  <Text
+                    style={[styles.menuTitle, { color: theme.colors.text }]}
+                  >
+                    {item.title}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.menuCount,
+                      { color: theme.colors.textSecondary },
+                    ]}
+                  >
+                    {item.count}개
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+
+          <View style={styles.actionsSection}>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+              빠른 작업
+            </Text>
+            <TouchableOpacity
+              style={[
+                styles.actionButton,
+                { backgroundColor: theme.colors.primary },
+              ]}
+              onPress={() =>
+                navigation.getParent()?.navigate("CompanyEdit", {})
+              }
+            >
+              <Ionicons name="add" size={20} color={theme.colors.white} />
+              <Text
+                style={[styles.actionButtonText, { color: theme.colors.white }]}
+              >
+                새 거래처 등록
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </>
   );
 };
 
@@ -198,12 +211,10 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "white",
     marginBottom: 4,
   },
   headerSubtitle: {
     fontSize: 16,
-    color: "rgba(255, 255, 255, 0.8)",
   },
   content: {
     flex: 1,
@@ -299,7 +310,6 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   actionButtonText: {
-    color: "white",
     fontSize: 16,
     fontWeight: "600",
   },

@@ -13,14 +13,13 @@ export const API_CONFIG = {
   TIMEOUT: 30000, // 30초
   RETRY_ATTEMPTS: 3,
   RETRY_DELAY: 1000, // 1초
+  // 추가 API 키들
+  KAKAO_API_KEY: process.env.KAKAO_REST_API_KEY,
 } as const;
 
 // 스토리지 관련 상수 (storage.ts에서 이동)
 export const STORAGE_KEYS = {
   COMPANIES: "mapo_companies_v2",
-  PRODUCTS: "mapo_products_v2",
-  INVOICES: "mapo_invoices_v2",
-  DELIVERIES: "mapo_deliveries_v2",
   CALL_HISTORY: "mapo_call_history_v2",
   SETTINGS: "mapo_settings_v2",
   CACHE: "mapo_cache_v2",
@@ -32,11 +31,8 @@ export const STORAGE_KEYS = {
 // 제한값 상수
 export const LIMITS = {
   MAX_COMPANIES: 10000,
-  MAX_PRODUCTS: 5000,
-  MAX_INVOICES: 50000,
   MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB
   MAX_IMAGE_SIZE: 5 * 1024 * 1024, // 5MB
-  MAX_BACKUP_COUNT: 10,
   SEARCH_DEBOUNCE: 300, // ms
   AUTO_SAVE_INTERVAL: 5000, // 5초
 } as const;
@@ -99,37 +95,7 @@ export const NOTIFICATION_TYPES = {
   DELIVERY: "delivery",
   INVOICE: "invoice",
   SYSTEM: "system",
-  BACKUP: "backup",
   UPDATE: "update",
-} as const;
-
-// 내보내기 형식 상수
-export const EXPORT_FORMATS = {
-  EXCEL: {
-    key: "excel",
-    extension: ".xlsx",
-    mimeType:
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    name: "Excel 파일",
-  },
-  CSV: {
-    key: "csv",
-    extension: ".csv",
-    mimeType: "text/csv",
-    name: "CSV 파일",
-  },
-  JSON: {
-    key: "json",
-    extension: ".json",
-    mimeType: "application/json",
-    name: "JSON 파일",
-  },
-  PDF: {
-    key: "pdf",
-    extension: ".pdf",
-    mimeType: "application/pdf",
-    name: "PDF 파일",
-  },
 } as const;
 
 // 성능 관련 상수

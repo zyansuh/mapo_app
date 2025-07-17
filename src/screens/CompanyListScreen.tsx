@@ -20,6 +20,7 @@ import { usePhoneCall } from "../hooks/usePhoneCall";
 import { Company } from "../types";
 import { COLORS, SIZES } from "../constants";
 import { Button } from "../components";
+import { formatPhoneNumber } from "../utils/format";
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -69,7 +70,7 @@ export const CompanyListScreen: React.FC = () => {
       case "고객사":
         return "#10b981"; // 녹색 - 매출
       case "협력업체":
-        return "#3b82f6"; // 파란색 - 파트너
+        return "#6b7280"; // 회색 - 파트너
       case "공급업체":
         return "#f59e0b"; // 주황색 - 공급
       case "하청업체":
@@ -146,7 +147,9 @@ export const CompanyListScreen: React.FC = () => {
 
           <View style={styles.detailItem}>
             <Ionicons name="call-outline" size={14} color="#6b7280" />
-            <Text style={styles.phoneNumber}>{item.phoneNumber}</Text>
+            <Text style={styles.phoneNumber}>
+              {formatPhoneNumber(item.phoneNumber)}
+            </Text>
           </View>
 
           {item.contactPerson && (

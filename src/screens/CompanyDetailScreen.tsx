@@ -7,6 +7,8 @@ import {
   StyleSheet,
   SafeAreaView,
   Alert,
+  Platform,
+  StatusBar,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import {
@@ -21,7 +23,7 @@ import { RootStackParamList } from "../types";
 import { QRCodeGenerator } from "../components/QRCodeGenerator";
 import { useCompany } from "../hooks";
 import { useTheme } from "../hooks/useTheme";
-import DeliveryRegistrationModal from "../components/modals/DeliveryRegistrationModal";
+import { formatPhoneNumber } from "../utils/format";
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 type RouteProps = NavigationRouteProp<RootStackParamList, "CompanyDetail">;
@@ -36,12 +38,8 @@ const CompanyDetailScreen = () => {
   const { getCompanyById, deleteCompany } = useCompany();
   const company = getCompanyById(companyId);
 
-  const [activeTab, setActiveTab] = useState<"info" | "products" | "delivery">(
-    "info"
-  );
-  const [isDeliveryModalVisible, setIsDeliveryModalVisible] = useState(false);
+  const [activeTab, setActiveTab] = useState<"info">("info");
   const [qrModalVisible, setQrModalVisible] = useState(false);
-  const [deliveries, setDeliveries] = useState<any[]>([]);
 
   if (!company) {
     return (
@@ -82,10 +80,7 @@ const CompanyDetailScreen = () => {
     ]);
   };
 
-  const renderTabButton = (
-    tab: "info" | "products" | "delivery",
-    title: string
-  ) => (
+  const renderTabButton = (tab: "info", title: string) => (
     <TouchableOpacity
       style={[
         styles.tabButton,
@@ -148,7 +143,7 @@ const CompanyDetailScreen = () => {
           전화번호
         </Text>
         <Text style={[styles.infoValue, { color: theme.colors.text }]}>
-          {company.phoneNumber}
+          {formatPhoneNumber(company.phoneNumber)}
         </Text>
       </View>
 
@@ -215,11 +210,6 @@ const CompanyDetailScreen = () => {
     </View>
   );
 
-  const handleDeliverySubmit = (deliveryData: any) => {
-    setDeliveries((prev) => [...prev, deliveryData]);
-    Alert.alert("성공", "배송이 등록되었습니다!");
-  };
-
   const renderProductsTab = () => (
     <View
       style={[
@@ -233,7 +223,9 @@ const CompanyDetailScreen = () => {
         </Text>
         <TouchableOpacity
           style={[styles.addButton, { backgroundColor: theme.colors.primary }]}
-          onPress={() => setIsDeliveryModalVisible(true)}
+          onPress={() =>
+            Alert.alert("배송 등록", "배송 등록 기능은 곧 제공될 예정입니다.")
+          }
         >
           <Ionicons name="add" size={20} color={theme.colors.white} />
           <Text style={[styles.addButtonText, { color: theme.colors.white }]}>
@@ -242,76 +234,21 @@ const CompanyDetailScreen = () => {
         </TouchableOpacity>
       </View>
 
-      {deliveries.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Ionicons
-            name="cube-outline"
-            size={50}
-            color={theme.colors.textSecondary}
-          />
-          <Text
-            style={[styles.emptyText, { color: theme.colors.textSecondary }]}
-          >
-            등록된 배송이 없습니다.
-          </Text>
-          <Text
-            style={[styles.emptySubText, { color: theme.colors.textSecondary }]}
-          >
-            배송 등록 버튼을 눌러 새로운 배송을 추가해보세요.
-          </Text>
-        </View>
-      ) : (
-        <ScrollView style={styles.deliveryList}>
-          {deliveries.map((delivery, index) => (
-            <View
-              key={index}
-              style={[
-                styles.deliveryItem,
-                { backgroundColor: theme.colors.background },
-              ]}
-            >
-              <View style={styles.deliveryHeader}>
-                <Text
-                  style={[styles.deliveryNumber, { color: theme.colors.text }]}
-                >
-                  {delivery.deliveryNumber}
-                </Text>
-                <Text
-                  style={[
-                    styles.deliveryStatus,
-                    { color: theme.colors.primary },
-                  ]}
-                >
-                  {delivery.status}
-                </Text>
-              </View>
-              <Text
-                style={[
-                  styles.deliveryDate,
-                  { color: theme.colors.textSecondary },
-                ]}
-              >
-                배송일: {delivery.deliveryDate}
-              </Text>
-              <Text
-                style={[styles.deliveryAmount, { color: theme.colors.text }]}
-              >
-                금액: {delivery.totalAmount.toLocaleString()}원
-              </Text>
-              {delivery.trackingNumber && (
-                <Text
-                  style={[
-                    styles.trackingNumber,
-                    { color: theme.colors.textSecondary },
-                  ]}
-                >
-                  송장번호: {delivery.trackingNumber}
-                </Text>
-              )}
-            </View>
-          ))}
-        </ScrollView>
-      )}
+      <View style={styles.emptyContainer}>
+        <Ionicons
+          name="cube-outline"
+          size={50}
+          color={theme.colors.textSecondary}
+        />
+        <Text style={[styles.emptyText, { color: theme.colors.textSecondary }]}>
+          등록된 배송이 없습니다.
+        </Text>
+        <Text
+          style={[styles.emptySubText, { color: theme.colors.textSecondary }]}
+        >
+          배송 등록 기능은 곧 제공될 예정입니다.
+        </Text>
+      </View>
     </View>
   );
 
@@ -319,122 +256,118 @@ const CompanyDetailScreen = () => {
     switch (activeTab) {
       case "info":
         return renderCompanyInfo();
-      case "products":
-        return renderProductsTab();
-      case "delivery":
-        return (
-          <View
-            style={[
-              styles.emptyContainer,
-              { backgroundColor: theme.colors.surface },
-            ]}
-          >
-            <Text
-              style={[styles.emptyText, { color: theme.colors.textSecondary }]}
-            >
-              배송 관리 기능은 곧 제공될 예정입니다.
-            </Text>
-          </View>
-        );
       default:
         return null;
     }
   };
 
   return (
-    <SafeAreaView
-      style={[
-        styles.container,
-        { backgroundColor: theme.colors.background, paddingTop: insets.top },
-      ]}
-    >
-      {/* 헤더 */}
-      <View style={[styles.header, { backgroundColor: theme.colors.surface }]}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: theme.colors.text }]}>
-          {company.name}
-        </Text>
-        <View style={styles.headerActions}>
-          <TouchableOpacity
-            style={styles.qrButton}
-            onPress={() => setQrModalVisible(true)}
-          >
-            <Ionicons
-              name="qr-code-outline"
-              size={24}
-              color={theme.colors.secondary}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.editButton}
-            onPress={() => navigation.navigate("CompanyEdit", { companyId })}
-          >
-            <Ionicons
-              name="create-outline"
-              size={24}
-              color={theme.colors.primary}
-            />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* 탭 메뉴 */}
-      <View
-        style={[styles.tabContainer, { backgroundColor: theme.colors.surface }]}
-      >
-        {renderTabButton("info", "기본 정보")}
-        {renderTabButton("products", "상품 관리")}
-        {renderTabButton("delivery", "배송 관리")}
-      </View>
-
-      {/* 컨텐츠 */}
-      <ScrollView style={styles.scrollView}>{renderContent()}</ScrollView>
-
-      {/* 삭제 버튼 */}
-      <View
+    <>
+      <StatusBar
+        backgroundColor={theme.colors.background}
+        barStyle={theme.mode === "dark" ? "light-content" : "dark-content"}
+      />
+      <SafeAreaView
         style={[
-          styles.deleteButtonContainer,
-          { backgroundColor: theme.colors.surface },
+          styles.container,
+          {
+            backgroundColor: theme.colors.background,
+            paddingTop: Platform.OS === "android" ? 10 : insets.top,
+          },
         ]}
       >
-        <TouchableOpacity
-          style={[styles.deleteButton, { backgroundColor: theme.colors.error }]}
-          onPress={handleDelete}
+        {/* 헤더 */}
+        <View
+          style={[styles.header, { backgroundColor: theme.colors.surface }]}
         >
-          <Ionicons name="trash-outline" size={20} color={theme.colors.white} />
-          <Text
-            style={[styles.deleteButtonText, { color: theme.colors.white }]}
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
           >
-            회사 삭제
+            <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
+          </TouchableOpacity>
+          <Text style={[styles.headerTitle, { color: theme.colors.text }]}>
+            {company.name}
           </Text>
-        </TouchableOpacity>
-      </View>
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              style={styles.qrButton}
+              onPress={() => setQrModalVisible(true)}
+            >
+              <Ionicons
+                name="qr-code-outline"
+                size={24}
+                color={theme.colors.secondary}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.editButton}
+              onPress={() => navigation.navigate("CompanyEdit", { companyId })}
+            >
+              <Ionicons
+                name="create-outline"
+                size={24}
+                color={theme.colors.primary}
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
 
-      {/* 배송등록 모달 */}
-      {company && (
-        <DeliveryRegistrationModal
-          visible={isDeliveryModalVisible}
-          onClose={() => setIsDeliveryModalVisible(false)}
-          onSubmit={handleDeliverySubmit}
-          company={company}
-        />
-      )}
+        {/* 탭 메뉴 */}
+        <View
+          style={[
+            styles.tabContainer,
+            { backgroundColor: theme.colors.surface },
+          ]}
+        >
+          {renderTabButton("info", "기본 정보")}
+        </View>
 
-      {/* QR 코드 모달 */}
-      {company && (
-        <QRCodeGenerator
-          visible={qrModalVisible}
-          onClose={() => setQrModalVisible(false)}
-          data={company}
-          type="company"
-        />
-      )}
-    </SafeAreaView>
+        {/* 컨텐츠 */}
+        <ScrollView style={styles.scrollView}>{renderContent()}</ScrollView>
+
+        {/* 삭제 버튼 */}
+        <View
+          style={[
+            styles.deleteButtonContainer,
+            {
+              backgroundColor: theme.colors.surface,
+              paddingBottom:
+                Platform.OS === "android" ? 80 : Math.max(16, insets.bottom),
+            },
+          ]}
+        >
+          <TouchableOpacity
+            style={[
+              styles.deleteButton,
+              { backgroundColor: theme.colors.error },
+            ]}
+            onPress={handleDelete}
+          >
+            <Ionicons
+              name="trash-outline"
+              size={20}
+              color={theme.colors.white}
+            />
+            <Text
+              style={[styles.deleteButtonText, { color: theme.colors.white }]}
+            >
+              회사 삭제
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* QR 코드 모달 */}
+        {company && (
+          <QRCodeGenerator
+            visible={qrModalVisible}
+            onClose={() => setQrModalVisible(false)}
+            data={company}
+            type="company"
+          />
+        )}
+      </SafeAreaView>
+    </>
   );
 };
 
@@ -578,42 +511,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: "center",
     marginTop: 8,
-  },
-  deliveryList: {
-    flex: 1,
-  },
-  deliveryItem: {
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-  },
-  deliveryHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  deliveryNumber: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  deliveryStatus: {
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  deliveryDate: {
-    fontSize: 14,
-    marginBottom: 4,
-  },
-  deliveryAmount: {
-    fontSize: 14,
-    fontWeight: "500",
-    marginBottom: 4,
-  },
-  trackingNumber: {
-    fontSize: 12,
   },
 });
 
