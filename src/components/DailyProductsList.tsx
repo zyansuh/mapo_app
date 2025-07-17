@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -18,12 +18,6 @@ interface DailyProductsListProps {
   onDeleteDelivery: (deliveryId: string) => void;
 }
 
-interface GroupedDelivery {
-  date: string;
-  deliveries: ProductDelivery[];
-  totalAmount: number;
-}
-
 export const DailyProductsList: React.FC<DailyProductsListProps> = ({
   companyId,
   deliveries,
@@ -33,9 +27,15 @@ export const DailyProductsList: React.FC<DailyProductsListProps> = ({
 }) => {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
-  // 날짜별로 배송 그룹화
-  const groupedDeliveries = React.useMemo(() => {
-    const groups: { [key: string]: GroupedDelivery } = {};
+  // 날짜별로 배송 데이터 그룹화
+  const groupedDeliveries = useMemo(() => {
+    const groups: {
+      [key: string]: {
+        date: string;
+        deliveries: ProductDelivery[];
+        totalAmount: number;
+      };
+    } = {};
 
     deliveries.forEach((delivery) => {
       const dateKey = delivery.deliveryDate.toISOString().split("T")[0];
@@ -49,7 +49,7 @@ export const DailyProductsList: React.FC<DailyProductsListProps> = ({
       }
 
       groups[dateKey].deliveries.push(delivery);
-      groups[dateKey].totalAmount += delivery.totalPrice;
+      groups[dateKey].totalAmount += delivery.totalAmount;
     });
 
     return Object.values(groups).sort(
@@ -70,36 +70,10 @@ export const DailyProductsList: React.FC<DailyProductsListProps> = ({
     return price.toLocaleString("ko-KR") + "원";
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "배송완료":
-        return "#10b981";
-      case "배송중":
-        return "#f59e0b";
-      case "취소":
-        return "#ef4444";
-      default:
-        return "#6b7280";
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "배송완료":
-        return "checkmark-circle";
-      case "배송중":
-        return "car";
-      case "취소":
-        return "close-circle";
-      default:
-        return "help-circle";
-    }
-  };
-
   const handleDeleteDelivery = (delivery: ProductDelivery) => {
     Alert.alert(
       "배송 삭제",
-      `${delivery.product.name} 배송을 삭제하시겠습니까?`,
+      `배송번호 ${delivery.deliveryNumber}을(를) 삭제하시겠습니까?`,
       [
         { text: "취소", style: "cancel" },
         {
@@ -115,68 +89,53 @@ export const DailyProductsList: React.FC<DailyProductsListProps> = ({
     <View style={styles.deliveryItem}>
       <View style={styles.deliveryHeader}>
         <View style={styles.productInfo}>
-          <Text style={styles.productName}>{item.product.name}</Text>
-          <Text style={styles.productCategory}>{item.product.category}</Text>
+          <Text style={styles.productName}>
+            배송번호: {item.deliveryNumber}
+          </Text>
+          <Text style={styles.productCategory}>상품 {item.items.length}개</Text>
         </View>
         <View style={styles.deliveryActions}>
           <TouchableOpacity
             style={styles.actionButton}
             onPress={() => onEditDelivery(item)}
           >
-            <Ionicons name="pencil" size={16} color="#3b82f6" />
+            <Ionicons name="create-outline" size={20} color="#007bff" />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.actionButton}
             onPress={() => handleDeleteDelivery(item)}
           >
-            <Ionicons name="trash" size={16} color="#ef4444" />
+            <Ionicons name="trash-outline" size={20} color="#dc3545" />
           </TouchableOpacity>
         </View>
       </View>
 
       <View style={styles.deliveryDetails}>
         <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>수량:</Text>
-          <Text style={styles.detailValue}>
-            {item.quantity} {item.product.unit}
-          </Text>
-        </View>
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>단가:</Text>
-          <Text style={styles.detailValue}>{formatPrice(item.unitPrice)}</Text>
+          <Text style={styles.detailLabel}>총 수량:</Text>
+          <Text style={styles.detailValue}>{item.totalQuantity}개</Text>
         </View>
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>총액:</Text>
           <Text style={[styles.detailValue, styles.totalPrice]}>
-            {formatPrice(item.totalPrice)}
+            {formatPrice(item.totalAmount)}
           </Text>
+        </View>
+        <View style={styles.detailRow}>
+          <Text style={styles.detailLabel}>상태:</Text>
+          <Text style={styles.detailValue}>{item.status}</Text>
         </View>
       </View>
 
-      <View style={styles.deliveryFooter}>
-        <View
-          style={[
-            styles.statusBadge,
-            { backgroundColor: getStatusColor(item.status) },
-          ]}
-        >
-          <Ionicons
-            name={getStatusIcon(item.status) as any}
-            size={12}
-            color="#ffffff"
-          />
-          <Text style={styles.statusText}>{item.status}</Text>
+      {item.memo && (
+        <View style={styles.memoContainer}>
+          <Text style={styles.memoText}>{item.memo}</Text>
         </View>
-        {item.memo && (
-          <Text style={styles.memoText} numberOfLines={2}>
-            📝 {item.memo}
-          </Text>
-        )}
-      </View>
+      )}
     </View>
   );
 
-  const renderDateGroup = ({ item }: { item: GroupedDelivery }) => (
+  const renderDateGroup = ({ item }: { item: any }) => (
     <View style={styles.dateGroup}>
       <TouchableOpacity
         style={styles.dateHeader}
@@ -184,65 +143,53 @@ export const DailyProductsList: React.FC<DailyProductsListProps> = ({
           setSelectedDate(selectedDate === item.date ? null : item.date)
         }
       >
+        <Text style={styles.dateText}>{formatDate(item.date)}</Text>
         <View style={styles.dateInfo}>
-          <Text style={styles.dateTitle}>{formatDate(item.date)}</Text>
-          <Text style={styles.dateSubtitle}>
-            {item.deliveries.length}건 • {formatPrice(item.totalAmount)}
-          </Text>
+          <Text style={styles.countText}>{item.deliveries.length}건</Text>
+          <Text style={styles.amountText}>{formatPrice(item.totalAmount)}</Text>
+          <Ionicons
+            name={selectedDate === item.date ? "chevron-up" : "chevron-down"}
+            size={20}
+            color="#666"
+          />
         </View>
-        <Ionicons
-          name={selectedDate === item.date ? "chevron-up" : "chevron-down"}
-          size={20}
-          color="#737373"
-        />
       </TouchableOpacity>
 
       {selectedDate === item.date && (
-        <View style={styles.deliveriesContainer}>
-          <FlatList
-            data={item.deliveries}
-            renderItem={renderDeliveryItem}
-            keyExtractor={(delivery) => delivery.id}
-            showsVerticalScrollIndicator={false}
-          />
-        </View>
+        <FlatList
+          data={item.deliveries}
+          renderItem={renderDeliveryItem}
+          keyExtractor={(delivery) => delivery.id}
+          scrollEnabled={false}
+        />
       )}
     </View>
   );
 
-  if (groupedDeliveries.length === 0) {
-    return (
-      <View style={styles.emptyState}>
-        <Ionicons name="calendar-outline" size={48} color="#9ca3af" />
-        <Text style={styles.emptyStateTitle}>배송 기록이 없습니다</Text>
-        <Text style={styles.emptyStateSubtitle}>
-          아직 배송된 상품이 없습니다.{"\n"}새로운 배송을 등록해보세요!
-        </Text>
-        <TouchableOpacity style={styles.addButton} onPress={onAddDelivery}>
-          <Ionicons name="add" size={20} color="#ffffff" />
-          <Text style={styles.addButtonText}>배송 등록</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>배송 기록</Text>
-        <TouchableOpacity style={styles.headerButton} onPress={onAddDelivery}>
-          <Ionicons name="add" size={20} color="#ffffff" />
-          <Text style={styles.headerButtonText}>새 배송</Text>
+        <Text style={styles.title}>배송 목록</Text>
+        <TouchableOpacity style={styles.addButton} onPress={onAddDelivery}>
+          <Ionicons name="add" size={24} color="white" />
+          <Text style={styles.addButtonText}>배송 추가</Text>
         </TouchableOpacity>
       </View>
 
-      <FlatList
-        data={groupedDeliveries}
-        renderItem={renderDateGroup}
-        keyExtractor={(item) => item.date}
-        showsVerticalScrollIndicator={false}
-        style={styles.list}
-      />
+      {groupedDeliveries.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Ionicons name="calendar-outline" size={50} color="#ccc" />
+          <Text style={styles.emptyText}>등록된 배송이 없습니다.</Text>
+          <Text style={styles.emptySubtext}>새로운 배송을 추가해보세요.</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={groupedDeliveries}
+          renderItem={renderDateGroup}
+          keyExtractor={(item) => item.date}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
     </View>
   );
 };
@@ -250,83 +197,83 @@ export const DailyProductsList: React.FC<DailyProductsListProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#f8f9fa",
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: "white",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
   },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#171717",
+  title: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#333",
   },
-  headerButton: {
+  addButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#525252",
-    paddingHorizontal: 16,
+    backgroundColor: "#007bff",
+    paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: 8,
+    borderRadius: 6,
   },
-  headerButtonText: {
-    color: "#ffffff",
+  addButtonText: {
+    color: "white",
     fontSize: 14,
-    fontWeight: "600",
-    marginLeft: 6,
-  },
-  list: {
-    flex: 1,
+    fontWeight: "500",
+    marginLeft: 4,
   },
   dateGroup: {
-    backgroundColor: "#ffffff",
-    borderRadius: 12,
-    marginBottom: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    marginBottom: 8,
   },
   dateHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 16,
+    backgroundColor: "white",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "#F5F5F5",
+    borderBottomColor: "#f0f0f0",
   },
-  dateInfo: {
-    flex: 1,
-  },
-  dateTitle: {
+  dateText: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#171717",
-    marginBottom: 4,
+    color: "#333",
   },
-  dateSubtitle: {
+  dateInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  countText: {
     fontSize: 14,
-    color: "#737373",
+    color: "#666",
   },
-  deliveriesContainer: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
+  amountText: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#007bff",
   },
   deliveryItem: {
-    backgroundColor: "#F9FAFB",
+    backgroundColor: "white",
+    marginHorizontal: 16,
+    marginVertical: 4,
+    padding: 16,
     borderRadius: 8,
-    padding: 12,
-    marginBottom: 8,
     borderLeftWidth: 4,
-    borderLeftColor: "#525252",
+    borderLeftColor: "#007bff",
   },
   deliveryHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    marginBottom: 8,
+    marginBottom: 12,
   },
   productInfo: {
     flex: 1,
@@ -334,106 +281,69 @@ const styles = StyleSheet.create({
   productName: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#171717",
-    marginBottom: 2,
+    color: "#333",
+    marginBottom: 4,
   },
   productCategory: {
-    fontSize: 12,
-    color: "#737373",
-    backgroundColor: "#E5E7EB",
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 4,
-    alignSelf: "flex-start",
+    fontSize: 14,
+    color: "#666",
   },
   deliveryActions: {
     flexDirection: "row",
+    gap: 8,
   },
   actionButton: {
     padding: 8,
-    marginLeft: 4,
   },
   deliveryDetails: {
-    marginBottom: 8,
+    gap: 8,
   },
   detailRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 4,
   },
   detailLabel: {
     fontSize: 14,
-    color: "#737373",
+    color: "#666",
   },
   detailValue: {
     fontSize: 14,
-    color: "#171717",
     fontWeight: "500",
+    color: "#333",
   },
   totalPrice: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#dc2626",
+    color: "#007bff",
+    fontWeight: "600",
   },
-  deliveryFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  statusBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+  memoContainer: {
+    marginTop: 12,
+    padding: 12,
+    backgroundColor: "#f8f9fa",
     borderRadius: 6,
   },
-  statusText: {
-    fontSize: 12,
-    color: "#ffffff",
-    fontWeight: "600",
-    marginLeft: 4,
-  },
   memoText: {
-    fontSize: 12,
-    color: "#737373",
+    fontSize: 14,
+    color: "#666",
     fontStyle: "italic",
-    flex: 1,
-    textAlign: "right",
-    marginLeft: 8,
   },
-  emptyState: {
+  emptyContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    paddingVertical: 60,
+    paddingHorizontal: 32,
   },
-  emptyStateTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#171717",
+  emptyText: {
+    fontSize: 16,
+    color: "#666",
     marginTop: 16,
     marginBottom: 8,
   },
-  emptyStateSubtitle: {
+  emptySubtext: {
     fontSize: 14,
-    color: "#737373",
+    color: "#999",
     textAlign: "center",
-    lineHeight: 20,
-    marginBottom: 24,
-  },
-  addButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#525252",
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  addButtonText: {
-    color: "#ffffff",
-    fontSize: 14,
-    fontWeight: "600",
-    marginLeft: 8,
   },
 });
+
+export default DailyProductsList;

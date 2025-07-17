@@ -48,6 +48,11 @@ export const CATEGORY_COLORS = {
     light: "#ede9fe",
     text: "#5b21b6",
   },
+  기타: {
+    primary: "#6b7280",
+    light: "#f3f4f6",
+    text: "#374151",
+  },
 } as const;
 
 // 상태별 색상

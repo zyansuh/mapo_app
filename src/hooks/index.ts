@@ -6,3 +6,5 @@ export { useCallAnalytics } from "./useCallAnalytics";
 export { useCallDetection } from "./useCallDetection";
 export { useCompany } from "./useCompany";
 export { usePhoneCall } from "./usePhoneCall";
+export { useKeyboardShortcuts } from "./useKeyboardShortcuts";
+export { useTheme } from "./useTheme";

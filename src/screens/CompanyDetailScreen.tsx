@@ -1,711 +1,414 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Alert,
-  Linking,
   SafeAreaView,
-  Modal,
+  Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
+import {
+  useNavigation,
+  useRoute,
+  RouteProp as NavigationRouteProp,
+} from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { RootStackParamList } from "../navigation/AppNavigator";
+import { RootStackParamList } from "../types";
 import { useCompany } from "../hooks";
-import { COLORS, SIZES } from "../constants";
-import {
-  Button,
-  DailyProductsList,
-  ProductSelection,
-  InventoryManagement,
-  CreditManagement,
-} from "../components";
-import {
-  ProductDelivery,
-  Product,
-  CreditRecord,
-  ProductSelectionFormData,
-} from "../types";
-import { generateId } from "../utils";
+import { useTheme } from "../hooks/useTheme";
+import DeliveryRegistrationModal from "../components/modals/DeliveryRegistrationModal";
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
-type RouteProps = RouteProp<RootStackParamList, "CompanyDetail">;
+type RouteProps = NavigationRouteProp<RootStackParamList, "CompanyDetail">;
 
-// 탭 타입 정의
-type TabType = "info" | "products" | "selection" | "inventory" | "credit";
-
-interface Tab {
-  id: TabType;
-  title: string;
-  icon: string;
-}
-
-const tabs: Tab[] = [
-  { id: "info", title: "기본 정보", icon: "information-circle" },
-  { id: "products", title: "상품 목록", icon: "calendar" },
-  { id: "selection", title: "상품 선택", icon: "add-circle" },
-  { id: "inventory", title: "재고 관리", icon: "cube" },
-  { id: "credit", title: "외상 관리", icon: "card" },
-];
-
-export const CompanyDetailScreen: React.FC = () => {
+const CompanyDetailScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<RouteProps>();
-  const { companyId } = route.params;
   const insets = useSafeAreaInsets();
+  const { theme } = useTheme();
 
+  const { companyId } = route.params;
   const { getCompanyById, deleteCompany } = useCompany();
   const company = getCompanyById(companyId);
 
-  const [activeTab, setActiveTab] = useState<TabType>("info");
-  const [showProductSelection, setShowProductSelection] = useState(false);
-
-  // 샘플 상품 데이터 생성 함수
-  const createSampleProducts = (companyId: string): Product[] => [
-    // 두부 카테고리
-    {
-      id: "1",
-      name: "착한손두부",
-      category: "두부",
-      price: 2500,
-      unit: "모",
-      description: "신선한 착한손두부",
-      companyId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: "2",
-      name: "고소한손두부",
-      category: "두부",
-      price: 2800,
-      unit: "모",
-      description: "고소한 맛의 손두부",
-      companyId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: "3",
-      name: "순두부",
-      category: "두부",
-      price: 3000,
-      unit: "모",
-      description: "부드러운 순두부",
-      companyId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: "4",
-      name: "맛두부",
-      category: "두부",
-      price: 3200,
-      unit: "모",
-      description: "맛있는 두부",
-      companyId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: "5",
-      name: "판두부",
-      category: "두부",
-      price: 2200,
-      unit: "판",
-      description: "판 형태의 두부",
-      companyId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: "6",
-      name: "모두부",
-      category: "두부",
-      price: 2700,
-      unit: "모",
-      description: "모 형태의 두부",
-      companyId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: "7",
-      name: "콩물",
-      category: "두부",
-      price: 1500,
-      unit: "병",
-      description: "신선한 콩물",
-      companyId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    // 콩나물 카테고리
-    {
-      id: "8",
-      name: "시루콩나물",
-      category: "콩나물",
-      price: 1800,
-      unit: "봉지",
-      description: "시루에서 기른 콩나물",
-      companyId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: "9",
-      name: "박스콩나물",
-      category: "콩나물",
-      price: 12000,
-      unit: "박스",
-      description: "박스 단위 콩나물",
-      companyId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: "10",
-      name: "두절콩나물",
-      category: "콩나물",
-      price: 2200,
-      unit: "봉지",
-      description: "두절 콩나물",
-      companyId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    // 묵류 카테고리
-    {
-      id: "11",
-      name: "도토리묵小",
-      category: "묵류",
-      price: 2500,
-      unit: "개",
-      description: "소형 도토리묵",
-      companyId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: "12",
-      name: "도토리묵大",
-      category: "묵류",
-      price: 4000,
-      unit: "개",
-      description: "대형 도토리묵",
-      companyId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: "13",
-      name: "도토리420",
-      category: "묵류",
-      price: 3500,
-      unit: "개",
-      description: "도토리420 묵",
-      companyId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: "14",
-      name: "검정깨묵",
-      category: "묵류",
-      price: 3200,
-      unit: "개",
-      description: "검정깨로 만든 묵",
-      companyId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: "15",
-      name: "우뭇가사리",
-      category: "묵류",
-      price: 2800,
-      unit: "개",
-      description: "우뭇가사리 묵",
-      companyId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: "16",
-      name: "청포묵",
-      category: "묵류",
-      price: 3000,
-      unit: "개",
-      description: "신선한 청포묵",
-      companyId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-  ];
-
-  // 샘플 데이터 - 실제 앱에서는 API에서 가져와야 함
-  const [deliveries, setDeliveries] = useState<ProductDelivery[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [creditRecords, setCreditRecords] = useState<CreditRecord[]>([]);
-
-  // company가 로드되면 샘플 상품 데이터 설정
-  useEffect(() => {
-    if (company && products.length === 0) {
-      setProducts(createSampleProducts(company.id));
-    }
-  }, [company, products.length]);
+  const [activeTab, setActiveTab] = useState<"info" | "products" | "delivery">(
+    "info"
+  );
+  const [isDeliveryModalVisible, setIsDeliveryModalVisible] = useState(false);
+  const [deliveries, setDeliveries] = useState<any[]>([]);
 
   if (!company) {
     return (
-      <SafeAreaView style={styles.notFoundContainer}>
-        <Text style={styles.notFoundText}>업체를 찾을 수 없습니다.</Text>
-        <Button title="목록으로 돌아가기" onPress={() => navigation.goBack()} />
+      <SafeAreaView style={[styles.container, { paddingTop: insets.top }]}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
+          </TouchableOpacity>
+          <Text style={[styles.headerTitle, { color: theme.colors.text }]}>
+            회사 정보
+          </Text>
+        </View>
+        <View style={styles.centerContainer}>
+          <Text style={[styles.errorText, { color: theme.colors.error }]}>
+            회사 정보를 찾을 수 없습니다.
+          </Text>
+        </View>
       </SafeAreaView>
     );
   }
 
-  const handleEdit = () => {
-    navigation.navigate("CompanyEdit", { companyId: company.id });
-  };
-
   const handleDelete = () => {
-    Alert.alert(
-      "업체 삭제",
-      `${company.name}을(를) 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`,
-      [
-        { text: "취소", style: "cancel" },
-        {
-          text: "삭제",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await deleteCompany(company.id);
-              navigation.goBack();
-            } catch (error) {
-              Alert.alert("오류", "업체 삭제에 실패했습니다.");
-            }
-          },
+    Alert.alert("회사 삭제", "정말로 이 회사를 삭제하시겠습니까?", [
+      { text: "취소", style: "cancel" },
+      {
+        text: "삭제",
+        style: "destructive",
+        onPress: async () => {
+          const success = await deleteCompany(companyId);
+          if (success) {
+            navigation.goBack();
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
-  const handleCall = () => {
-    const phoneNumber = company.phoneNumber.replace(/[^0-9]/g, "");
-    Linking.openURL(`tel:${phoneNumber}`);
-  };
-
-  const handleEmail = () => {
-    if (company.email) {
-      Linking.openURL(`mailto:${company.email}`);
-    }
-  };
-
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case "고객사":
-        return "#10b981";
-      case "협력업체":
-        return "#3b82f6";
-      case "공급업체":
-        return "#f59e0b";
-      case "하청업체":
-        return "#8b5cf6";
-      default:
-        return "#6b7280";
-    }
-  };
-
-  const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString("ko-KR", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
-  // 배송 관련 핸들러
-  const handleAddDelivery = () => {
-    Alert.alert("알림", "배송 등록 기능을 구현해주세요.");
-  };
-
-  const handleEditDelivery = (delivery: ProductDelivery) => {
-    Alert.alert(
-      "알림",
-      `${delivery.product.name} 배송 수정 기능을 구현해주세요.`
-    );
-  };
-
-  const handleDeleteDelivery = (deliveryId: string) => {
-    setDeliveries((prev) => prev.filter((d) => d.id !== deliveryId));
-  };
-
-  // 상품 선택 관련 핸들러
-  const handleAddProduct = () => {
-    Alert.alert("알림", "상품 추가 기능을 구현해주세요.");
-  };
-
-  const handleSelectProduct = (formData: ProductSelectionFormData) => {
-    try {
-      // 선택된 상품 정보 찾기
-      const selectedProduct = products.find((p) => p.id === formData.productId);
-
-      if (!selectedProduct) {
-        Alert.alert("오류", "선택된 상품을 찾을 수 없습니다.");
-        return;
-      }
-
-      // 새로운 배송 기록 생성
-      const newDelivery: ProductDelivery = {
-        id: Date.now().toString(),
-        productId: formData.productId,
-        product: selectedProduct,
-        companyId: company.id,
-        quantity: formData.quantity,
-        unitPrice: formData.unitPrice,
-        totalPrice: formData.quantity * formData.unitPrice,
-        deliveryDate: formData.deliveryDate,
-        status: "배송중",
-        memo: formData.memo,
-        createdAt: new Date(),
-      };
-
-      // 배송 목록에 추가
-      setDeliveries((prev) => [newDelivery, ...prev]);
-
-      Alert.alert("완료", `${selectedProduct.name} 배송이 등록되었습니다!`);
-    } catch (error) {
-      console.error("배송 등록 오류:", error);
-      Alert.alert("오류", "배송 등록 중 오류가 발생했습니다.");
-    }
-  };
-
-  // 외상 관리 관련 핸들러
-  const handleAddCredit = () => {
-    Alert.alert("알림", "외상 등록 기능을 구현해주세요.");
-  };
-
-  const handleAddPayment = (creditId: string, payment: any) => {
-    Alert.alert("성공", "지불이 등록되었습니다!");
-    // 실제 앱에서는 API 호출로 지불 등록
-  };
-
-  const handleUpdateCredit = (creditId: string, updates: any) => {
-    Alert.alert("성공", "외상이 업데이트되었습니다!");
-    // 실제 앱에서는 API 호출로 외상 업데이트
-  };
-
-  // 탭 렌더링
-  const renderTabBar = () => (
-    <View style={styles.tabBar}>
-      {tabs.map((tab) => (
-        <TouchableOpacity
-          key={tab.id}
-          style={[styles.tabItem, activeTab === tab.id && styles.activeTabItem]}
-          onPress={() => setActiveTab(tab.id)}
-        >
-          <Ionicons
-            name={tab.icon as any}
-            size={20}
-            color={activeTab === tab.id ? "#ffffff" : "#737373"}
-          />
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === tab.id && styles.activeTabText,
-            ]}
-          >
-            {tab.title}
-          </Text>
-        </TouchableOpacity>
-      ))}
-    </View>
+  const renderTabButton = (
+    tab: "info" | "products" | "delivery",
+    title: string
+  ) => (
+    <TouchableOpacity
+      style={[
+        styles.tabButton,
+        activeTab === tab && [
+          styles.activeTab,
+          { backgroundColor: theme.colors.primary },
+        ],
+      ]}
+      onPress={() => setActiveTab(tab)}
+    >
+      <Text
+        style={[
+          styles.tabText,
+          {
+            color:
+              activeTab === tab
+                ? theme.colors.white
+                : theme.colors.textSecondary,
+          },
+        ]}
+      >
+        {title}
+      </Text>
+    </TouchableOpacity>
   );
 
-  // 기본 정보 탭 컨텐츠
-  const renderInfoTab = () => (
-    <ScrollView style={styles.tabContent} showsVerticalScrollIndicator={false}>
-      {/* 연락처 정보 */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>연락처 정보</Text>
-
-        <TouchableOpacity style={styles.infoCard} onPress={handleCall}>
-          <View style={styles.infoRow}>
-            <Ionicons name="call" size={20} color="#3b82f6" />
-            <View style={styles.infoContent}>
-              <Text style={styles.infoLabel}>전화번호</Text>
-              <Text style={styles.infoValue}>{company.phoneNumber}</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={16} color="#9ca3af" />
-          </View>
-        </TouchableOpacity>
-
-        {company.email && (
-          <TouchableOpacity style={styles.infoCard} onPress={handleEmail}>
-            <View style={styles.infoRow}>
-              <Ionicons name="mail" size={20} color="#3b82f6" />
-              <View style={styles.infoContent}>
-                <Text style={styles.infoLabel}>이메일</Text>
-                <Text style={styles.infoValue}>{company.email}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={16} color="#9ca3af" />
-            </View>
-          </TouchableOpacity>
-        )}
-
-        <View style={styles.infoCard}>
-          <View style={styles.infoRow}>
-            <Ionicons name="location" size={20} color="#3b82f6" />
-            <View style={styles.infoContent}>
-              <Text style={styles.infoLabel}>주소</Text>
-              <Text style={styles.infoValue}>{company.address}</Text>
-            </View>
-          </View>
-        </View>
+  const renderCompanyInfo = () => (
+    <View
+      style={[styles.infoContainer, { backgroundColor: theme.colors.surface }]}
+    >
+      <View style={styles.infoRow}>
+        <Text style={[styles.infoLabel, { color: theme.colors.textSecondary }]}>
+          회사명
+        </Text>
+        <Text style={[styles.infoValue, { color: theme.colors.text }]}>
+          {company.name}
+        </Text>
       </View>
 
-      {/* 업체 정보 */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>업체 정보</Text>
-
-        {company.businessNumber && (
-          <View style={styles.infoCard}>
-            <View style={styles.infoRow}>
-              <Ionicons name="document-text" size={20} color="#3b82f6" />
-              <View style={styles.infoContent}>
-                <Text style={styles.infoLabel}>사업자등록번호</Text>
-                <Text style={styles.infoValue}>{company.businessNumber}</Text>
-              </View>
-            </View>
-          </View>
-        )}
-
-        <View style={styles.infoCard}>
-          <View style={styles.infoRow}>
-            <Ionicons name="calendar" size={20} color="#3b82f6" />
-            <View style={styles.infoContent}>
-              <Text style={styles.infoLabel}>등록일</Text>
-              <Text style={styles.infoValue}>
-                {formatDate(company.createdAt)}
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.infoCard}>
-          <View style={styles.infoRow}>
-            <Ionicons name="refresh" size={20} color="#3b82f6" />
-            <View style={styles.infoContent}>
-              <Text style={styles.infoLabel}>최종 수정일</Text>
-              <Text style={styles.infoValue}>
-                {formatDate(company.updatedAt)}
-              </Text>
-            </View>
-          </View>
-        </View>
+      <View style={styles.infoRow}>
+        <Text style={[styles.infoLabel, { color: theme.colors.textSecondary }]}>
+          업체 구분
+        </Text>
+        <Text style={[styles.infoValue, { color: theme.colors.text }]}>
+          {company.type}
+        </Text>
       </View>
 
-      {/* 메모 */}
-      {company.memo && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>메모</Text>
-          <View style={styles.memoCard}>
-            <Text style={styles.memoText}>{company.memo}</Text>
-          </View>
+      <View style={styles.infoRow}>
+        <Text style={[styles.infoLabel, { color: theme.colors.textSecondary }]}>
+          지역
+        </Text>
+        <Text style={[styles.infoValue, { color: theme.colors.text }]}>
+          {company.region}
+        </Text>
+      </View>
+
+      <View style={styles.infoRow}>
+        <Text style={[styles.infoLabel, { color: theme.colors.textSecondary }]}>
+          전화번호
+        </Text>
+        <Text style={[styles.infoValue, { color: theme.colors.text }]}>
+          {company.phoneNumber}
+        </Text>
+      </View>
+
+      {company.email && (
+        <View style={styles.infoRow}>
+          <Text
+            style={[styles.infoLabel, { color: theme.colors.textSecondary }]}
+          >
+            이메일
+          </Text>
+          <Text style={[styles.infoValue, { color: theme.colors.text }]}>
+            {company.email}
+          </Text>
         </View>
       )}
 
-      {/* 액션 버튼들 */}
-      <View style={styles.actionSection}>
-        <Button
-          title="수정하기"
-          onPress={handleEdit}
-          style={styles.actionButton}
-        />
-        <Button
-          title="삭제하기"
-          onPress={handleDelete}
-          variant="secondary"
-          style={[styles.actionButton, styles.deleteButton]}
-        />
+      <View style={styles.infoRow}>
+        <Text style={[styles.infoLabel, { color: theme.colors.textSecondary }]}>
+          주소
+        </Text>
+        <Text style={[styles.infoValue, { color: theme.colors.text }]}>
+          {company.address}
+        </Text>
       </View>
-    </ScrollView>
+
+      {company.contactPerson && (
+        <View style={styles.infoRow}>
+          <Text
+            style={[styles.infoLabel, { color: theme.colors.textSecondary }]}
+          >
+            담당자
+          </Text>
+          <Text style={[styles.infoValue, { color: theme.colors.text }]}>
+            {company.contactPerson}
+          </Text>
+        </View>
+      )}
+
+      {company.businessNumber && (
+        <View style={styles.infoRow}>
+          <Text
+            style={[styles.infoLabel, { color: theme.colors.textSecondary }]}
+          >
+            사업자등록번호
+          </Text>
+          <Text style={[styles.infoValue, { color: theme.colors.text }]}>
+            {company.businessNumber}
+          </Text>
+        </View>
+      )}
+
+      {company.memo && (
+        <View style={styles.infoRow}>
+          <Text
+            style={[styles.infoLabel, { color: theme.colors.textSecondary }]}
+          >
+            메모
+          </Text>
+          <Text style={[styles.infoValue, { color: theme.colors.text }]}>
+            {company.memo}
+          </Text>
+        </View>
+      )}
+    </View>
   );
 
-  // 날짜별 상품 목록 탭 컨텐츠
+  const handleDeliverySubmit = (deliveryData: any) => {
+    setDeliveries((prev) => [...prev, deliveryData]);
+    Alert.alert("성공", "배송이 등록되었습니다!");
+  };
+
   const renderProductsTab = () => (
-    <View style={styles.tabContent}>
-      <DailyProductsList
-        companyId={company.id}
-        deliveries={deliveries}
-        onAddDelivery={handleAddDelivery}
-        onEditDelivery={handleEditDelivery}
-        onDeleteDelivery={handleDeleteDelivery}
-      />
+    <View
+      style={[
+        styles.tabContentContainer,
+        { backgroundColor: theme.colors.surface },
+      ]}
+    >
+      <View style={styles.tabHeader}>
+        <Text style={[styles.tabTitle, { color: theme.colors.text }]}>
+          상품 목록 및 배송 관리
+        </Text>
+        <TouchableOpacity
+          style={[styles.addButton, { backgroundColor: theme.colors.primary }]}
+          onPress={() => setIsDeliveryModalVisible(true)}
+        >
+          <Ionicons name="add" size={20} color={theme.colors.white} />
+          <Text style={[styles.addButtonText, { color: theme.colors.white }]}>
+            배송 등록
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {deliveries.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Ionicons
+            name="cube-outline"
+            size={50}
+            color={theme.colors.textSecondary}
+          />
+          <Text
+            style={[styles.emptyText, { color: theme.colors.textSecondary }]}
+          >
+            등록된 배송이 없습니다.
+          </Text>
+          <Text
+            style={[styles.emptySubText, { color: theme.colors.textSecondary }]}
+          >
+            배송 등록 버튼을 눌러 새로운 배송을 추가해보세요.
+          </Text>
+        </View>
+      ) : (
+        <ScrollView style={styles.deliveryList}>
+          {deliveries.map((delivery, index) => (
+            <View
+              key={index}
+              style={[
+                styles.deliveryItem,
+                { backgroundColor: theme.colors.background },
+              ]}
+            >
+              <View style={styles.deliveryHeader}>
+                <Text
+                  style={[styles.deliveryNumber, { color: theme.colors.text }]}
+                >
+                  {delivery.deliveryNumber}
+                </Text>
+                <Text
+                  style={[
+                    styles.deliveryStatus,
+                    { color: theme.colors.primary },
+                  ]}
+                >
+                  {delivery.status}
+                </Text>
+              </View>
+              <Text
+                style={[
+                  styles.deliveryDate,
+                  { color: theme.colors.textSecondary },
+                ]}
+              >
+                배송일: {delivery.deliveryDate}
+              </Text>
+              <Text
+                style={[styles.deliveryAmount, { color: theme.colors.text }]}
+              >
+                금액: {delivery.totalAmount.toLocaleString()}원
+              </Text>
+              {delivery.trackingNumber && (
+                <Text
+                  style={[
+                    styles.trackingNumber,
+                    { color: theme.colors.textSecondary },
+                  ]}
+                >
+                  송장번호: {delivery.trackingNumber}
+                </Text>
+              )}
+            </View>
+          ))}
+        </ScrollView>
+      )}
     </View>
   );
 
-  // 상품 선택 탭 컨텐츠
-  const renderSelectionTab = () => (
-    <View style={styles.tabContent}>
-      <ProductSelection
-        companyId={company.id}
-        products={products}
-        onAddProduct={handleAddProduct}
-        onSelectProduct={handleSelectProduct}
-      />
-    </View>
-  );
-
-  // 재고 관리 함수들
-  const handleAddInventoryProduct = (
-    product: Omit<Product, "id" | "createdAt" | "updatedAt">
-  ) => {
-    const newProduct: Product = {
-      ...product,
-      id: generateId(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    setProducts([...products, newProduct]);
-  };
-
-  const handleUpdateInventoryProduct = (
-    id: string,
-    updatedProduct: Partial<Product>
-  ) => {
-    setProducts(
-      products.map((p) =>
-        p.id === id ? { ...p, ...updatedProduct, updatedAt: new Date() } : p
-      )
-    );
-  };
-
-  const handleDeleteInventoryProduct = (id: string) => {
-    setProducts(products.filter((p) => p.id !== id));
-  };
-
-  // 재고 관리 탭 컨텐츠
-  const renderInventoryTab = () => (
-    <View style={styles.tabContent}>
-      <InventoryManagement
-        products={products}
-        onAddProduct={handleAddInventoryProduct}
-        onUpdateProduct={handleUpdateInventoryProduct}
-        onDeleteProduct={handleDeleteInventoryProduct}
-      />
-    </View>
-  );
-
-  // 외상 관리 탭 컨텐츠
-  const renderCreditTab = () => (
-    <View style={styles.tabContent}>
-      <CreditManagement
-        companyId={company.id}
-        creditRecords={creditRecords}
-        onAddCredit={handleAddCredit}
-        onAddPayment={handleAddPayment}
-        onUpdateCredit={handleUpdateCredit}
-      />
-    </View>
-  );
-
-  // 탭 컨텐츠 렌더링
-  const renderTabContent = () => {
+  const renderContent = () => {
     switch (activeTab) {
       case "info":
-        return renderInfoTab();
+        return renderCompanyInfo();
       case "products":
         return renderProductsTab();
-      case "selection":
-        return renderSelectionTab();
-      case "inventory":
-        return renderInventoryTab();
-      case "credit":
-        return renderCreditTab();
+      case "delivery":
+        return (
+          <View
+            style={[
+              styles.emptyContainer,
+              { backgroundColor: theme.colors.surface },
+            ]}
+          >
+            <Text
+              style={[styles.emptyText, { color: theme.colors.textSecondary }]}
+            >
+              배송 관리 기능은 곧 제공될 예정입니다.
+            </Text>
+          </View>
+        );
       default:
-        return renderInfoTab();
+        return null;
     }
   };
 
-  const handleProductConfirm = (deliveries: ProductDelivery[]) => {
-    setDeliveries((prev) => [...prev, ...deliveries]);
-    setShowProductSelection(false);
-  };
-
   return (
-    <SafeAreaView style={styles.container}>
-      {/* 헤더 섹션 */}
-      <LinearGradient
-        colors={["#525252", "#404040"]}
-        style={[styles.header, { paddingTop: 20 + insets.top }]}
-      >
+    <SafeAreaView
+      style={[
+        styles.container,
+        { backgroundColor: theme.colors.background, paddingTop: insets.top },
+      ]}
+    >
+      {/* 헤더 */}
+      <View style={[styles.header, { backgroundColor: theme.colors.surface }]}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Ionicons name="arrow-back" size={24} color="#ffffff" />
+          <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
         </TouchableOpacity>
-
-        <View style={styles.headerContent}>
-          <View style={styles.titleSection}>
-            <Text style={styles.companyName}>{company.name}</Text>
-            <View
-              style={[
-                styles.typeTag,
-                { backgroundColor: getTypeColor(company.type) },
-              ]}
-            >
-              <Text style={styles.typeText}>{company.type}</Text>
-            </View>
-          </View>
-          {company.contactPerson && (
-            <Text style={styles.contactPerson}>
-              담당자: {company.contactPerson}
-            </Text>
-          )}
-        </View>
-      </LinearGradient>
-
-      {/* 탭 바 */}
-      {renderTabBar()}
-
-      {/* 탭 컨텐츠 */}
-      <View style={[styles.content, { paddingBottom: insets.bottom }]}>
-        {renderTabContent()}
+        <Text style={[styles.headerTitle, { color: theme.colors.text }]}>
+          {company.name}
+        </Text>
+        <TouchableOpacity
+          style={styles.editButton}
+          onPress={() => navigation.navigate("CompanyEdit", { companyId })}
+        >
+          <Ionicons
+            name="create-outline"
+            size={24}
+            color={theme.colors.primary}
+          />
+        </TouchableOpacity>
       </View>
 
-      {/* Product Selection Modal */}
-      {showProductSelection && (
-        <Modal
-          visible={showProductSelection}
-          animationType="slide"
-          onRequestClose={() => setShowProductSelection(false)}
+      {/* 탭 메뉴 */}
+      <View
+        style={[styles.tabContainer, { backgroundColor: theme.colors.surface }]}
+      >
+        {renderTabButton("info", "기본 정보")}
+        {renderTabButton("products", "상품 관리")}
+        {renderTabButton("delivery", "배송 관리")}
+      </View>
+
+      {/* 컨텐츠 */}
+      <ScrollView style={styles.scrollView}>{renderContent()}</ScrollView>
+
+      {/* 삭제 버튼 */}
+      <View
+        style={[
+          styles.deleteButtonContainer,
+          { backgroundColor: theme.colors.surface },
+        ]}
+      >
+        <TouchableOpacity
+          style={[styles.deleteButton, { backgroundColor: theme.colors.error }]}
+          onPress={handleDelete}
         >
-          <View style={{ flex: 1, padding: 20 }}>
-            <TouchableOpacity
-              style={{ padding: 10, alignSelf: "flex-end" }}
-              onPress={() => setShowProductSelection(false)}
-            >
-              <Text style={{ fontSize: 18 }}>✕</Text>
-            </TouchableOpacity>
-            <ProductSelection
-              companyId={company.id}
-              products={[]} // TODO: 실제 상품 목록 연결
-              onAddProduct={() => {}}
-              onSelectProduct={(formData) => {
-                // TODO: 실제 배송 등록 로직 구현
-                console.log("선택된 상품:", formData);
-                setShowProductSelection(false);
-              }}
-            />
-          </View>
-        </Modal>
+          <Ionicons name="trash-outline" size={20} color={theme.colors.white} />
+          <Text
+            style={[styles.deleteButtonText, { color: theme.colors.white }]}
+          >
+            회사 삭제
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* 배송등록 모달 */}
+      {company && (
+        <DeliveryRegistrationModal
+          visible={isDeliveryModalVisible}
+          onClose={() => setIsDeliveryModalVisible(false)}
+          onSubmit={handleDeliverySubmit}
+          company={company}
+        />
       )}
     </SafeAreaView>
   );
@@ -714,163 +417,171 @@ export const CompanyDetailScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FAFAFA",
   },
-  notFoundContainer: {
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
+  },
+  backButton: {
+    padding: 8,
+  },
+  headerTitle: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: "600",
+    marginLeft: 8,
+  },
+  editButton: {
+    padding: 8,
+  },
+  centerContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#FAFAFA",
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
   },
-  notFoundText: {
-    fontSize: 18,
-    color: "#171717",
-    marginBottom: 20,
+  errorText: {
+    fontSize: 16,
     textAlign: "center",
   },
-  header: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    borderBottomLeftRadius: 16,
-    borderBottomRightRadius: 16,
-    position: "relative",
-  },
-  backButton: {
-    position: "absolute",
-    top: 20,
-    left: 20,
-    zIndex: 1,
-    padding: 8,
-  },
-  headerContent: {
-    alignItems: "center",
-    paddingTop: 20,
-  },
-  titleSection: {
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  companyName: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#ffffff",
-    marginBottom: 8,
-    textAlign: "center",
-  },
-  typeTag: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  typeText: {
-    fontSize: 12,
-    color: "#ffffff",
-    fontWeight: "600",
-  },
-  contactPerson: {
-    fontSize: 14,
-    color: "rgba(255, 255, 255, 0.9)",
-    textAlign: "center",
-  },
-  tabBar: {
+  tabContainer: {
     flexDirection: "row",
-    backgroundColor: "#F5F5F5",
     borderBottomWidth: 1,
-    borderBottomColor: "#E5E5E5",
+    borderBottomColor: "#e0e0e0",
   },
-  tabItem: {
+  tabButton: {
     flex: 1,
     paddingVertical: 12,
     alignItems: "center",
-    backgroundColor: "transparent",
   },
-  activeTabItem: {
-    backgroundColor: "#525252",
+  activeTab: {
+    borderBottomWidth: 2,
   },
   tabText: {
-    fontSize: 12,
-    color: "#737373",
-    marginTop: 4,
+    fontSize: 14,
     fontWeight: "500",
   },
-  activeTabText: {
-    color: "#ffffff",
-    fontWeight: "600",
-  },
-  content: {
+  scrollView: {
     flex: 1,
   },
-  tabContent: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#171717",
-    marginBottom: 16,
-  },
-  infoCard: {
-    backgroundColor: "#ffffff",
-    borderRadius: 12,
+  infoContainer: {
+    margin: 16,
+    borderRadius: 8,
     padding: 16,
-    marginBottom: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
   infoRow: {
     flexDirection: "row",
-    alignItems: "center",
-  },
-  infoContent: {
-    flex: 1,
-    marginLeft: 12,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
   },
   infoLabel: {
-    fontSize: 12,
-    color: "#737373",
-    marginBottom: 2,
-  },
-  infoValue: {
-    fontSize: 16,
-    color: "#171717",
+    width: 100,
+    fontSize: 14,
     fontWeight: "500",
   },
-  memoCard: {
-    backgroundColor: "#ffffff",
-    borderRadius: 12,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  memoText: {
-    fontSize: 16,
-    color: "#171717",
-    lineHeight: 24,
-  },
-  actionSection: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 20,
-    marginBottom: 40,
-  },
-  actionButton: {
+  infoValue: {
     flex: 1,
-    marginHorizontal: 6,
+    fontSize: 14,
+    marginLeft: 16,
+  },
+  emptyContainer: {
+    margin: 16,
+    borderRadius: 8,
+    padding: 32,
+    alignItems: "center",
+  },
+  emptyText: {
+    fontSize: 14,
+    textAlign: "center",
+  },
+  deleteButtonContainer: {
+    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: "#e0e0e0",
   },
   deleteButton: {
-    backgroundColor: "#ef4444",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  deleteButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginLeft: 8,
+  },
+  tabContentContainer: {
+    flex: 1,
+    padding: 16,
+  },
+  tabHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  tabTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+  },
+  addButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  addButtonText: {
+    fontSize: 14,
+    fontWeight: "500",
+    marginLeft: 8,
+  },
+  emptySubText: {
+    fontSize: 12,
+    textAlign: "center",
+    marginTop: 8,
+  },
+  deliveryList: {
+    flex: 1,
+  },
+  deliveryItem: {
+    padding: 16,
+    borderRadius: 8,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+  },
+  deliveryHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  deliveryNumber: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  deliveryStatus: {
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  deliveryDate: {
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  deliveryAmount: {
+    fontSize: 14,
+    fontWeight: "500",
+    marginBottom: 4,
+  },
+  trackingNumber: {
+    fontSize: 12,
   },
 });
 

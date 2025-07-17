@@ -14,6 +14,7 @@ import {
   CompanyFormErrors,
   CompanyType,
   CompanyRegion,
+  CompanyStatus,
 } from "../../types";
 import { validateEmail, validatePhoneNumber } from "../../utils";
 import TextInput from "../forms/TextInput";
@@ -56,12 +57,15 @@ export const CompanyRegistrationModal: React.FC<
     name: "",
     type: "고객사",
     region: "순창",
+    status: "활성",
     address: "",
     phoneNumber: "",
     email: "",
     businessNumber: "",
     contactPerson: "",
+    contactPhone: "",
     memo: "",
+    tags: [],
   });
 
   const [errors, setErrors] = useState<CompanyFormErrors>({});
@@ -80,12 +84,15 @@ export const CompanyRegistrationModal: React.FC<
       name: "",
       type: "고객사",
       region: "순창",
+      status: "활성",
       address: "",
       phoneNumber: "",
       email: "",
       businessNumber: "",
       contactPerson: "",
+      contactPhone: "",
       memo: "",
+      tags: [],
     });
     setErrors({});
   };
@@ -192,6 +199,22 @@ export const CompanyRegistrationModal: React.FC<
                 />
               </View>
 
+              {/* 상태 */}
+              <View style={formStyles.fieldContainer}>
+                <Text style={formStyles.label}>상태</Text>
+                <Picker
+                  selectedValue={formData.status}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, status: value as CompanyStatus })
+                  }
+                  options={[
+                    { label: "활성", value: "활성" as CompanyStatus },
+                    { label: "비활성", value: "비활성" as CompanyStatus },
+                    { label: "휴업", value: "휴업" as CompanyStatus },
+                  ]}
+                />
+              </View>
+
               {/* 주소 */}
               <View style={formStyles.fieldContainer}>
                 <Text style={formStyles.label}>주소 *</Text>
@@ -235,6 +258,25 @@ export const CompanyRegistrationModal: React.FC<
                 />
                 {errors.phoneNumber && (
                   <Text style={formStyles.errorText}>{errors.phoneNumber}</Text>
+                )}
+              </View>
+
+              {/* 담당자 연락처 */}
+              <View style={formStyles.fieldContainer}>
+                <Text style={formStyles.label}>담당자 연락처</Text>
+                <TextInput
+                  value={formData.contactPhone}
+                  onChangeText={(value) =>
+                    setFormData({ ...formData, contactPhone: value })
+                  }
+                  placeholder="담당자 연락처를 입력하세요"
+                  keyboardType="phone-pad"
+                  error={!!errors.contactPhone}
+                />
+                {errors.contactPhone && (
+                  <Text style={formStyles.errorText}>
+                    {errors.contactPhone}
+                  </Text>
                 )}
               </View>
 

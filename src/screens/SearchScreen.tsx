@@ -13,7 +13,7 @@ import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { RootStackParamList } from "../navigation/AppNavigator";
+import { RootStackParamList } from "../types";
 import { useCompany } from "../hooks";
 import { Company, CompanyType } from "../types";
 import { COLORS, SIZES } from "../constants";

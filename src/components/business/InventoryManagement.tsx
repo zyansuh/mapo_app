@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Product, ProductCategory } from "../../types";
+import { Product, ProductCategory, ProductStatus } from "../../types";
 import TextInput from "../forms/TextInput";
 import Picker from "../forms/Picker";
 import Button from "../forms/Button";
@@ -24,9 +24,11 @@ interface InventoryManagementProps {
   onDeleteProduct: (id: string) => void;
 }
 
-interface ProductFormData {
+// 간단한 상품 폼 데이터 (재고 관리용)
+interface SimpleProductFormData {
   name: string;
   category: ProductCategory;
+  status: ProductStatus;
   price: number;
   unit: string;
   description: string;
@@ -37,6 +39,7 @@ const categoryOptions = [
   { label: "두부", value: "두부" as ProductCategory },
   { label: "콩나물", value: "콩나물" as ProductCategory },
   { label: "묵류", value: "묵류" as ProductCategory },
+  { label: "기타", value: "기타" as ProductCategory },
 ];
 
 export const InventoryManagement: React.FC<InventoryManagementProps> = ({
@@ -47,9 +50,10 @@ export const InventoryManagement: React.FC<InventoryManagementProps> = ({
 }) => {
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [formData, setFormData] = useState<ProductFormData>({
+  const [formData, setFormData] = useState<SimpleProductFormData>({
     name: "",
     category: "두부",
+    status: "활성",
     price: 0,
     unit: "",
     description: "",
@@ -64,6 +68,7 @@ export const InventoryManagement: React.FC<InventoryManagementProps> = ({
     setFormData({
       name: "",
       category: "두부",
+      status: "활성",
       price: 0,
       unit: "",
       description: "",
@@ -102,10 +107,11 @@ export const InventoryManagement: React.FC<InventoryManagementProps> = ({
     setFormData({
       name: product.name,
       category: product.category,
+      status: product.status,
       price: product.price,
       unit: product.unit,
       description: product.description || "",
-      companyId: product.companyId,
+      companyId: product.companyId || "",
     });
     setEditingProduct(product);
     setIsFormVisible(true);
@@ -154,129 +160,133 @@ export const InventoryManagement: React.FC<InventoryManagementProps> = ({
         </Text>
       </View>
 
-      {/* 카테고리별 통계 카드 */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={{ marginBottom: 20 }}
-      >
-        <View style={{ flexDirection: "row", gap: 15, paddingHorizontal: 20 }}>
-          {categoryOptions.map((category) => {
-            const stats = categoryStats[category.value];
-            return (
-              <View
-                key={category.value}
-                style={[
-                  listStyles.card,
-                  getCategoryBadgeStyle(category.value),
-                  { minWidth: 140, marginBottom: 0 },
-                ]}
-              >
-                <Text
-                  style={[
-                    listStyles.cardTitle,
-                    getCategoryTextStyle(category.value),
-                  ]}
-                >
-                  {category.label}
-                </Text>
-                <Text
-                  style={[
-                    listStyles.cardSubtitle,
-                    getCategoryTextStyle(category.value),
-                  ]}
-                >
-                  {stats.count}개 상품
-                </Text>
-                <Text
-                  style={[
-                    listStyles.listItemValue,
-                    getCategoryTextStyle(category.value),
-                  ]}
-                >
-                  평균{" "}
-                  {stats.count > 0
-                    ? Math.round(stats.totalValue / stats.count)
-                    : 0}
-                  원
-                </Text>
-              </View>
-            );
-          })}
-        </View>
-      </ScrollView>
-
-      {/* 검색 및 필터 */}
-      <View style={listStyles.searchContainer}>
-        <View style={{ flexDirection: "row", gap: 10, marginBottom: 10 }}>
-          <TextInput
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            placeholder="상품명으로 검색..."
-            style={{ flex: 1 }}
-          />
-          <TouchableOpacity
-            style={[
-              formStyles.button,
-              formStyles.buttonPrimary,
-              { paddingHorizontal: 15 },
-            ]}
-            onPress={() => setIsFormVisible(true)}
+      {/* 전체 콘텐츠를 하나의 ScrollView로 통합 */}
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+        {/* 카테고리별 통계 카드 */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{ marginBottom: 20 }}
+        >
+          <View
+            style={{ flexDirection: "row", gap: 15, paddingHorizontal: 20 }}
           >
-            <Text style={formStyles.buttonText}>추가</Text>
-          </TouchableOpacity>
-        </View>
-
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={{ flexDirection: "row", gap: 8 }}>
-            {["전체", ...categoryOptions.map((c) => c.label)].map(
-              (category, index) => {
-                const isSelected =
-                  (category === "전체" && selectedCategory === "전체") ||
-                  (category !== "전체" &&
-                    selectedCategory ===
-                      categoryOptions.find((c) => c.label === category)?.value);
-
-                return (
-                  <TouchableOpacity
-                    key={category}
-                    onPress={() => {
-                      if (category === "전체") {
-                        setSelectedCategory("전체");
-                      } else {
-                        const categoryValue = categoryOptions.find(
-                          (c) => c.label === category
-                        )?.value;
-                        if (categoryValue) {
-                          setSelectedCategory(categoryValue);
-                        }
-                      }
-                    }}
+            {categoryOptions.map((category) => {
+              const stats = categoryStats[category.value];
+              return (
+                <View
+                  key={category.value}
+                  style={[
+                    listStyles.card,
+                    getCategoryBadgeStyle(category.value),
+                    { minWidth: 140, marginBottom: 0 },
+                  ]}
+                >
+                  <Text
                     style={[
-                      formStyles.button,
-                      formStyles.buttonSecondary,
-                      isSelected && formStyles.buttonPrimary,
-                      { minWidth: 60 },
+                      listStyles.cardTitle,
+                      getCategoryTextStyle(category.value),
                     ]}
                   >
-                    <Text
-                      style={[
-                        formStyles.buttonTextSecondary,
-                        isSelected && formStyles.buttonText,
-                      ]}
-                    >
-                      {category}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              }
-            )}
+                    {category.label}
+                  </Text>
+                  <Text
+                    style={[
+                      listStyles.cardSubtitle,
+                      getCategoryTextStyle(category.value),
+                    ]}
+                  >
+                    {stats.count}개 상품
+                  </Text>
+                  <Text
+                    style={[
+                      listStyles.listItemValue,
+                      getCategoryTextStyle(category.value),
+                    ]}
+                  >
+                    평균{" "}
+                    {stats.count > 0
+                      ? Math.round(stats.totalValue / stats.count)
+                      : 0}
+                    원
+                  </Text>
+                </View>
+              );
+            })}
           </View>
         </ScrollView>
-      </View>
 
-      {/* 상품 목록 */}
-      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+        {/* 검색 및 필터 */}
+        <View style={[listStyles.searchContainer, { marginHorizontal: 0 }]}>
+          <View style={{ flexDirection: "row", gap: 10, marginBottom: 10 }}>
+            <TextInput
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholder="상품명으로 검색..."
+              style={{ flex: 1 }}
+            />
+            <TouchableOpacity
+              style={[
+                formStyles.button,
+                formStyles.buttonPrimary,
+                { paddingHorizontal: 15 },
+              ]}
+              onPress={() => setIsFormVisible(true)}
+            >
+              <Text style={formStyles.buttonText}>추가</Text>
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View style={{ flexDirection: "row", gap: 8 }}>
+              {["전체", ...categoryOptions.map((c) => c.label)].map(
+                (category, index) => {
+                  const isSelected =
+                    (category === "전체" && selectedCategory === "전체") ||
+                    (category !== "전체" &&
+                      selectedCategory ===
+                        categoryOptions.find((c) => c.label === category)
+                          ?.value);
+
+                  return (
+                    <TouchableOpacity
+                      key={category}
+                      onPress={() => {
+                        if (category === "전체") {
+                          setSelectedCategory("전체");
+                        } else {
+                          const categoryValue = categoryOptions.find(
+                            (c) => c.label === category
+                          )?.value;
+                          if (categoryValue) {
+                            setSelectedCategory(categoryValue);
+                          }
+                        }
+                      }}
+                      style={[
+                        formStyles.button,
+                        formStyles.buttonSecondary,
+                        isSelected && formStyles.buttonPrimary,
+                        { minWidth: 60 },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          formStyles.buttonTextSecondary,
+                          isSelected && formStyles.buttonText,
+                        ]}
+                      >
+                        {category}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                }
+              )}
+            </View>
+          </ScrollView>
+        </View>
+
+        {/* 상품 목록 */}
         <View style={listStyles.listContainer}>
           {filteredProducts.length === 0 ? (
             <View style={listStyles.emptyContainer}>
@@ -350,129 +360,147 @@ export const InventoryManagement: React.FC<InventoryManagementProps> = ({
             ))
           )}
         </View>
-      </ScrollView>
 
-      {/* 상품 등록/수정 폼 */}
-      {isFormVisible && (
-        <View
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: COLORS.overlay,
-            justifyContent: "center",
-            alignItems: "center",
-            padding: 20,
-          }}
-        >
+        {/* 상품 등록/수정 폼 */}
+        {isFormVisible && (
           <View
             style={{
-              backgroundColor: COLORS.background,
-              borderRadius: 12,
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: COLORS.overlay,
+              justifyContent: "center",
+              alignItems: "center",
               padding: 20,
-              width: "100%",
-              maxHeight: "80%",
             }}
           >
             <View
               style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: 20,
+                backgroundColor: COLORS.background,
+                borderRadius: 12,
+                padding: 20,
+                width: "100%",
+                maxHeight: "80%",
               }}
             >
-              <Text style={formStyles.sectionTitle}>
-                {editingProduct ? "상품 수정" : "상품 등록"}
-              </Text>
-              <TouchableOpacity onPress={resetForm}>
-                <Ionicons name="close" size={24} color={COLORS.text} />
-              </TouchableOpacity>
-            </View>
-
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <View style={formStyles.fieldContainer}>
-                <Text style={formStyles.label}>상품명 *</Text>
-                <TextInput
-                  value={formData.name}
-                  onChangeText={(value) =>
-                    setFormData({ ...formData, name: value })
-                  }
-                  placeholder="상품명을 입력하세요"
-                />
-              </View>
-
-              <View style={formStyles.fieldContainer}>
-                <Text style={formStyles.label}>카테고리 *</Text>
-                <Picker
-                  selectedValue={formData.category}
-                  onValueChange={(value) =>
-                    setFormData({
-                      ...formData,
-                      category: value as ProductCategory,
-                    })
-                  }
-                  options={categoryOptions}
-                />
-              </View>
-
-              <View style={formStyles.fieldContainer}>
-                <Text style={formStyles.label}>가격 *</Text>
-                <TextInput
-                  value={formData.price.toString()}
-                  onChangeText={(value) =>
-                    setFormData({ ...formData, price: parseInt(value) || 0 })
-                  }
-                  placeholder="가격을 입력하세요"
-                  keyboardType="numeric"
-                />
-              </View>
-
-              <View style={formStyles.fieldContainer}>
-                <Text style={formStyles.label}>단위 *</Text>
-                <TextInput
-                  value={formData.unit}
-                  onChangeText={(value) =>
-                    setFormData({ ...formData, unit: value })
-                  }
-                  placeholder="단위를 입력하세요 (개, kg, 박스 등)"
-                />
-              </View>
-
-              <View style={formStyles.fieldContainer}>
-                <Text style={formStyles.label}>설명</Text>
-                <TextInput
-                  value={formData.description}
-                  onChangeText={(value) =>
-                    setFormData({ ...formData, description: value })
-                  }
-                  placeholder="상품 설명을 입력하세요"
-                  multiline
-                />
-              </View>
-            </ScrollView>
-
-            <View style={formStyles.buttonGroup}>
-              <TouchableOpacity
-                style={[formStyles.button, formStyles.buttonSecondary]}
-                onPress={resetForm}
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: 20,
+                }}
               >
-                <Text style={formStyles.buttonTextSecondary}>취소</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[formStyles.button, formStyles.buttonPrimary]}
-                onPress={handleSubmit}
-              >
-                <Text style={formStyles.buttonText}>
-                  {editingProduct ? "수정" : "등록"}
+                <Text style={formStyles.sectionTitle}>
+                  {editingProduct ? "상품 수정" : "상품 등록"}
                 </Text>
-              </TouchableOpacity>
+                <TouchableOpacity onPress={resetForm}>
+                  <Ionicons name="close" size={24} color={COLORS.text} />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView showsVerticalScrollIndicator={false}>
+                <View style={formStyles.fieldContainer}>
+                  <Text style={formStyles.label}>상품명 *</Text>
+                  <TextInput
+                    value={formData.name}
+                    onChangeText={(value) =>
+                      setFormData({ ...formData, name: value })
+                    }
+                    placeholder="상품명을 입력하세요"
+                  />
+                </View>
+
+                <View style={formStyles.fieldContainer}>
+                  <Text style={formStyles.label}>카테고리 *</Text>
+                  <Picker
+                    selectedValue={formData.category}
+                    onValueChange={(value) =>
+                      setFormData({
+                        ...formData,
+                        category: value as ProductCategory,
+                      })
+                    }
+                    options={categoryOptions}
+                  />
+                </View>
+
+                <View style={formStyles.fieldContainer}>
+                  <Text style={formStyles.label}>상태 *</Text>
+                  <Picker
+                    selectedValue={formData.status}
+                    onValueChange={(value) =>
+                      setFormData({
+                        ...formData,
+                        status: value as ProductStatus,
+                      })
+                    }
+                    options={[
+                      { label: "활성", value: "활성" as ProductStatus },
+                      { label: "단종", value: "단종" as ProductStatus },
+                      { label: "일시중단", value: "일시중단" as ProductStatus },
+                    ]}
+                  />
+                </View>
+
+                <View style={formStyles.fieldContainer}>
+                  <Text style={formStyles.label}>가격 *</Text>
+                  <TextInput
+                    value={formData.price.toString()}
+                    onChangeText={(value) =>
+                      setFormData({ ...formData, price: parseInt(value) || 0 })
+                    }
+                    placeholder="가격을 입력하세요"
+                    keyboardType="numeric"
+                  />
+                </View>
+
+                <View style={formStyles.fieldContainer}>
+                  <Text style={formStyles.label}>단위 *</Text>
+                  <TextInput
+                    value={formData.unit}
+                    onChangeText={(value) =>
+                      setFormData({ ...formData, unit: value })
+                    }
+                    placeholder="단위를 입력하세요 (개, kg, 박스 등)"
+                  />
+                </View>
+
+                <View style={formStyles.fieldContainer}>
+                  <Text style={formStyles.label}>설명</Text>
+                  <TextInput
+                    value={formData.description}
+                    onChangeText={(value) =>
+                      setFormData({ ...formData, description: value })
+                    }
+                    placeholder="상품 설명을 입력하세요"
+                    multiline
+                  />
+                </View>
+              </ScrollView>
+
+              <View style={formStyles.buttonGroup}>
+                <TouchableOpacity
+                  style={[formStyles.button, formStyles.buttonSecondary]}
+                  onPress={resetForm}
+                >
+                  <Text style={formStyles.buttonTextSecondary}>취소</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[formStyles.button, formStyles.buttonPrimary]}
+                  onPress={handleSubmit}
+                >
+                  <Text style={formStyles.buttonText}>
+                    {editingProduct ? "수정" : "등록"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
-      )}
+        )}
+      </ScrollView>
     </View>
   );
 };

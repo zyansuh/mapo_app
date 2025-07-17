@@ -1,44 +1,25 @@
-// 앱 설정 상수
-export const APP_CONFIG = {
-  NAME: "Mapo",
-  VERSION: "1.0.0",
-} as const;
+// 상수 파일들을 중앙에서 관리
+export * from "./app";
+export * from "./messages";
 
-// 색상 상수 - Neutral 테마
+// 기존 상수들도 호환성을 위해 re-export
 export const COLORS = {
-  PRIMARY: "#525252", // neutral/600
-  SECONDARY: "#737373", // neutral/500
-  SUCCESS: "#34C759",
-  WARNING: "#FF9500",
-  ERROR: "#FF3B30",
-  BACKGROUND: "#F5F5F5", // neutral/100
-  WHITE: "#FFFFFF",
-  BLACK: "#171717", // neutral/900
-  GRAY: "#A3A3A3", // neutral/400
+  PRIMARY: "#007bff",
+  SECONDARY: "#6c757d",
+  SUCCESS: "#28a745",
+  WARNING: "#ffc107",
+  ERROR: "#dc3545",
+  WHITE: "#ffffff",
+  BLACK: "#000000",
+  LIGHT_GRAY: "#f8f9fa",
+  DARK_GRAY: "#343a40",
+};
 
-  // 추가 neutral 색상들
-  NEUTRAL_50: "#FAFAFA",
-  NEUTRAL_100: "#F5F5F5",
-  NEUTRAL_200: "#E5E5E5",
-  NEUTRAL_300: "#D4D4D4",
-  NEUTRAL_400: "#A3A3A3",
-  NEUTRAL_500: "#737373",
-  NEUTRAL_600: "#525252",
-  NEUTRAL_700: "#404040",
-  NEUTRAL_800: "#262626",
-  NEUTRAL_900: "#171717",
-} as const;
-
-// 크기 상수
 export const SIZES = {
-  SMALL: 8,
-  MEDIUM: 16,
-  LARGE: 24,
-  XLARGE: 32,
-} as const;
-
-// API 상수
-export const API_CONFIG = {
-  BASE_URL: "https://api.example.com",
-  TIMEOUT: 10000,
-} as const;
+  XS: 4,
+  SM: 8,
+  MD: 16,
+  LG: 24,
+  XL: 32,
+  XXL: 48,
+};

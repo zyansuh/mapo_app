@@ -15,10 +15,7 @@
       "supportsTablet": true
     },
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/mapo-icon.png",
-        "backgroundColor": "#f5f5dc"
-      },
+      "icon": "./assets/mapo-icon.png",
       "package": "com.mapo.businessmanager",
       "versionCode": 1,
       "permissions": ["CALL_PHONE"]

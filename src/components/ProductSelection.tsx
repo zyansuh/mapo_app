@@ -10,7 +10,12 @@ import {
   TextInput,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Product, ProductCategory, ProductSelectionFormData } from "../types";
+import {
+  Product,
+  ProductCategory,
+  ProductStatus,
+  ProductSelectionFormData,
+} from "../types";
 
 interface ProductSelectionProps {
   companyId: string;
@@ -28,10 +33,16 @@ interface ProductFormData {
   description: string;
 }
 
+// 기본 상태를 가진 Product 생성 헬퍼 함수
+const createProduct = (data: Omit<Product, "status">): Product => ({
+  ...data,
+  status: "활성" as ProductStatus,
+});
+
 // 샘플 상품 데이터
 const sampleProducts: Product[] = [
   // 두부 카테고리
-  {
+  createProduct({
     id: "1",
     name: "착한손두부",
     category: "두부",
@@ -41,8 +52,8 @@ const sampleProducts: Product[] = [
     companyId: "1",
     createdAt: new Date(),
     updatedAt: new Date(),
-  },
-  {
+  }),
+  createProduct({
     id: "2",
     name: "고소한손두부",
     category: "두부",
@@ -52,8 +63,8 @@ const sampleProducts: Product[] = [
     companyId: "1",
     createdAt: new Date(),
     updatedAt: new Date(),
-  },
-  {
+  }),
+  createProduct({
     id: "3",
     name: "순두부",
     category: "두부",
@@ -63,8 +74,8 @@ const sampleProducts: Product[] = [
     companyId: "1",
     createdAt: new Date(),
     updatedAt: new Date(),
-  },
-  {
+  }),
+  createProduct({
     id: "4",
     name: "맛두부",
     category: "두부",
@@ -74,8 +85,8 @@ const sampleProducts: Product[] = [
     companyId: "1",
     createdAt: new Date(),
     updatedAt: new Date(),
-  },
-  {
+  }),
+  createProduct({
     id: "5",
     name: "판두부",
     category: "두부",
@@ -85,8 +96,8 @@ const sampleProducts: Product[] = [
     companyId: "1",
     createdAt: new Date(),
     updatedAt: new Date(),
-  },
-  {
+  }),
+  createProduct({
     id: "6",
     name: "모두부",
     category: "두부",
@@ -96,8 +107,8 @@ const sampleProducts: Product[] = [
     companyId: "1",
     createdAt: new Date(),
     updatedAt: new Date(),
-  },
-  {
+  }),
+  createProduct({
     id: "7",
     name: "콩물",
     category: "두부",
@@ -107,9 +118,9 @@ const sampleProducts: Product[] = [
     companyId: "1",
     createdAt: new Date(),
     updatedAt: new Date(),
-  },
+  }),
   // 콩나물 카테고리
-  {
+  createProduct({
     id: "8",
     name: "시루콩나물",
     category: "콩나물",
@@ -119,8 +130,8 @@ const sampleProducts: Product[] = [
     companyId: "1",
     createdAt: new Date(),
     updatedAt: new Date(),
-  },
-  {
+  }),
+  createProduct({
     id: "9",
     name: "박스콩나물",
     category: "콩나물",
@@ -130,8 +141,8 @@ const sampleProducts: Product[] = [
     companyId: "1",
     createdAt: new Date(),
     updatedAt: new Date(),
-  },
-  {
+  }),
+  createProduct({
     id: "10",
     name: "두절콩나물",
     category: "콩나물",
@@ -141,9 +152,9 @@ const sampleProducts: Product[] = [
     companyId: "1",
     createdAt: new Date(),
     updatedAt: new Date(),
-  },
+  }),
   // 묵류 카테고리
-  {
+  createProduct({
     id: "11",
     name: "도토리묵小",
     category: "묵류",
@@ -153,8 +164,8 @@ const sampleProducts: Product[] = [
     companyId: "1",
     createdAt: new Date(),
     updatedAt: new Date(),
-  },
-  {
+  }),
+  createProduct({
     id: "12",
     name: "도토리묵大",
     category: "묵류",
@@ -164,8 +175,8 @@ const sampleProducts: Product[] = [
     companyId: "1",
     createdAt: new Date(),
     updatedAt: new Date(),
-  },
-  {
+  }),
+  createProduct({
     id: "13",
     name: "도토리420",
     category: "묵류",
@@ -175,8 +186,8 @@ const sampleProducts: Product[] = [
     companyId: "1",
     createdAt: new Date(),
     updatedAt: new Date(),
-  },
-  {
+  }),
+  createProduct({
     id: "14",
     name: "검정깨묵",
     category: "묵류",
@@ -186,8 +197,8 @@ const sampleProducts: Product[] = [
     companyId: "1",
     createdAt: new Date(),
     updatedAt: new Date(),
-  },
-  {
+  }),
+  createProduct({
     id: "15",
     name: "우뭇가사리",
     category: "묵류",
@@ -197,8 +208,8 @@ const sampleProducts: Product[] = [
     companyId: "1",
     createdAt: new Date(),
     updatedAt: new Date(),
-  },
-  {
+  }),
+  createProduct({
     id: "16",
     name: "청포묵",
     category: "묵류",
@@ -208,7 +219,7 @@ const sampleProducts: Product[] = [
     companyId: "1",
     createdAt: new Date(),
     updatedAt: new Date(),
-  },
+  }),
 ];
 
 export const ProductSelection: React.FC<ProductSelectionProps> = ({
@@ -426,6 +437,7 @@ export const ProductSelection: React.FC<ProductSelectionProps> = ({
       id: Date.now().toString(),
       name: productFormData.name,
       category: productFormData.category,
+      status: "활성",
       price: productFormData.price,
       unit: productFormData.unit,
       description: productFormData.description,

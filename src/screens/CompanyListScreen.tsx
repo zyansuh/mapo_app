@@ -14,7 +14,7 @@ import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { RootStackParamList } from "../navigation/AppNavigator";
+import { RootStackParamList } from "../types";
 import { useCompany } from "../hooks";
 import { usePhoneCall } from "../hooks/usePhoneCall";
 import { Company } from "../types";
@@ -26,14 +26,14 @@ type NavigationProp = StackNavigationProp<RootStackParamList>;
 export const CompanyListScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const insets = useSafeAreaInsets();
-  const { companies, loading, deleteCompany, toggleFavorite, refresh } =
+  const { companies, loading, deleteCompany, toggleFavorite, refreshData } =
     useCompany();
   const { makeCall } = usePhoneCall();
   const [refreshing, setRefreshing] = useState(false);
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await refresh();
+    await refreshData();
     setRefreshing(false);
   };
 

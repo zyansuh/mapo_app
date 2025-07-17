@@ -16,19 +16,8 @@ import {
 import { COLORS } from "../constants";
 import { Ionicons } from "@expo/vector-icons";
 
-export type RootStackParamList = {
-  Main: undefined;
-  CompanyDetail: { companyId: string };
-  CompanyEdit: { companyId?: string };
-};
-
-export type TabParamList = {
-  Home: undefined;
-  CompanyList: undefined;
-  Search: undefined;
-  Statistics: undefined;
-  Settings: undefined;
-};
+// navigation 타입들을 types에서 import
+import { RootStackParamList, TabParamList } from "../types";
 
 const Stack = createStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
