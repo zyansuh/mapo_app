@@ -40,10 +40,7 @@ const DeliveryRegistrationModal: React.FC<DeliveryRegistrationModalProps> = ({
     []
   );
   const [deliveryDate, setDeliveryDate] = useState(new Date());
-  const [deliveryAddress, setDeliveryAddress] = useState("");
   const [deliveryMemo, setDeliveryMemo] = useState("");
-  const [driverName, setDriverName] = useState("");
-  const [driverPhone, setDriverPhone] = useState("");
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showProductSelection, setShowProductSelection] = useState(false);
 
@@ -51,10 +48,6 @@ const DeliveryRegistrationModal: React.FC<DeliveryRegistrationModalProps> = ({
 
   const handleCompanySelect = (companyId: string) => {
     setSelectedCompanyId(companyId);
-    const company = companies.find((c) => c.id === companyId);
-    if (company?.address) {
-      setDeliveryAddress(company.address);
-    }
   };
 
   const handleProductsSelect = (products: SelectedProduct[]) => {
@@ -87,11 +80,6 @@ const DeliveryRegistrationModal: React.FC<DeliveryRegistrationModalProps> = ({
       return;
     }
 
-    if (!deliveryAddress.trim()) {
-      Alert.alert("알림", "배송 주소를 입력해주세요.");
-      return;
-    }
-
     const deliveryData: DeliveryFormData = {
       companyId: selectedCompanyId,
       products: selectedProducts.map((product) => ({
@@ -101,10 +89,7 @@ const DeliveryRegistrationModal: React.FC<DeliveryRegistrationModalProps> = ({
         unitPrice: product.unitPrice,
       })),
       deliveryDate,
-      deliveryAddress: deliveryAddress.trim(),
       deliveryMemo: deliveryMemo.trim() || undefined,
-      driverName: driverName.trim() || undefined,
-      driverPhone: driverPhone.trim() || undefined,
     };
 
     onConfirm(deliveryData);
@@ -116,10 +101,7 @@ const DeliveryRegistrationModal: React.FC<DeliveryRegistrationModalProps> = ({
     setSelectedCompanyId(preselectedCompanyId || "");
     setSelectedProducts([]);
     setDeliveryDate(new Date());
-    setDeliveryAddress("");
     setDeliveryMemo("");
-    setDriverName("");
-    setDriverPhone("");
     onClose();
   };
 
@@ -335,23 +317,6 @@ const DeliveryRegistrationModal: React.FC<DeliveryRegistrationModalProps> = ({
 
               <View style={styles.inputGroup}>
                 <Text style={[styles.label, { color: COLORS.text }]}>
-                  배송 주소
-                </Text>
-                <TextInput
-                  style={[
-                    styles.textInput,
-                    { borderColor: COLORS.border, color: COLORS.text },
-                  ]}
-                  value={deliveryAddress}
-                  onChangeText={setDeliveryAddress}
-                  placeholder="배송 주소를 입력하세요"
-                  placeholderTextColor={COLORS.textSecondary}
-                  multiline
-                />
-              </View>
-
-              <View style={styles.inputGroup}>
-                <Text style={[styles.label, { color: COLORS.text }]}>
                   배송 메모
                 </Text>
                 <TextInput
@@ -365,41 +330,6 @@ const DeliveryRegistrationModal: React.FC<DeliveryRegistrationModalProps> = ({
                   placeholderTextColor={COLORS.textSecondary}
                   multiline
                 />
-              </View>
-
-              <View style={styles.row}>
-                <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
-                  <Text style={[styles.label, { color: COLORS.text }]}>
-                    배송 기사명
-                  </Text>
-                  <TextInput
-                    style={[
-                      styles.textInput,
-                      { borderColor: COLORS.border, color: COLORS.text },
-                    ]}
-                    value={driverName}
-                    onChangeText={setDriverName}
-                    placeholder="기사명 (선택사항)"
-                    placeholderTextColor={COLORS.textSecondary}
-                  />
-                </View>
-
-                <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}>
-                  <Text style={[styles.label, { color: COLORS.text }]}>
-                    기사 연락처
-                  </Text>
-                  <TextInput
-                    style={[
-                      styles.textInput,
-                      { borderColor: COLORS.border, color: COLORS.text },
-                    ]}
-                    value={driverPhone}
-                    onChangeText={setDriverPhone}
-                    placeholder="연락처 (선택사항)"
-                    placeholderTextColor={COLORS.textSecondary}
-                    keyboardType="phone-pad"
-                  />
-                </View>
               </View>
             </View>
           </ScrollView>

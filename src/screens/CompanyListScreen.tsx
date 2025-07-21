@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   RefreshControl,
   Alert,
   SafeAreaView,
+  TextInput,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
@@ -19,7 +20,6 @@ import { useCompany } from "../hooks";
 import { usePhoneCall } from "../hooks/usePhoneCall";
 import { Company } from "../types";
 import { COLORS, SIZES } from "../constants";
-import { Button } from "../components";
 import { formatPhoneNumber } from "../utils/format";
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
@@ -31,6 +31,31 @@ export const CompanyListScreen: React.FC = () => {
     useCompany();
   const { makeCall } = usePhoneCall();
   const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchVisible, setSearchVisible] = useState(false);
+
+  // 검색어로 필터링된 회사 목록
+  const filteredCompanies = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return companies;
+    }
+
+    const query = searchQuery.toLowerCase().trim();
+    return companies.filter(
+      (company) =>
+        company.name.toLowerCase().includes(query) ||
+        company.address.toLowerCase().includes(query) ||
+        (company.contactPerson &&
+          company.contactPerson.toLowerCase().includes(query)) ||
+        company.phoneNumber
+          .replace(/[^0-9]/g, "")
+          .includes(query.replace(/[^0-9]/g, "")) ||
+        (company.businessNumber &&
+          company.businessNumber
+            .replace(/[^0-9]/g, "")
+            .includes(query.replace(/[^0-9]/g, "")))
+    );
+  }, [companies, searchQuery]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -192,19 +217,36 @@ export const CompanyListScreen: React.FC = () => {
     </TouchableOpacity>
   );
 
-  const renderEmptyState = () => (
-    <View style={styles.emptyContainer}>
-      <Ionicons name="business-outline" size={64} color="#9ca3af" />
-      <Text style={styles.emptyTitle}>등록된 거래처가 없습니다</Text>
-      <Text style={styles.emptySubtitle}>
-        첫 번째 거래처를 등록하고{"\n"}비즈니스 네트워크를 구축해보세요!
-      </Text>
-      <TouchableOpacity style={styles.primaryButton} onPress={handleAddPress}>
-        <Ionicons name="add" size={20} color="#ffffff" />
-        <Text style={styles.primaryButtonText}>거래처 등록하기</Text>
-      </TouchableOpacity>
-    </View>
-  );
+  const renderEmptyState = () => {
+    if (searchQuery.trim()) {
+      // 검색 결과가 없는 경우
+      return (
+        <View style={styles.emptyContainer}>
+          <Ionicons name="search-outline" size={64} color="#9ca3af" />
+          <Text style={styles.emptyTitle}>검색 결과가 없습니다</Text>
+          <Text style={styles.emptySubtitle}>
+            '{searchQuery}'에 대한 검색 결과를 찾을 수 없습니다.{"\n"}
+            다른 검색어로 시도해보세요.
+          </Text>
+        </View>
+      );
+    }
+
+    // 등록된 거래처가 없는 경우
+    return (
+      <View style={styles.emptyContainer}>
+        <Ionicons name="business-outline" size={64} color="#9ca3af" />
+        <Text style={styles.emptyTitle}>등록된 거래처가 없습니다</Text>
+        <Text style={styles.emptySubtitle}>
+          첫 번째 거래처를 등록하고{"\n"}비즈니스 네트워크를 구축해보세요!
+        </Text>
+        <TouchableOpacity style={styles.primaryButton} onPress={handleAddPress}>
+          <Ionicons name="add" size={20} color="#ffffff" />
+          <Text style={styles.primaryButtonText}>거래처 등록하기</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -213,23 +255,68 @@ export const CompanyListScreen: React.FC = () => {
         style={[styles.header, { paddingTop: 20 + insets.top }]}
       >
         <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>거래처 관리</Text>
-          <Text style={styles.headerSubtitle}>
-            총 {companies.length}개 거래처 •{" "}
-            {companies.filter((c) => c.isFavorite).length}개 즐겨찾기
-          </Text>
+          <View style={styles.headerTitleRow}>
+            <View style={styles.titleSection}>
+              <Text style={styles.headerTitle}>거래처 관리</Text>
+              <Text style={styles.headerSubtitle}>
+                총 {searchQuery ? filteredCompanies.length : companies.length}개
+                거래처 • {companies.filter((c) => c.isFavorite).length}개
+                즐겨찾기
+              </Text>
+            </View>
+            <TouchableOpacity
+              style={styles.searchButton}
+              onPress={() => setSearchVisible(!searchVisible)}
+            >
+              <Ionicons
+                name={searchVisible ? "close" : "search"}
+                size={20}
+                color="#ffffff"
+              />
+            </TouchableOpacity>
+          </View>
         </View>
       </LinearGradient>
 
+      {/* 검색 바 */}
+      {searchVisible && (
+        <View style={styles.searchContainer}>
+          <View style={styles.searchInputContainer}>
+            <Ionicons
+              name="search"
+              size={20}
+              color={COLORS.GRAY}
+              style={styles.searchIcon}
+            />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="거래처명, 주소, 담당자, 전화번호로 검색..."
+              placeholderTextColor={COLORS.GRAY}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              autoFocus={true}
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity
+                style={styles.clearButton}
+                onPress={() => setSearchQuery("")}
+              >
+                <Ionicons name="close-circle" size={20} color={COLORS.GRAY} />
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+      )}
+
       <View style={styles.content}>
         <FlatList
-          data={companies}
+          data={filteredCompanies}
           renderItem={renderCompanyItem}
           keyExtractor={(item) => item.id}
           contentContainerStyle={[
             styles.listContainer,
             { paddingBottom: 100 + insets.bottom },
-            companies.length === 0 && styles.emptyListContainer,
+            filteredCompanies.length === 0 && styles.emptyListContainer,
           ]}
           showsVerticalScrollIndicator={false}
           refreshControl={
@@ -267,6 +354,24 @@ const styles = StyleSheet.create({
   headerContent: {
     alignItems: "center",
   },
+  headerTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "100%",
+  },
+  titleSection: {
+    flex: 1,
+    alignItems: "center",
+  },
+  searchButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   headerTitle: {
     fontSize: 24,
     fontWeight: "bold",
@@ -281,6 +386,41 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingTop: 16,
+  },
+  searchContainer: {
+    backgroundColor: "#ffffff",
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e5e7eb",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  searchInputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f9fafb",
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: "#374151",
+    paddingVertical: 4,
+  },
+  clearButton: {
+    padding: 4,
+    marginLeft: 8,
   },
   listContainer: {
     paddingHorizontal: 16,

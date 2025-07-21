@@ -21,7 +21,7 @@ export interface Delivery extends BaseEntity {
   products: DeliveryProduct[]; // 배송 상품 목록
   totalAmount: number; // 총 배송 금액
   deliveryDate: Date; // 배송 예정일
-  deliveryAddress: string; // 배송 주소
+  deliveryAddress?: string; // 배송 주소 (선택사항)
   deliveryMemo?: string; // 배송 메모
   driverName?: string; // 배송 기사명
   driverPhone?: string; // 배송 기사 연락처
@@ -34,7 +34,7 @@ export interface DeliveryFormData {
   companyId: string;
   products: Omit<DeliveryProduct, "id" | "totalPrice">[];
   deliveryDate: Date;
-  deliveryAddress: string;
+  deliveryAddress?: string; // 배송 주소 (선택사항)
   deliveryMemo?: string;
   driverName?: string;
   driverPhone?: string;
