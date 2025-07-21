@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Company } from "../../types";
-import { useTheme } from "../../hooks/useTheme";
+import { COLORS } from "../../styles/colors";
 import Card from "../common/Card";
 
 interface CompanyListItemProps {
@@ -32,8 +32,6 @@ const CompanyListItem = memo<CompanyListItemProps>(
     onCall,
     showActions = true,
   }) => {
-    const { theme } = useTheme();
-
     const handlePress = useCallback(() => {
       onPress(company);
     }, [onPress, company]);
@@ -65,125 +63,111 @@ const CompanyListItem = memo<CompanyListItemProps>(
       }
     }, [company.phoneNumber, onCall]);
 
-    const getTypeColor = useCallback(
-      (type: string) => {
-        switch (type) {
-          case "고객사":
-            return theme.colors.primary;
-          case "공급업체":
-            return theme.colors.success;
-          case "협력업체":
-            return theme.colors.warning;
-          case "하청업체":
-            return theme.colors.secondary;
-          default:
-            return theme.colors.text;
-        }
-      },
-      [theme.colors]
-    );
+    const getTypeColor = useCallback((type: string) => {
+      switch (type) {
+        case "고객사":
+          return COLORS.primary;
+        case "공급업체":
+          return COLORS.success;
+        case "협력업체":
+          return COLORS.warning;
+        case "하청업체":
+          return COLORS.primaryLight;
+        default:
+          return COLORS.text;
+      }
+    }, []);
 
     return (
       <Card style={styles.card}>
         <TouchableOpacity onPress={handlePress} style={styles.container}>
           <View style={styles.header}>
             <View style={styles.titleRow}>
-              <Text style={[styles.name, { color: theme.colors.text }]}>
+              <Text style={[styles.name, { color: COLORS.text }]}>
                 {company.name}
               </Text>
-              {showActions && (
-                <TouchableOpacity
-                  onPress={handleToggleFavorite}
-                  style={styles.favoriteButton}
+              <View style={styles.typeRow}>
+                <View
+                  style={[
+                    styles.typeBadge,
+                    { backgroundColor: getTypeColor(company.type) + "20" },
+                  ]}
                 >
+                  <Text
+                    style={[
+                      styles.typeText,
+                      {
+                        color: getTypeColor(company.type),
+                      },
+                    ]}
+                  >
+                    {company.type}
+                  </Text>
+                </View>
+                {company.isFavorite && (
                   <Ionicons
-                    name={company.isFavorite ? "heart" : "heart-outline"}
-                    size={20}
+                    name="star"
+                    size={16}
                     color={
-                      company.isFavorite
-                        ? "#ff6b6b"
-                        : theme.colors.textSecondary
+                      company.isFavorite ? COLORS.warning : COLORS.textSecondary
                     }
                   />
-                </TouchableOpacity>
-              )}
-            </View>
-
-            <View style={styles.typeRow}>
-              <View
-                style={[
-                  styles.typeBadge,
-                  { backgroundColor: getTypeColor(company.type) },
-                ]}
-              >
-                <Text style={styles.typeText}>{company.type}</Text>
+                )}
               </View>
-              <Text
-                style={[styles.region, { color: theme.colors.textSecondary }]}
-              >
-                {company.region}
-              </Text>
             </View>
+            <Text style={[styles.region, { color: COLORS.textSecondary }]}>
+              {company.region}
+            </Text>
           </View>
 
           <View style={styles.content}>
-            {company.contactPerson && (
-              <View style={styles.infoRow}>
-                <Ionicons
-                  name="person"
-                  size={16}
-                  color={theme.colors.textSecondary}
-                />
-                <Text
-                  style={[
-                    styles.infoText,
-                    { color: theme.colors.textSecondary },
-                  ]}
-                >
-                  {company.contactPerson}
-                </Text>
-              </View>
-            )}
+            <View style={styles.infoRow}>
+              <Ionicons
+                name="location-outline"
+                size={16}
+                color={COLORS.textSecondary}
+              />
+              <Text style={[styles.infoText, { color: COLORS.textSecondary }]}>
+                {company.address}
+              </Text>
+            </View>
 
             {company.phoneNumber && (
-              <TouchableOpacity onPress={handleCall} style={styles.infoRow}>
-                <Ionicons name="call" size={16} color={theme.colors.primary} />
-                <Text
-                  style={[styles.infoText, { color: theme.colors.primary }]}
-                >
+              <TouchableOpacity style={styles.infoRow} onPress={handleCall}>
+                <Ionicons name="call" size={16} color={COLORS.primary} />
+                <Text style={[styles.infoText, { color: COLORS.primary }]}>
                   {company.phoneNumber}
                 </Text>
               </TouchableOpacity>
             )}
 
-            <View style={styles.infoRow}>
-              <Ionicons
-                name="location"
-                size={16}
-                color={theme.colors.textSecondary}
-              />
-              <Text
-                style={[styles.infoText, { color: theme.colors.textSecondary }]}
-                numberOfLines={2}
-              >
-                {company.address}
-              </Text>
-            </View>
-
             {company.businessNumber && (
               <View style={styles.infoRow}>
                 <Ionicons
-                  name="business"
+                  name="business-outline"
                   size={16}
-                  color={theme.colors.textSecondary}
+                  color={COLORS.textSecondary}
                 />
                 <Text
-                  style={[
-                    styles.infoText,
-                    { color: theme.colors.textSecondary },
-                  ]}
+                  style={[styles.infoText, { color: COLORS.textSecondary }]}
                 >
                   {company.businessNumber}
+                </Text>
+              </View>
+            )}
+
+            {company.memo && (
+              <View style={styles.infoRow}>
+                <Ionicons
+                  name="document-text-outline"
+                  size={16}
+                  color={COLORS.textSecondary}
+                />
+                <Text
+                  style={[styles.infoText, { color: COLORS.textSecondary }]}
+                  numberOfLines={2}
+                >
+                  {company.memo}
                 </Text>
               </View>
             )}
@@ -192,30 +176,47 @@ const CompanyListItem = memo<CompanyListItemProps>(
           {showActions && (
             <View style={styles.actions}>
               <TouchableOpacity
-                onPress={handleEdit}
                 style={styles.actionButton}
+                onPress={handleEdit}
               >
                 <Ionicons
-                  name="pencil"
+                  name="create-outline"
                   size={18}
-                  color={theme.colors.primary}
+                  color={COLORS.primary}
                 />
-                <Text
-                  style={[styles.actionText, { color: theme.colors.primary }]}
-                >
+                <Text style={[styles.actionText, { color: COLORS.primary }]}>
                   수정
                 </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                onPress={handleDelete}
                 style={styles.actionButton}
+                onPress={handleDelete}
               >
-                <Ionicons name="trash" size={18} color={theme.colors.error} />
-                <Text
-                  style={[styles.actionText, { color: theme.colors.error }]}
-                >
+                <Ionicons name="trash" size={18} color={COLORS.error} />
+                <Text style={[styles.actionText, { color: COLORS.error }]}>
                   삭제
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={handleToggleFavorite}
+              >
+                <Ionicons
+                  name={company.isFavorite ? "star" : "star-outline"}
+                  size={18}
+                  color={company.isFavorite ? "#ffc107" : "#6c757d"}
+                />
+                <Text
+                  style={[
+                    styles.actionText,
+                    {
+                      color: company.isFavorite ? "#ffc107" : "#6c757d",
+                    },
+                  ]}
+                >
+                  {company.isFavorite ? "즐겨찾기 해제" : "즐겨찾기"}
                 </Text>
               </TouchableOpacity>
             </View>

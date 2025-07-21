@@ -16,7 +16,11 @@ export type TofuItems =
   | "모두부"
   | "콩물";
 
-export type BeansproutItems = "시루콩나물" | "박스콩나물" | "두절콩나물";
+export type BeansproutItems =
+  | "콩나물"
+  | "시루콩나물"
+  | "박스콩나물"
+  | "두절콩나물";
 
 export type JellyItems =
   | "도토리묵小"
@@ -39,7 +43,7 @@ export const CATEGORY_ITEMS: Record<ProductCategory, string[]> = {
     "모두부",
     "콩물",
   ],
-  콩나물: ["시루콩나물", "박스콩나물", "두절콩나물"],
+  콩나물: ["콩나물", "시루콩나물", "박스콩나물", "두절콩나물"],
   묵류: [
     "도토리묵小",
     "도토리묵大",

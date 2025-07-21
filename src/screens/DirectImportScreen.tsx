@@ -13,7 +13,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useTheme } from "../hooks/useTheme";
+import { COLORS } from "../styles/colors";
 import { useCompany } from "../hooks/useCompany";
 import {
   directImportToStorage,
@@ -23,7 +23,7 @@ import {
 const DirectImportScreen = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const { theme } = useTheme();
+
   const { refreshData } = useCompany();
   const [isImporting, setIsImporting] = useState(false);
   const [importResult, setImportResult] = useState<{
@@ -91,21 +91,21 @@ const DirectImportScreen = () => {
       style={[
         styles.container,
         {
-          backgroundColor: theme.colors.background,
+          backgroundColor: COLORS.background,
           paddingTop:
             Platform.OS === "android" ? StatusBar.currentHeight : insets.top,
         },
       ]}
     >
       {/* 헤더 */}
-      <View style={[styles.header, { backgroundColor: theme.colors.surface }]}>
+      <View style={[styles.header, { backgroundColor: COLORS.white }]}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
+          <Ionicons name="arrow-back" size={24} color={COLORS.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: theme.colors.text }]}>
+        <Text style={[styles.headerTitle, { color: COLORS.text }]}>
           데이터베이스 직접 등록
         </Text>
         <View style={styles.headerSpacer} />
@@ -117,14 +117,14 @@ const DirectImportScreen = () => {
       >
         {/* 안내 메시지 */}
         <View
-          style={[styles.infoCard, { backgroundColor: theme.colors.surface }]}
+          style={[styles.infoCard, { backgroundColor: COLORS.white }]}
         >
           <Ionicons
             name="information-circle"
             size={24}
-            color={theme.colors.warning}
+            color={COLORS.warning}
           />
-          <Text style={[styles.infoText, { color: theme.colors.text }]}>
+          <Text style={[styles.infoText, { color: COLORS.text }]}>
             이 기능은 CSV 데이터를 파싱하여 바로 데이터베이스(AsyncStorage)에
             저장합니다. 일괄 등록 화면을 거치지 않고 직접 저장됩니다.
           </Text>
@@ -134,22 +134,22 @@ const DirectImportScreen = () => {
         <View
           style={[
             styles.previewCard,
-            { backgroundColor: theme.colors.surface },
+            { backgroundColor: COLORS.white },
           ]}
         >
-          <Text style={[styles.cardTitle, { color: theme.colors.text }]}>
+          <Text style={[styles.cardTitle, { color: COLORS.text }]}>
             📊 등록 예정 데이터
           </Text>
 
           <View style={styles.statsContainer}>
             <View style={styles.statItem}>
-              <Text style={[styles.statValue, { color: theme.colors.primary }]}>
+              <Text style={[styles.statValue, { color: COLORS.primary }]}>
                 {stats.totalRows}
               </Text>
               <Text
                 style={[
                   styles.statLabel,
-                  { color: theme.colors.textSecondary },
+                  { color: COLORS.textSecondary },
                 ]}
               >
                 총 회사 수
@@ -158,16 +158,16 @@ const DirectImportScreen = () => {
           </View>
 
           <View style={styles.statsGrid}>
-            <Text style={[styles.subTitle, { color: theme.colors.text }]}>
+            <Text style={[styles.subTitle, { color: COLORS.text }]}>
               지역별 분포
             </Text>
             {Object.entries(stats.byRegion).map(([region, count]) => (
               <View key={region} style={styles.statRow}>
-                <Text style={[styles.statText, { color: theme.colors.text }]}>
+                <Text style={[styles.statText, { color: COLORS.text }]}>
                   {region}
                 </Text>
                 <Text
-                  style={[styles.statNumber, { color: theme.colors.primary }]}
+                  style={[styles.statNumber, { color: COLORS.primary }]}
                 >
                   {count}개
                 </Text>
@@ -176,16 +176,16 @@ const DirectImportScreen = () => {
           </View>
 
           <View style={styles.statsGrid}>
-            <Text style={[styles.subTitle, { color: theme.colors.text }]}>
+            <Text style={[styles.subTitle, { color: COLORS.text }]}>
               업체 유형별 분포
             </Text>
             {Object.entries(stats.byType).map(([type, count]) => (
               <View key={type} style={styles.statRow}>
-                <Text style={[styles.statText, { color: theme.colors.text }]}>
+                <Text style={[styles.statText, { color: COLORS.text }]}>
                   {type}
                 </Text>
                 <Text
-                  style={[styles.statNumber, { color: theme.colors.primary }]}
+                  style={[styles.statNumber, { color: COLORS.primary }]}
                 >
                   {count}개
                 </Text>
@@ -199,10 +199,10 @@ const DirectImportScreen = () => {
           <View
             style={[
               styles.resultCard,
-              { backgroundColor: theme.colors.surface },
+              { backgroundColor: COLORS.white },
             ]}
           >
-            <Text style={[styles.cardTitle, { color: theme.colors.text }]}>
+            <Text style={[styles.cardTitle, { color: COLORS.text }]}>
               ✅ 등록 결과
             </Text>
 
@@ -210,9 +210,9 @@ const DirectImportScreen = () => {
               <Ionicons
                 name="checkmark-circle"
                 size={20}
-                color={theme.colors.success}
+                color={COLORS.success}
               />
-              <Text style={[styles.resultText, { color: theme.colors.text }]}>
+              <Text style={[styles.resultText, { color: COLORS.text }]}>
                 성공: {importResult.success}개
               </Text>
             </View>
@@ -221,9 +221,9 @@ const DirectImportScreen = () => {
               <Ionicons
                 name="remove-circle"
                 size={20}
-                color={theme.colors.warning}
+                color={COLORS.warning}
               />
-              <Text style={[styles.resultText, { color: theme.colors.text }]}>
+              <Text style={[styles.resultText, { color: COLORS.text }]}>
                 중복 스킵: {importResult.skipped}개
               </Text>
             </View>
@@ -232,9 +232,9 @@ const DirectImportScreen = () => {
               <Ionicons
                 name="close-circle"
                 size={20}
-                color={theme.colors.error}
+                color={COLORS.error}
               />
-              <Text style={[styles.resultText, { color: theme.colors.text }]}>
+              <Text style={[styles.resultText, { color: COLORS.text }]}>
                 오류: {importResult.errors.length}개
               </Text>
             </View>
@@ -242,7 +242,7 @@ const DirectImportScreen = () => {
             {importResult.errors.length > 0 && (
               <View style={styles.errorList}>
                 <Text
-                  style={[styles.errorTitle, { color: theme.colors.error }]}
+                  style={[styles.errorTitle, { color: COLORS.error }]}
                 >
                   오류 내역:
                 </Text>
@@ -251,7 +251,7 @@ const DirectImportScreen = () => {
                     key={index}
                     style={[
                       styles.errorText,
-                      { color: theme.colors.textSecondary },
+                      { color: COLORS.textSecondary },
                     ]}
                   >
                     • {error}
@@ -261,7 +261,7 @@ const DirectImportScreen = () => {
                   <Text
                     style={[
                       styles.errorText,
-                      { color: theme.colors.textSecondary },
+                      { color: COLORS.textSecondary },
                     ]}
                   >
                     ... 외 {importResult.errors.length - 5}개
@@ -278,8 +278,8 @@ const DirectImportScreen = () => {
             styles.importButton,
             {
               backgroundColor: isImporting
-                ? theme.colors.textSecondary
-                : theme.colors.primary,
+                ? COLORS.textSecondary
+                : COLORS.primary,
             },
           ]}
           onPress={handleDirectImport}

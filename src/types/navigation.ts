@@ -6,13 +6,19 @@ export type RootStackParamList = {
   CompanyEdit: { companyId?: string };
   CompanyImport: undefined;
   DirectImport: undefined;
-  Settings: undefined;
+  InvoiceManagement: undefined;
+  InvoiceEdit: { invoiceId?: string };
+  InvoiceDetail: { invoiceId: string };
+  CompanySalesAnalysis: undefined;
+  CompanySalesDetail: { companyData: any };
+  DeliveryManagement: undefined;
+  DeliveryDetail: { deliveryId: string };
+  DeliveryEdit: { deliveryId: string };
 };
 
 export type TabParamList = {
   Home: undefined;
   CompanyList: undefined;
-  Settings: undefined;
 };
 
 // 네비게이션 액션

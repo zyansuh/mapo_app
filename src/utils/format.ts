@@ -105,9 +105,9 @@ export const formatPhoneNumber = (phoneNumber: string): string => {
   // 숫자만 추출
   let cleaned = phoneNumber.replace(/\D/g, "");
 
-  // 10으로 시작하는 경우 010으로 변경
-  if (cleaned.startsWith("10") && cleaned.length === 10) {
-    cleaned = "0" + cleaned;
+  // 1로 시작하는 10자리 번호를 010으로 변경 (휴대폰 번호)
+  if (cleaned.startsWith("1") && cleaned.length === 10) {
+    cleaned = "01" + cleaned.substring(1);
   }
 
   // 휴대폰 번호 (010, 011 등으로 시작하는 11자리)

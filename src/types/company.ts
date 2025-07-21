@@ -8,7 +8,27 @@ export type CompanyType =
   | "하청업체"
   | "기타";
 
-export type CompanyRegion = "순창" | "담양" | "장성" | "기타";
+export type CompanyRegion =
+  | "서울"
+  | "부산"
+  | "대구"
+  | "인천"
+  | "광주"
+  | "대전"
+  | "울산"
+  | "경기"
+  | "강원"
+  | "충북"
+  | "충남"
+  | "전북"
+  | "전남"
+  | "경북"
+  | "경남"
+  | "제주"
+  | "순창"
+  | "담양"
+  | "장성"
+  | "기타";
 
 export type CompanyStatus = "활성" | "비활성" | "보류" | "종료";
 

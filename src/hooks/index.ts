@@ -6,5 +6,6 @@ export { useCallAnalytics } from "./useCallAnalytics";
 export { useCallDetection } from "./useCallDetection";
 export { useCompany } from "./useCompany";
 export { usePhoneCall } from "./usePhoneCall";
+export { useInvoice } from "./useInvoice";
 export { useKeyboardShortcuts } from "./useKeyboardShortcuts";
-export { useTheme } from "./useTheme";
+export { useDelivery } from "./useDelivery";

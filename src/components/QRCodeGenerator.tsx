@@ -13,7 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Sharing from "expo-sharing";
 import * as FileSystem from "expo-file-system";
 import { Company } from "../types";
-import { useTheme } from "../hooks/useTheme";
+import { COLORS } from "../styles/colors";
 
 interface QRCodeGeneratorProps {
   visible: boolean;
@@ -28,7 +28,6 @@ export const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
   data,
   type,
 }) => {
-  const { theme } = useTheme();
   const [qrRef, setQrRef] = useState<any>(null);
 
   const generateQRData = () => {
@@ -145,15 +144,13 @@ export const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
   return (
     <Modal visible={visible} transparent animationType="slide">
       <View style={styles.overlay}>
-        <View
-          style={[styles.container, { backgroundColor: theme.colors.card }]}
-        >
+        <View style={[styles.container, { backgroundColor: COLORS.white }]}>
           <View style={styles.header}>
-            <Text style={[styles.title, { color: theme.colors.text }]}>
+            <Text style={[styles.title, { color: COLORS.text }]}>
               {getTitle()}
             </Text>
             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-              <Ionicons name="close" size={24} color={theme.colors.text} />
+              <Ionicons name="close" size={24} color={COLORS.text} />
             </TouchableOpacity>
           </View>
 
@@ -163,76 +160,53 @@ export const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
               <QRCode
                 value={generateQRData()}
                 size={200}
-                color={theme.colors.text}
-                backgroundColor={theme.colors.card}
+                color={COLORS.text}
+                backgroundColor={COLORS.white}
                 getRef={(ref) => setQrRef(ref)}
               />
             </View>
 
-            {/* 설명 */}
-            <View style={styles.descriptionContainer}>
-              <Text
-                style={[
-                  styles.description,
-                  { color: theme.colors.textSecondary },
-                ]}
-              >
-                {getDescription()}
-              </Text>
-            </View>
+            {/* 정보 텍스트 */}
+            <Text style={[styles.description, { color: COLORS.textSecondary }]}>
+              {getDescription()}
+            </Text>
 
-            {/* 안내 텍스트 */}
-            <View style={styles.infoContainer}>
-              <Text
-                style={[styles.infoText, { color: theme.colors.textSecondary }]}
-              >
-                📱 QR 코드를 스캔하여 정보를 확인하세요
-              </Text>
-              <Text
-                style={[
-                  styles.infoSubtext,
-                  { color: theme.colors.textSecondary },
-                ]}
-              >
-                다른 마포 앱 사용자나 호환 앱에서 스캔 가능합니다
-              </Text>
-            </View>
+            {/* QR 코드 데이터 표시 */}
+            <Text style={[styles.infoText, { color: COLORS.textSecondary }]}>
+              QR 코드에 포함된 정보
+            </Text>
+            <Text style={[styles.infoSubtext, { color: COLORS.textSecondary }]}>
+              {generateQRData()}
+            </Text>
+          </View>
 
-            {/* 액션 버튼들 */}
-            <View style={styles.actionButtons}>
-              <TouchableOpacity
-                style={[
-                  styles.actionButton,
-                  { backgroundColor: theme.colors.primary },
-                ]}
-                onPress={handleShare}
-              >
-                <Ionicons name="share" size={20} color="white" />
-                <Text style={styles.actionButtonText}>공유</Text>
-              </TouchableOpacity>
+          <View style={styles.actionButtons}>
+            <TouchableOpacity
+              style={[styles.actionButton, { backgroundColor: COLORS.primary }]}
+              onPress={handleShare}
+            >
+              <Ionicons name="share" size={20} color="#ffffff" />
+              <Text style={styles.actionButtonText}>공유</Text>
+            </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[
-                  styles.actionButton,
-                  { backgroundColor: theme.colors.success },
-                ]}
-                onPress={handleSave}
-              >
-                <Ionicons name="download" size={20} color="white" />
-                <Text style={styles.actionButtonText}>저장</Text>
-              </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionButton, { backgroundColor: COLORS.success }]}
+              onPress={handleSave}
+            >
+              <Ionicons name="download" size={20} color="#ffffff" />
+              <Text style={styles.actionButtonText}>저장</Text>
+            </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[
-                  styles.actionButton,
-                  { backgroundColor: theme.colors.secondary },
-                ]}
-                onPress={handleCopyData}
-              >
-                <Ionicons name="copy" size={20} color="white" />
-                <Text style={styles.actionButtonText}>데이터</Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+              style={[
+                styles.actionButton,
+                { backgroundColor: COLORS.primaryLight },
+              ]}
+              onPress={onClose}
+            >
+              <Ionicons name="close" size={20} color="#ffffff" />
+              <Text style={styles.actionButtonText}>닫기</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </View>

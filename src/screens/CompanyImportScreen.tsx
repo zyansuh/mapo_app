@@ -15,7 +15,7 @@ import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCompany } from "../hooks";
-import { useTheme } from "../hooks/useTheme";
+import { COLORS } from "../styles/colors";
 import {
   parseProvidedCompanies,
   getImportSummary,
@@ -27,7 +27,6 @@ type NavigationProp = StackNavigationProp<RootStackParamList>;
 const CompanyImportScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const insets = useSafeAreaInsets();
-  const { theme } = useTheme();
   const { companies, addCompany } = useCompany();
 
   const [isImporting, setIsImporting] = useState(false);
@@ -134,19 +133,17 @@ const CompanyImportScreen = () => {
   };
 
   const renderImportSummary = () => (
-    <View style={[styles.section, { backgroundColor: theme.colors.card }]}>
-      <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+    <View style={[styles.section, { backgroundColor: COLORS.white }]}>
+      <Text style={[styles.sectionTitle, { color: COLORS.text }]}>
         등록 예정 데이터
       </Text>
 
       <View style={styles.summaryGrid}>
         <View style={styles.summaryItem}>
-          <Text style={[styles.summaryNumber, { color: theme.colors.primary }]}>
+          <Text style={[styles.summaryNumber, { color: COLORS.primary }]}>
             {summary.total}
           </Text>
-          <Text
-            style={[styles.summaryLabel, { color: theme.colors.textSecondary }]}
-          >
+          <Text style={[styles.summaryLabel, { color: COLORS.textSecondary }]}>
             총 거래처
           </Text>
         </View>
@@ -155,9 +152,7 @@ const CompanyImportScreen = () => {
           <Text style={[styles.summaryNumber, { color: "#10b981" }]}>
             {summary.byType.고객사 || 0}
           </Text>
-          <Text
-            style={[styles.summaryLabel, { color: theme.colors.textSecondary }]}
-          >
+          <Text style={[styles.summaryLabel, { color: COLORS.textSecondary }]}>
             고객사
           </Text>
         </View>
@@ -166,9 +161,7 @@ const CompanyImportScreen = () => {
           <Text style={[styles.summaryNumber, { color: "#f59e0b" }]}>
             {summary.byType.협력업체 || 0}
           </Text>
-          <Text
-            style={[styles.summaryLabel, { color: theme.colors.textSecondary }]}
-          >
+          <Text style={[styles.summaryLabel, { color: COLORS.textSecondary }]}>
             협력업체
           </Text>
         </View>
@@ -177,9 +170,7 @@ const CompanyImportScreen = () => {
           <Text style={[styles.summaryNumber, { color: "#8b5cf6" }]}>
             {summary.byType.공급업체 || 0}
           </Text>
-          <Text
-            style={[styles.summaryLabel, { color: theme.colors.textSecondary }]}
-          >
+          <Text style={[styles.summaryLabel, { color: COLORS.textSecondary }]}>
             공급업체
           </Text>
         </View>
@@ -187,34 +178,28 @@ const CompanyImportScreen = () => {
 
       <View style={styles.summaryDetails}>
         <View style={styles.detailRow}>
-          <Text
-            style={[styles.detailLabel, { color: theme.colors.textSecondary }]}
-          >
+          <Text style={[styles.detailLabel, { color: COLORS.textSecondary }]}>
             이메일 보유:
           </Text>
-          <Text style={[styles.detailValue, { color: theme.colors.text }]}>
+          <Text style={[styles.detailValue, { color: COLORS.text }]}>
             {summary.withEmail}개
           </Text>
         </View>
 
         <View style={styles.detailRow}>
-          <Text
-            style={[styles.detailLabel, { color: theme.colors.textSecondary }]}
-          >
+          <Text style={[styles.detailLabel, { color: COLORS.textSecondary }]}>
             전화번호 보유:
           </Text>
-          <Text style={[styles.detailValue, { color: theme.colors.text }]}>
+          <Text style={[styles.detailValue, { color: COLORS.text }]}>
             {summary.withPhone}개
           </Text>
         </View>
 
         <View style={styles.detailRow}>
-          <Text
-            style={[styles.detailLabel, { color: theme.colors.textSecondary }]}
-          >
+          <Text style={[styles.detailLabel, { color: COLORS.textSecondary }]}>
             담당자 연락처:
           </Text>
-          <Text style={[styles.detailValue, { color: theme.colors.text }]}>
+          <Text style={[styles.detailValue, { color: COLORS.text }]}>
             {summary.withContactPhone}개
           </Text>
         </View>
@@ -226,8 +211,8 @@ const CompanyImportScreen = () => {
     if (!importComplete || !importResults) return null;
 
     return (
-      <View style={[styles.section, { backgroundColor: theme.colors.card }]}>
-        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+      <View style={[styles.section, { backgroundColor: COLORS.white }]}>
+        <Text style={[styles.sectionTitle, { color: COLORS.text }]}>
           등록 결과
         </Text>
 
@@ -236,12 +221,7 @@ const CompanyImportScreen = () => {
             <Text style={[styles.resultNumber, { color: "#10b981" }]}>
               {importResults.success}
             </Text>
-            <Text
-              style={[
-                styles.resultLabel,
-                { color: theme.colors.textSecondary },
-              ]}
-            >
+            <Text style={[styles.resultLabel, { color: COLORS.textSecondary }]}>
               성공
             </Text>
           </View>
@@ -250,12 +230,7 @@ const CompanyImportScreen = () => {
             <Text style={[styles.resultNumber, { color: "#f59e0b" }]}>
               {importResults.skip}
             </Text>
-            <Text
-              style={[
-                styles.resultLabel,
-                { color: theme.colors.textSecondary },
-              ]}
-            >
+            <Text style={[styles.resultLabel, { color: COLORS.textSecondary }]}>
               중복 건너뛰기
             </Text>
           </View>
@@ -264,12 +239,7 @@ const CompanyImportScreen = () => {
             <Text style={[styles.resultNumber, { color: "#ef4444" }]}>
               {importResults.error}
             </Text>
-            <Text
-              style={[
-                styles.resultLabel,
-                { color: theme.colors.textSecondary },
-              ]}
-            >
+            <Text style={[styles.resultLabel, { color: COLORS.textSecondary }]}>
               실패
             </Text>
           </View>
@@ -277,7 +247,7 @@ const CompanyImportScreen = () => {
 
         {importResults.errors.length > 0 && (
           <View style={styles.errorsList}>
-            <Text style={[styles.errorsTitle, { color: theme.colors.error }]}>
+            <Text style={[styles.errorsTitle, { color: COLORS.error }]}>
               오류 목록:
             </Text>
             {importResults.errors
@@ -285,21 +255,13 @@ const CompanyImportScreen = () => {
               .map((error: string, index: number) => (
                 <Text
                   key={index}
-                  style={[
-                    styles.errorText,
-                    { color: theme.colors.textSecondary },
-                  ]}
+                  style={[styles.errorText, { color: COLORS.textSecondary }]}
                 >
                   • {error}
                 </Text>
               ))}
             {importResults.errors.length > 5 && (
-              <Text
-                style={[
-                  styles.errorText,
-                  { color: theme.colors.textSecondary },
-                ]}
-              >
+              <Text style={[styles.errorText, { color: COLORS.textSecondary }]}>
                 ... 외 {importResults.errors.length - 5}개
               </Text>
             )}
@@ -311,29 +273,24 @@ const CompanyImportScreen = () => {
 
   return (
     <SafeAreaView
-      style={[styles.container, { backgroundColor: theme.colors.background }]}
+      style={[styles.container, { backgroundColor: COLORS.background }]}
     >
       <LinearGradient
-        colors={[theme.colors.primary, theme.colors.primary]}
+        colors={[COLORS.primary, COLORS.primary]}
         style={[styles.header, { paddingTop: insets.top }]}
       >
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Ionicons name="arrow-back" size={24} color={theme.colors.white} />
+          <Ionicons name="arrow-back" size={24} color={COLORS.white} />
         </TouchableOpacity>
 
         <View style={styles.headerContent}>
-          <Text style={[styles.headerTitle, { color: theme.colors.white }]}>
+          <Text style={[styles.headerTitle, { color: COLORS.white }]}>
             거래처 일괄 등록
           </Text>
-          <Text
-            style={[
-              styles.headerSubtitle,
-              { color: theme.colors.white + "CC" },
-            ]}
-          >
+          <Text style={[styles.headerSubtitle, { color: COLORS.white + "CC" }]}>
             CSV 데이터 기반 대량 등록
           </Text>
         </View>
@@ -343,30 +300,20 @@ const CompanyImportScreen = () => {
         {renderImportSummary()}
 
         {!importComplete && (
-          <View
-            style={[styles.section, { backgroundColor: theme.colors.card }]}
-          >
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+          <View style={[styles.section, { backgroundColor: COLORS.white }]}>
+            <Text style={[styles.sectionTitle, { color: COLORS.text }]}>
               주의사항
             </Text>
-            <Text
-              style={[styles.noteText, { color: theme.colors.textSecondary }]}
-            >
+            <Text style={[styles.noteText, { color: COLORS.textSecondary }]}>
               • 사업자번호가 동일한 거래처는 중복으로 간주하여 건너뛰어집니다.
             </Text>
-            <Text
-              style={[styles.noteText, { color: theme.colors.textSecondary }]}
-            >
+            <Text style={[styles.noteText, { color: COLORS.textSecondary }]}>
               • 주소를 기반으로 지역이 자동 분류됩니다.
             </Text>
-            <Text
-              style={[styles.noteText, { color: theme.colors.textSecondary }]}
-            >
+            <Text style={[styles.noteText, { color: COLORS.textSecondary }]}>
               • 업체명을 기반으로 고객사/협력업체/공급업체가 자동 분류됩니다.
             </Text>
-            <Text
-              style={[styles.noteText, { color: theme.colors.textSecondary }]}
-            >
+            <Text style={[styles.noteText, { color: COLORS.textSecondary }]}>
               • 등록된 모든 거래처는 "활성" 상태로 설정됩니다.
             </Text>
           </View>
@@ -380,8 +327,8 @@ const CompanyImportScreen = () => {
               styles.importButton,
               {
                 backgroundColor: isImporting
-                  ? theme.colors.disabled
-                  : theme.colors.primary,
+                  ? COLORS.textSecondary
+                  : COLORS.primary,
                 opacity: isImporting ? 0.7 : 1,
               },
             ]}
@@ -389,17 +336,11 @@ const CompanyImportScreen = () => {
             disabled={isImporting}
           >
             {isImporting ? (
-              <ActivityIndicator size="small" color={theme.colors.white} />
+              <ActivityIndicator size="small" color={COLORS.white} />
             ) : (
-              <Ionicons
-                name="cloud-upload"
-                size={20}
-                color={theme.colors.white}
-              />
+              <Ionicons name="cloud-upload" size={20} color={COLORS.white} />
             )}
-            <Text
-              style={[styles.importButtonText, { color: theme.colors.white }]}
-            >
+            <Text style={[styles.importButtonText, { color: COLORS.white }]}>
               {isImporting
                 ? "등록 중..."
                 : `${summary.total}개 거래처 일괄 등록`}
@@ -412,10 +353,8 @@ const CompanyImportScreen = () => {
             style={[styles.importButton, { backgroundColor: "#10b981" }]}
             onPress={() => navigation.goBack()}
           >
-            <Ionicons name="list" size={20} color={theme.colors.white} />
-            <Text
-              style={[styles.importButtonText, { color: theme.colors.white }]}
-            >
+            <Ionicons name="list" size={20} color={COLORS.white} />
+            <Text style={[styles.importButtonText, { color: COLORS.white }]}>
               뒤로 가기
             </Text>
           </TouchableOpacity>

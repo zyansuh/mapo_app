@@ -1,6 +1,6 @@
 import React, { memo, ReactNode } from "react";
 import { View, StyleSheet, ViewStyle } from "react-native";
-import { useTheme } from "../../hooks/useTheme";
+import { COLORS } from "../../styles/colors";
 
 interface CardProps {
   children: ReactNode;
@@ -24,14 +24,12 @@ const Card = memo<CardProps>(
     backgroundColor,
     shadowColor,
   }) => {
-    const { theme } = useTheme();
-
     const cardStyle: ViewStyle = {
-      backgroundColor: backgroundColor || theme.colors.card,
+      backgroundColor: backgroundColor || COLORS.white,
       padding,
       margin,
       borderRadius,
-      shadowColor: shadowColor || theme.colors.text,
+      shadowColor: shadowColor || COLORS.text,
       shadowOffset: {
         width: 0,
         height: elevation / 2,

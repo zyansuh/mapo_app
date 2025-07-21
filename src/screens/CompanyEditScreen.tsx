@@ -8,80 +8,68 @@ import {
   SafeAreaView,
   Alert,
   TextInput,
+  Modal,
+  FlatList,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
+import { Ionicons } from "@expo/vector-icons";
 import {
   CompanyType,
   CompanyRegion,
   CompanyStatus,
   RootStackParamList,
+  CompanyFormData,
 } from "../types";
 import { useCompany } from "../hooks";
-import { useLocalization } from "../localization/i18n";
+import { COLORS } from "../styles/colors";
 import { formatPhoneNumber } from "../utils/format";
-import { AddressSearchModal } from "../components/modals/AddressSearchModal";
-import {
-  useKeyboardShortcuts,
-  commonShortcuts,
-} from "../hooks/useKeyboardShortcuts";
-
-// 정적 색상 정의
-const COLORS = {
-  primary: "#6b7280",
-  text: "#343a40",
-  textSecondary: "#6c757d",
-  white: "#ffffff",
-};
+import { Select } from "../components";
+import { searchAddress, AddressSearchResult } from "../services/kakaoApi";
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 
-export default function CompanyEditScreen() {
+const CompanyEditScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute();
-  const { t } = useLocalization();
   const { companies, addCompany, updateCompany } = useCompany();
   const { companyId } = (route.params as any) || {};
-
-  // 주소 검색 모달 상태 추가
-  const [addressModalVisible, setAddressModalVisible] = useState(false);
 
   const existingCompany = companyId
     ? companies.find((c) => c.id === companyId)
     : null;
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<CompanyFormData>({
     name: existingCompany?.name || "",
-    type: existingCompany?.type || ("고객사" as CompanyType),
-    region: existingCompany?.region || ("순창" as CompanyRegion),
-    status: existingCompany?.status || ("활성" as CompanyStatus),
-    phoneNumber: existingCompany?.phoneNumber || "",
+    type: existingCompany?.type || "고객사",
+    region: existingCompany?.region || "서울",
+    status: existingCompany?.status || "활성",
     address: existingCompany?.address || "",
+    phoneNumber: existingCompany?.phoneNumber || "",
     email: existingCompany?.email || "",
+    businessNumber: existingCompany?.businessNumber || "",
     contactPerson: existingCompany?.contactPerson || "",
     contactPhone: existingCompany?.contactPhone || "",
-    businessNumber: existingCompany?.businessNumber || "",
     memo: existingCompany?.memo || "",
     tags: existingCompany?.tags || [],
   });
 
-  // 키보드 단축키 설정
-  useKeyboardShortcuts(
-    {
-      save: handleSave,
-      cancel: handleCancel,
-    },
-    [commonShortcuts.save(handleSave), commonShortcuts.cancel(handleCancel)]
-  );
+  // 주소 검색 관련 상태
+  const [addressModalVisible, setAddressModalVisible] = useState(false);
+  const [addressSearchQuery, setAddressSearchQuery] = useState("");
+  const [addressSearchResults, setAddressSearchResults] = useState<
+    AddressSearchResult[]
+  >([]);
+  const [searchLoading, setSearchLoading] = useState(false);
 
-  async function handleSave() {
+  const handleSave = async () => {
     if (!formData.name.trim()) {
-      Alert.alert(t("errors.invalidInput"), "업체명을 입력해주세요.");
+      Alert.alert("입력 오류", "업체명을 입력해주세요.");
       return;
     }
 
     if (!formData.phoneNumber.trim()) {
-      Alert.alert(t("errors.invalidInput"), "전화번호를 입력해주세요.");
+      Alert.alert("입력 오류", "전화번호를 입력해주세요.");
       return;
     }
 
@@ -90,86 +78,135 @@ export default function CompanyEditScreen() {
       tags: formData.tags || [],
     };
 
-    if (companyId) {
-      // 기존 회사 수정
-      updateCompany(companyId, companyData);
-      Alert.alert(t("success.saved"), "업체 정보가 수정되었습니다.");
-      navigation.goBack();
-    } else {
-      // 새 회사 추가
-      const newCompany = await addCompany(companyData);
-      if (newCompany) {
-        // 저장 후 바로 상세 페이지로 이동
-        navigation.navigate("CompanyDetail", {
-          companyId: newCompany.id,
-        });
+    try {
+      if (companyId) {
+        // 기존 회사 수정
+        updateCompany(companyId, companyData);
+        Alert.alert("저장 완료", "업체 정보가 수정되었습니다.");
       } else {
-        Alert.alert("오류", "회사 등록에 실패했습니다.");
+        // 새 회사 추가
+        const newCompany = await addCompany(companyData);
+        if (newCompany) {
+          Alert.alert("등록 완료", "새 업체가 등록되었습니다.");
+        }
       }
+      navigation.goBack();
+    } catch (error) {
+      Alert.alert("오류", "저장 중 오류가 발생했습니다.");
     }
-  }
+  };
 
-  function handleCancel() {
+  const handleCancel = () => {
     navigation.goBack();
-  }
+  };
 
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: "#f8f9fa",
-    },
-    scrollContainer: {
-      flex: 1,
-    },
-    contentContainer: {
-      padding: 20,
-      paddingTop: 0,
-    },
-    textMedium: {
-      fontSize: 16,
-    },
-    textNormal: {
-      fontSize: 14,
-    },
-    textSmall: {
-      fontSize: 12,
-    },
-    input: {
-      borderWidth: 1,
-      borderColor: "#ced4da",
-      borderRadius: 8,
-      paddingHorizontal: 12,
-      paddingVertical: 10,
-      fontSize: 14,
-      color: COLORS.text,
-    },
-    buttonPrimary: {
-      backgroundColor: COLORS.primary,
-      paddingVertical: 12,
-      paddingHorizontal: 20,
-      borderRadius: 8,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    buttonSecondary: {
-      backgroundColor: "#e9ecef",
-      paddingVertical: 12,
-      paddingHorizontal: 20,
-      borderRadius: 8,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-  });
+  // 주소 검색 함수
+  const handleAddressSearch = async () => {
+    if (!addressSearchQuery.trim()) {
+      Alert.alert("알림", "검색할 주소를 입력해주세요.");
+      return;
+    }
+
+    setSearchLoading(true);
+    try {
+      const results = await searchAddress(addressSearchQuery);
+      setAddressSearchResults(results);
+
+      if (results.length === 0) {
+        Alert.alert(
+          "검색 결과 없음",
+          "검색된 주소가 없습니다. 다른 키워드로 검색해보세요."
+        );
+      }
+    } catch (error) {
+      Alert.alert("검색 오류", "주소 검색 중 오류가 발생했습니다.");
+      console.error("Address search error:", error);
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
+  // 주소 선택 핸들러
+  const handleAddressSelect = (address: AddressSearchResult) => {
+    setFormData((prev) => ({
+      ...prev,
+      address: address.roadAddressName || address.addressName,
+    }));
+    setAddressModalVisible(false);
+    setAddressSearchQuery("");
+    setAddressSearchResults([]);
+  };
+
+  // 주소 검색 모달 열기
+  const openAddressSearch = () => {
+    setAddressModalVisible(true);
+    setAddressSearchQuery("");
+    setAddressSearchResults([]);
+  };
+
+  const typeOptions = [
+    { label: "고객사", value: "고객사" as CompanyType },
+    { label: "협력업체", value: "협력업체" as CompanyType },
+    { label: "공급업체", value: "공급업체" as CompanyType },
+    { label: "기타", value: "기타" as CompanyType },
+  ];
+
+  const regionOptions = [
+    { label: "서울", value: "서울" as CompanyRegion },
+    { label: "부산", value: "부산" as CompanyRegion },
+    { label: "대구", value: "대구" as CompanyRegion },
+    { label: "인천", value: "인천" as CompanyRegion },
+    { label: "광주", value: "광주" as CompanyRegion },
+    { label: "대전", value: "대전" as CompanyRegion },
+    { label: "울산", value: "울산" as CompanyRegion },
+    { label: "경기", value: "경기" as CompanyRegion },
+    { label: "강원", value: "강원" as CompanyRegion },
+    { label: "충북", value: "충북" as CompanyRegion },
+    { label: "충남", value: "충남" as CompanyRegion },
+    { label: "전북", value: "전북" as CompanyRegion },
+    { label: "전남", value: "전남" as CompanyRegion },
+    { label: "경북", value: "경북" as CompanyRegion },
+    { label: "경남", value: "경남" as CompanyRegion },
+    { label: "제주", value: "제주" as CompanyRegion },
+  ];
+
+  const statusOptions = [
+    { label: "활성", value: "활성" as CompanyStatus },
+    { label: "비활성", value: "비활성" as CompanyStatus },
+    { label: "잠김", value: "잠김" as CompanyStatus },
+  ];
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollContainer}>
-        <View style={styles.contentContainer}>
-          {/* 업체명 */}
-          <View style={localStyles.inputGroup}>
-            <Text style={[styles.textMedium, localStyles.label]}>업체명 *</Text>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: COLORS.background }]}
+    >
+      {/* Header */}
+      <View style={[styles.header, { backgroundColor: COLORS.white }]}>
+        <TouchableOpacity onPress={handleCancel} style={styles.headerButton}>
+          <Ionicons name="close" size={24} color={COLORS.text} />
+        </TouchableOpacity>
+        <Text style={[styles.headerTitle, { color: COLORS.text }]}>
+          {companyId ? "업체 수정" : "업체 등록"}
+        </Text>
+        <TouchableOpacity onPress={handleSave} style={styles.headerButton}>
+          <Text style={[styles.saveText, { color: COLORS.primary }]}>저장</Text>
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* 기본 정보 */}
+        <View style={[styles.section, { backgroundColor: COLORS.white }]}>
+          <Text style={[styles.sectionTitle, { color: COLORS.text }]}>
+            기본 정보
+          </Text>
+
+          <View style={styles.inputGroup}>
+            <Text style={[styles.label, { color: COLORS.text }]}>업체명 *</Text>
             <TextInput
-              style={[styles.input, { color: COLORS.text }]}
+              style={[
+                styles.textInput,
+                { borderColor: COLORS.border, color: COLORS.text },
+              ]}
               value={formData.name}
               onChangeText={(text) =>
                 setFormData((prev) => ({ ...prev, name: text }))
@@ -179,166 +216,200 @@ export default function CompanyEditScreen() {
             />
           </View>
 
-          {/* 업체구분 */}
-          <View style={localStyles.inputGroup}>
-            <Text style={[styles.textMedium, localStyles.label]}>업체구분</Text>
-            <View style={localStyles.radioGroup}>
-              {(
-                ["고객사", "협력업체", "공급업체", "하청업체"] as CompanyType[]
-              ).map((type) => (
-                <TouchableOpacity
-                  key={type}
-                  style={[
-                    localStyles.radioOption,
-                    formData.type === type && {
-                      backgroundColor: COLORS.primary + "20",
-                    },
-                  ]}
-                  onPress={() => setFormData((prev) => ({ ...prev, type }))}
-                >
-                  <Text
-                    style={[
-                      styles.textNormal,
-                      {
-                        color:
-                          formData.type === type ? COLORS.primary : COLORS.text,
-                      },
-                    ]}
-                  >
-                    {type}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+          <View style={styles.row}>
+            <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
+              <Text style={[styles.label, { color: COLORS.text }]}>
+                업체 유형
+              </Text>
+              <Select
+                value={formData.type}
+                onValueChange={(value) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    type: value as CompanyType,
+                  }))
+                }
+                options={typeOptions}
+                placeholder="유형 선택"
+              />
+            </View>
+
+            <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}>
+              <Text style={[styles.label, { color: COLORS.text }]}>지역</Text>
+              <Select
+                value={formData.region}
+                onValueChange={(value) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    region: value as CompanyRegion,
+                  }))
+                }
+                options={regionOptions}
+                placeholder="지역 선택"
+              />
             </View>
           </View>
 
-          {/* 지역 */}
-          <View style={localStyles.inputGroup}>
-            <Text style={[styles.textMedium, localStyles.label]}>지역</Text>
-            <View style={localStyles.radioGroup}>
-              {(["순창", "담양", "장성", "기타"] as CompanyRegion[]).map(
-                (region) => (
-                  <TouchableOpacity
-                    key={region}
-                    style={[
-                      localStyles.radioOption,
-                      formData.region === region && {
-                        backgroundColor: COLORS.primary + "20",
-                      },
-                    ]}
-                    onPress={() => setFormData((prev) => ({ ...prev, region }))}
-                  >
-                    <Text
-                      style={[
-                        styles.textNormal,
-                        {
-                          color:
-                            formData.region === region
-                              ? COLORS.primary
-                              : COLORS.text,
-                        },
-                      ]}
-                    >
-                      {region}
-                    </Text>
-                  </TouchableOpacity>
-                )
-              )}
-            </View>
+          <View style={styles.inputGroup}>
+            <Text style={[styles.label, { color: COLORS.text }]}>상태</Text>
+            <Select
+              value={formData.status}
+              onValueChange={(value) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  status: value as CompanyStatus,
+                }))
+              }
+              options={statusOptions}
+              placeholder="상태 선택"
+            />
           </View>
+        </View>
 
-          {/* 전화번호 */}
-          <View style={localStyles.inputGroup}>
-            <Text style={[styles.textMedium, localStyles.label]}>전화번호</Text>
+        {/* 연락처 정보 */}
+        <View style={[styles.section, { backgroundColor: COLORS.white }]}>
+          <Text style={[styles.sectionTitle, { color: COLORS.text }]}>
+            연락처 정보
+          </Text>
+
+          <View style={styles.inputGroup}>
+            <Text style={[styles.label, { color: COLORS.text }]}>
+              전화번호 *
+            </Text>
             <TextInput
-              style={[styles.input, { color: COLORS.text }]}
+              style={[
+                styles.textInput,
+                { borderColor: COLORS.border, color: COLORS.text },
+              ]}
               value={formData.phoneNumber}
-              onChangeText={(text) => {
-                const formatted = formatPhoneNumber(text);
-                setFormData((prev) => ({ ...prev, phoneNumber: formatted }));
-              }}
-              placeholder="010-1234-5678"
+              onChangeText={(text) =>
+                setFormData((prev) => ({ ...prev, phoneNumber: text }))
+              }
+              placeholder="전화번호를 입력하세요"
               placeholderTextColor={COLORS.textSecondary}
               keyboardType="phone-pad"
             />
           </View>
 
-          {/* 주소 - 카카오맵 검색 */}
-          <View style={localStyles.inputGroup}>
-            <Text style={[styles.textMedium, localStyles.label]}>주소</Text>
-            <TouchableOpacity
-              style={[styles.input, localStyles.addressInput]}
-              onPress={() => setAddressModalVisible(true)}
-            >
-              <Text
-                style={[
-                  styles.textNormal,
-                  {
-                    color: formData.address
-                      ? COLORS.text
-                      : COLORS.textSecondary,
-                  },
-                ]}
-              >
-                {formData.address || "주소를 검색하세요"}
-              </Text>
-              <Text style={[styles.textSmall, { color: COLORS.primary }]}>
-                🔍 검색
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* 이메일 */}
-          <View style={localStyles.inputGroup}>
-            <Text style={[styles.textMedium, localStyles.label]}>이메일</Text>
+          <View style={styles.inputGroup}>
+            <Text style={[styles.label, { color: COLORS.text }]}>이메일</Text>
             <TextInput
-              style={[styles.input, { color: COLORS.text }]}
+              style={[
+                styles.textInput,
+                { borderColor: COLORS.border, color: COLORS.text },
+              ]}
               value={formData.email}
               onChangeText={(text) =>
                 setFormData((prev) => ({ ...prev, email: text }))
               }
-              placeholder="email@example.com"
+              placeholder="이메일을 입력하세요"
               placeholderTextColor={COLORS.textSecondary}
               keyboardType="email-address"
-              autoCapitalize="none"
             />
           </View>
 
-          {/* 담당자명 */}
-          <View style={localStyles.inputGroup}>
-            <Text style={[styles.textMedium, localStyles.label]}>담당자명</Text>
-            <TextInput
-              style={[styles.input, { color: COLORS.text }]}
-              value={formData.contactPerson}
-              onChangeText={(text) =>
-                setFormData((prev) => ({ ...prev, contactPerson: text }))
-              }
-              placeholder="담당자명을 입력하세요"
-              placeholderTextColor={COLORS.textSecondary}
-            />
+          <View style={styles.row}>
+            <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
+              <Text style={[styles.label, { color: COLORS.text }]}>담당자</Text>
+              <TextInput
+                style={[
+                  styles.textInput,
+                  { borderColor: COLORS.border, color: COLORS.text },
+                ]}
+                value={formData.contactPerson}
+                onChangeText={(text) =>
+                  setFormData((prev) => ({ ...prev, contactPerson: text }))
+                }
+                placeholder="담당자명"
+                placeholderTextColor={COLORS.textSecondary}
+              />
+            </View>
+
+            <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}>
+              <Text style={[styles.label, { color: COLORS.text }]}>
+                담당자 연락처
+              </Text>
+              <TextInput
+                style={[
+                  styles.textInput,
+                  { borderColor: COLORS.border, color: COLORS.text },
+                ]}
+                value={formData.contactPhone}
+                onChangeText={(text) =>
+                  setFormData((prev) => ({ ...prev, contactPhone: text }))
+                }
+                placeholder="담당자 연락처"
+                placeholderTextColor={COLORS.textSecondary}
+                keyboardType="phone-pad"
+              />
+            </View>
+          </View>
+        </View>
+
+        {/* 추가 정보 */}
+        <View style={[styles.section, { backgroundColor: COLORS.white }]}>
+          <Text style={[styles.sectionTitle, { color: COLORS.text }]}>
+            추가 정보
+          </Text>
+
+          <View style={styles.inputGroup}>
+            <Text style={[styles.label, { color: COLORS.text }]}>주소</Text>
+            <View style={styles.addressInputContainer}>
+              <TextInput
+                style={[
+                  styles.addressInput,
+                  { borderColor: COLORS.border, color: COLORS.text },
+                ]}
+                value={formData.address}
+                onChangeText={(text) =>
+                  setFormData((prev) => ({ ...prev, address: text }))
+                }
+                placeholder="주소를 입력하거나 검색하세요"
+                placeholderTextColor={COLORS.textSecondary}
+                multiline
+              />
+              <TouchableOpacity
+                style={[
+                  styles.searchButton,
+                  { backgroundColor: COLORS.primary },
+                ]}
+                onPress={openAddressSearch}
+              >
+                <Ionicons name="search" size={16} color={COLORS.white} />
+                <Text
+                  style={[styles.searchButtonText, { color: COLORS.white }]}
+                >
+                  검색
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
-          {/* 사업자등록번호 */}
-          <View style={localStyles.inputGroup}>
-            <Text style={[styles.textMedium, localStyles.label]}>
-              사업자등록번호
+          <View style={styles.inputGroup}>
+            <Text style={[styles.label, { color: COLORS.text }]}>
+              사업자번호
             </Text>
             <TextInput
-              style={[styles.input, { color: COLORS.text }]}
+              style={[
+                styles.textInput,
+                { borderColor: COLORS.border, color: COLORS.text },
+              ]}
               value={formData.businessNumber}
               onChangeText={(text) =>
                 setFormData((prev) => ({ ...prev, businessNumber: text }))
               }
-              placeholder="123-45-67890"
+              placeholder="사업자번호를 입력하세요"
               placeholderTextColor={COLORS.textSecondary}
             />
           </View>
 
-          {/* 메모 */}
-          <View style={localStyles.inputGroup}>
-            <Text style={[styles.textMedium, localStyles.label]}>메모</Text>
+          <View style={styles.inputGroup}>
+            <Text style={[styles.label, { color: COLORS.text }]}>메모</Text>
             <TextInput
-              style={[styles.input, { color: COLORS.text, height: 80 }]}
+              style={[
+                styles.textArea,
+                { borderColor: COLORS.border, color: COLORS.text },
+              ]}
               value={formData.memo}
               onChangeText={(text) =>
                 setFormData((prev) => ({ ...prev, memo: text }))
@@ -346,96 +417,273 @@ export default function CompanyEditScreen() {
               placeholder="메모를 입력하세요"
               placeholderTextColor={COLORS.textSecondary}
               multiline
-              numberOfLines={3}
-              textAlignVertical="top"
+              numberOfLines={4}
             />
-          </View>
-
-          {/* 저장 버튼 */}
-          <View style={localStyles.buttonContainer}>
-            <TouchableOpacity
-              style={[styles.buttonSecondary, localStyles.button]}
-              onPress={() => navigation.goBack()}
-            >
-              <Text style={[styles.textMedium, { color: COLORS.primary }]}>
-                취소
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.buttonPrimary, localStyles.button]}
-              onPress={handleSave}
-            >
-              <Text style={[styles.textMedium, { color: COLORS.white }]}>
-                저장
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* 도움말 */}
-          <View style={localStyles.helpText}>
-            <Text style={[styles.textSmall, { color: COLORS.textSecondary }]}>
-              💡 단축키: Ctrl+S (저장), ESC (취소)
-            </Text>
           </View>
         </View>
       </ScrollView>
-      <AddressSearchModal
+
+      {/* 주소 검색 모달 */}
+      <Modal
         visible={addressModalVisible}
-        onClose={() => setAddressModalVisible(false)}
-        onSelectAddress={(address) => {
-          setFormData((prev) => ({ ...prev, address }));
-          setAddressModalVisible(false);
-        }}
-      />
+        animationType="slide"
+        presentationStyle="pageSheet"
+      >
+        <SafeAreaView
+          style={[
+            styles.modalContainer,
+            { backgroundColor: COLORS.background },
+          ]}
+        >
+          <View style={[styles.modalHeader, { backgroundColor: COLORS.white }]}>
+            <TouchableOpacity onPress={() => setAddressModalVisible(false)}>
+              <Ionicons name="close" size={24} color={COLORS.text} />
+            </TouchableOpacity>
+            <Text style={[styles.modalTitle, { color: COLORS.text }]}>
+              주소 검색
+            </Text>
+            <View style={{ width: 24 }} />
+          </View>
+
+          <View
+            style={[styles.searchContainer, { backgroundColor: COLORS.white }]}
+          >
+            <TextInput
+              style={[
+                styles.searchInput,
+                { borderColor: COLORS.border, color: COLORS.text },
+              ]}
+              value={addressSearchQuery}
+              onChangeText={setAddressSearchQuery}
+              placeholder="도로명 또는 지번 주소를 입력하세요"
+              placeholderTextColor={COLORS.textSecondary}
+              onSubmitEditing={handleAddressSearch}
+            />
+            <TouchableOpacity
+              style={[
+                styles.searchModalButton,
+                { backgroundColor: COLORS.primary },
+              ]}
+              onPress={handleAddressSearch}
+              disabled={searchLoading}
+            >
+              <Text
+                style={[styles.searchModalButtonText, { color: COLORS.white }]}
+              >
+                {searchLoading ? "검색중..." : "검색"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <FlatList
+            data={addressSearchResults}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={[styles.addressItem, { backgroundColor: COLORS.white }]}
+                onPress={() => handleAddressSelect(item)}
+              >
+                <Text style={[styles.addressText, { color: COLORS.text }]}>
+                  {item.roadAddressName || item.addressName}
+                </Text>
+                {item.roadAddressName && (
+                  <Text
+                    style={[
+                      styles.addressSubText,
+                      { color: COLORS.textSecondary },
+                    ]}
+                  >
+                    {item.addressName}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            )}
+            style={styles.addressList}
+            showsVerticalScrollIndicator={false}
+            ListEmptyComponent={
+              <View style={styles.emptyContainer}>
+                <Text
+                  style={[styles.emptyText, { color: COLORS.textSecondary }]}
+                >
+                  주소를 검색해보세요
+                </Text>
+              </View>
+            }
+          />
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
-}
+};
 
-const localStyles = StyleSheet.create({
-  inputGroup: {
-    marginBottom: 20,
-  },
-  label: {
-    marginBottom: 8,
-    fontWeight: "600",
-  },
-  radioGroup: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  radioOption: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "#E0E0E0",
-    marginRight: 8,
-    marginBottom: 8,
-  },
-  buttonContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 32,
-    gap: 16,
-  },
-  button: {
+const styles = StyleSheet.create({
+  container: {
     flex: 1,
   },
-  helpText: {
-    marginTop: 16,
+  header: {
+    flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e5e7eb",
+  },
+  headerButton: {
+    padding: 8,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+  },
+  saveText: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  content: {
+    flex: 1,
+    padding: 16,
+  },
+  section: {
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 16,
+  },
+  inputGroup: {
+    marginBottom: 16,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: "600",
+    marginBottom: 8,
+  },
+  textInput: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    fontSize: 16,
+    backgroundColor: "#ffffff",
+    minHeight: 48,
+  },
+  textArea: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    fontSize: 16,
+    backgroundColor: "#ffffff",
+    minHeight: 100,
+    textAlignVertical: "top",
+  },
+  row: {
+    flexDirection: "row",
+  },
+  // 주소 검색 관련 스타일
+  addressInputContainer: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
   },
   addressInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    fontSize: 16,
+    backgroundColor: "#ffffff",
+    minHeight: 48,
+  },
+  searchButton: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderWidth: 1,
-    borderColor: "#ced4da",
+    paddingVertical: 12,
     borderRadius: 8,
+    gap: 4,
+    minHeight: 48,
+    justifyContent: "center",
+  },
+  searchButtonText: {
     fontSize: 14,
-    color: COLORS.text,
+    fontWeight: "600",
+  },
+  // 모달 스타일
+  modalContainer: {
+    flex: 1,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e5e7eb",
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+  },
+  searchContainer: {
+    flexDirection: "row",
+    padding: 16,
+    gap: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e5e7eb",
+  },
+  searchInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    fontSize: 16,
+    backgroundColor: "#ffffff",
+  },
+  searchModalButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  searchModalButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  addressList: {
+    flex: 1,
+    paddingHorizontal: 16,
+  },
+  addressItem: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  addressText: {
+    fontSize: 16,
+    fontWeight: "500",
+    marginBottom: 4,
+  },
+  addressSubText: {
+    fontSize: 14,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 40,
+  },
+  emptyText: {
+    fontSize: 16,
   },
 });
+
+export default CompanyEditScreen;

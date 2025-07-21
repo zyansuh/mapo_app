@@ -11,7 +11,14 @@ import {
   CompanyEditScreen,
   CompanyImportScreen,
   DirectImportScreen,
-  SettingsScreen,
+  InvoiceManagementScreen,
+  InvoiceEditScreen,
+  InvoiceDetailScreen,
+  CompanySalesAnalysisScreen,
+  CompanySalesDetailScreen,
+  DeliveryManagementScreen,
+  DeliveryDetailScreen,
+  DeliveryEditScreen,
 } from "../screens";
 import { COLORS } from "../constants";
 import { Ionicons } from "@expo/vector-icons";
@@ -35,8 +42,6 @@ const TabNavigator = () => {
             iconName = focused ? "home" : "home-outline";
           } else if (route.name === "CompanyList") {
             iconName = focused ? "business" : "business-outline";
-          } else if (route.name === "Settings") {
-            iconName = focused ? "settings" : "settings-outline";
           }
 
           return <Ionicons name={iconName} size={size} color={color} />;
@@ -75,11 +80,6 @@ const TabNavigator = () => {
         name="CompanyList"
         component={CompanyListScreen}
         options={{ title: "거래처" }}
-      />
-      <Tab.Screen
-        name="Settings"
-        component={SettingsScreen}
-        options={{ title: "설정" }}
       />
     </Tab.Navigator>
   );
@@ -137,6 +137,62 @@ export const AppNavigator = () => {
           options={{
             title: "데이터베이스 직접 등록",
             headerBackTitle: "뒤로",
+          }}
+        />
+        <Stack.Screen
+          name="InvoiceManagement"
+          component={InvoiceManagementScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="InvoiceEdit"
+          component={InvoiceEditScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="InvoiceDetail"
+          component={InvoiceDetailScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="CompanySalesAnalysis"
+          component={CompanySalesAnalysisScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="CompanySalesDetail"
+          component={CompanySalesDetailScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="DeliveryManagement"
+          component={DeliveryManagementScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="DeliveryDetail"
+          component={DeliveryDetailScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="DeliveryEdit"
+          component={DeliveryEditScreen}
+          options={{
+            headerShown: false,
           }}
         />
       </Stack.Navigator>
