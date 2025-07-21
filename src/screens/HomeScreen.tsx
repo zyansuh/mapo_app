@@ -173,18 +173,18 @@ const HomeScreen = () => {
           colors={[COLORS.primary, COLORS.primary]}
           style={[
             styles.header,
-            { paddingTop: Platform.OS === "android" ? 20 : insets.top },
+            {
+              // 안전 영역 + 적절한 여백으로 HERO 영역 배치
+              paddingTop:
+                Platform.OS === "android"
+                  ? scaledSizes.spacing.medium // xlarge → medium 축소
+                  : insets.top + scaledSizes.spacing.small, // large → small 축소
+            },
           ]}
         >
           <View style={styles.headerContent}>
-            <Text style={[styles.headerTitle, { color: COLORS.white }]}>
-              마포 비즈니스 매니저
-            </Text>
-            <Text
-              style={[styles.headerSubtitle, { color: COLORS.white + "CC" }]}
-            >
-              사업 관리의 모든 것
-            </Text>
+            <Text style={styles.headerTitle}>마포 비즈니스 매니저</Text>
+            <Text style={styles.headerSubtitle}>사업 관리의 모든 것</Text>
           </View>
         </LinearGradient>
 
@@ -288,31 +288,42 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
   },
 
+  // 헤더 컨테이너 스타일 - 적절한 상단 여백
   header: {
     paddingHorizontal: scaledSizes.spacing.large,
-    paddingBottom: scaledSizes.spacing.large,
+    paddingBottom: scaledSizes.spacing.large, // xlarge → large 축소
+    paddingTop: scaledSizes.spacing.small, // medium → small 축소
   },
 
+  // HERO 콘텐츠 컨테이너 - 균형잡힌 여백으로 배치
   headerContent: {
     alignItems: "center",
-    marginTop: scaledSizes.spacing.large, // HERO 부분을 아래로 이동
+    paddingTop: scaledSizes.spacing.large, // xxlarge → large 축소
+    marginTop: scaledSizes.spacing.medium, // large → medium 축소
   },
 
+  // HERO 타이틀 스타일 - 브랜드 정체성 강조
   headerTitle: {
-    fontSize: scaledSizes.text.xlarge,
+    fontSize: scaledSizes.text.xlarge, // xxlarge → xlarge 조정
     fontWeight: "700",
     color: COLORS.white,
-    marginBottom: scaledSizes.spacing.tiny,
+    marginBottom: scaledSizes.spacing.tiny, // small → tiny 축소
+    textAlign: "center", // 센터 정렬 명시
   },
 
+  // HERO 서브타이틀 스타일 - 부가 설명
   headerSubtitle: {
     fontSize: scaledSizes.text.medium,
-    color: COLORS.white,
+    color: COLORS.white + "E6", // 투명도 90% 적용
+    textAlign: "center", // 센터 정렬 명시
+    opacity: 0.9, // 추가 투명도로 계층감 연출
   },
 
+  // 메인 콘텐츠 영역 스타일 - 공통 스타일 기반 확장
   content: {
-    flex: 1,
+    ...commonStyles.container,
     padding: scaledSizes.spacing.large,
+    backgroundColor: "transparent", // 배경색 제거 (부모에서 처리)
   },
 
   welcomeSection: {
