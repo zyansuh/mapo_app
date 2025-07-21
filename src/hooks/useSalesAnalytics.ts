@@ -321,7 +321,7 @@ export const useSalesAnalytics = (
         totalTaxAmount: 0,
         companies: 0,
       },
-    } as const;
+    };
 
     companySalesStats.forEach((stats) => {
       (["과세", "면세", "영세"] as const).forEach((taxType) => {

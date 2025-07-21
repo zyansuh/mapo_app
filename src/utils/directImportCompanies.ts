@@ -509,6 +509,22 @@ export const getImportStats = (): {
   const companies = parseAndCreateCompanies();
 
   const byRegion: Record<CompanyRegion, number> = {
+    서울: 0,
+    부산: 0,
+    대구: 0,
+    인천: 0,
+    광주: 0,
+    대전: 0,
+    울산: 0,
+    경기: 0,
+    강원: 0,
+    충북: 0,
+    충남: 0,
+    전북: 0,
+    전남: 0,
+    경북: 0,
+    경남: 0,
+    제주: 0,
     순창: 0,
     담양: 0,
     장성: 0,

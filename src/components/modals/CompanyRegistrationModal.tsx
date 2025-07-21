@@ -20,7 +20,7 @@ import { validateEmail, validatePhoneNumber } from "../../utils";
 import TextInput from "../forms/TextInput";
 import Picker from "../forms/Picker";
 import Button from "../forms/Button";
-import { AddressSearchModal } from "./AddressSearchModal";
+// import { AddressSearchModal } from "./AddressSearchModal";
 
 // 스타일 import
 import { modalStyles } from "../styles/modalStyles";
@@ -360,11 +360,11 @@ export const CompanyRegistrationModal: React.FC<
         </KeyboardAvoidingView>
       </Modal>
 
-      <AddressSearchModal
+      {/* <AddressSearchModal
         visible={isAddressModalVisible}
         onClose={() => setIsAddressModalVisible(false)}
         onSelectAddress={handleAddressSelect}
-      />
+      /> */}
     </>
   );
 };

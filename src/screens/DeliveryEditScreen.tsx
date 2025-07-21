@@ -70,7 +70,7 @@ const DeliveryEditScreen = () => {
     if (delivery) {
       setSelectedCompanyId(delivery.companyId);
       setDeliveryDate(delivery.deliveryDate);
-      setDeliveryAddress(delivery.deliveryAddress);
+      setDeliveryAddress(delivery.deliveryAddress || "");
       setDeliveryMemo(delivery.deliveryMemo || "");
       setDriverName(delivery.driverName || "");
       setDriverPhone(delivery.driverPhone || "");

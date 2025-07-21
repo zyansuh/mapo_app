@@ -16,7 +16,7 @@ export const useApi = <T>(endpoint: string, immediate: boolean = true) => {
       const response: ApiResponse<T> = await apiService.get(endpoint);
 
       if (response.success) {
-        setData(response.data);
+        setData(response.data || null);
       } else {
         setError(response.message || "API 요청 실패");
       }
@@ -53,7 +53,7 @@ export const useApiPost = <T, U = any>() => {
       const response: ApiResponse<T> = await apiService.post(endpoint, body);
 
       if (response.success) {
-        return response.data;
+        return response.data || null;
       } else {
         setError(response.message || "API 요청 실패");
         return null;

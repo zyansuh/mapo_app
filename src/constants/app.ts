@@ -20,13 +20,16 @@ export const API_CONFIG = {
 // 스토리지 관련 상수 (storage.ts에서 이동)
 export const STORAGE_KEYS = {
   COMPANIES: "mapo_companies_v2",
+  PRODUCTS: "mapo_products_v2",
+  INVOICES: "mapo_invoices_v2",
+  DELIVERIES: "mapo_deliveries_v2",
   CALL_HISTORY: "mapo_call_history_v2",
   SETTINGS: "mapo_settings_v2",
   CACHE: "mapo_cache_v2",
   USER_DATA: "mapo_user_data_v2",
   ONBOARDING: "mapo_onboarding_v2",
   ANALYTICS: "mapo_analytics_v2",
-};
+} as const;
 
 // 제한값 상수
 export const LIMITS = {

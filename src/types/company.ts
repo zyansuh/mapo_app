@@ -90,6 +90,19 @@ export interface CompanySearchFilters {
   emailExists?: boolean;
 }
 
+// 회사 검색 옵션
+export interface SearchOptions {
+  query?: string;
+  fields?: string[];
+  exact?: boolean;
+  caseSensitive?: boolean;
+  filters?: CompanySearchFilters;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+  limit?: number;
+  offset?: number;
+}
+
 // 회사 통계
 export interface CompanyStats {
   total: number;
