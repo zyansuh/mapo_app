@@ -1,24 +1,36 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   TouchableOpacity,
   ScrollView,
   SafeAreaView,
   Platform,
   StatusBar,
   Alert,
+  StyleSheet,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useCompany } from "../hooks/useCompany";
-import { useInvoice } from "../hooks/useInvoice";
-import { useDelivery } from "../hooks/useDelivery";
-import { COLORS } from "../styles/colors";
+
+// 리팩토링된 imports
+import {
+  useCompany,
+  useInvoice,
+  useDelivery,
+  useLoading,
+  useNotifications,
+} from "../hooks";
+import {
+  COLORS,
+  commonStyles,
+  shadowStyles,
+  scaledSizes,
+  iconScale,
+} from "../styles";
 import {
   importCompaniesToDatabase,
   getImportStats,
@@ -28,9 +40,13 @@ import { resetAndReimportCompanies } from "../utils/resetImport";
 const HomeScreen = () => {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
+
+  // 리팩토링된 훅 사용
   const { companies, getStats, refreshData } = useCompany();
   const { invoices } = useInvoice();
   const { stats: deliveryStats } = useDelivery();
+  const { loading } = useLoading();
+  const { showSuccess, showError } = useNotifications();
 
   // getStats는 이미 계산된 객체이므로 직접 사용
   const stats = getStats;
@@ -265,121 +281,144 @@ const HomeScreen = () => {
   );
 };
 
+// 리팩토링된 스타일 - 공통 스타일과 scaling 활용
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    ...commonStyles.container,
+    backgroundColor: COLORS.surface,
   },
+
   header: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingHorizontal: scaledSizes.spacing.large,
+    paddingBottom: scaledSizes.spacing.large,
   },
+
   headerContent: {
     alignItems: "center",
+    marginTop: scaledSizes.spacing.large, // HERO 부분을 아래로 이동
   },
+
   headerTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 4,
+    fontSize: scaledSizes.text.xlarge,
+    fontWeight: "700",
+    color: COLORS.white,
+    marginBottom: scaledSizes.spacing.tiny,
   },
+
   headerSubtitle: {
-    fontSize: 16,
+    fontSize: scaledSizes.text.medium,
+    color: COLORS.white,
   },
+
   content: {
     flex: 1,
-    padding: 20,
+    padding: scaledSizes.spacing.large,
   },
+
   welcomeSection: {
-    marginBottom: 30,
+    marginBottom: scaledSizes.spacing.xxlarge,
   },
+
   welcomeText: {
-    fontSize: 20,
-    fontWeight: "600",
-    marginBottom: 4,
+    ...commonStyles.textTitle,
+    fontSize: scaledSizes.text.large,
+    marginBottom: scaledSizes.spacing.tiny,
   },
+
   welcomeSubtext: {
-    fontSize: 16,
+    ...commonStyles.textBody,
+    fontSize: scaledSizes.text.medium,
+    color: COLORS.textSecondary,
   },
+
   statsSection: {
-    marginBottom: 30,
+    marginBottom: scaledSizes.spacing.xxlarge,
   },
+
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 16,
+    ...commonStyles.sectionTitle,
+    fontSize: scaledSizes.text.large,
+    marginBottom: scaledSizes.spacing.medium,
   },
+
   statsGrid: {
-    flexDirection: "row",
-    gap: 16,
+    ...commonStyles.row,
+    gap: scaledSizes.spacing.medium,
   },
+
   statCard: {
+    ...commonStyles.card,
+    ...shadowStyles.small,
     flex: 1,
-    padding: 20,
-    borderRadius: 12,
+    padding: scaledSizes.spacing.large,
     alignItems: "center",
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
   },
+
   statNumber: {
-    fontSize: 28,
-    fontWeight: "bold",
-    marginBottom: 4,
+    fontSize: scaledSizes.text.huge,
+    fontWeight: "700",
+    color: COLORS.text,
+    marginBottom: scaledSizes.spacing.tiny,
   },
+
   statLabel: {
-    fontSize: 14,
+    ...commonStyles.textCaption,
+    fontSize: scaledSizes.text.small,
   },
+
   menuSection: {
-    marginBottom: 30,
+    marginBottom: scaledSizes.spacing.xxlarge,
   },
+
   menuGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 16,
+    gap: scaledSizes.spacing.medium,
   },
+
   menuItem: {
+    ...commonStyles.card,
+    ...shadowStyles.small,
     width: "47%",
-    padding: 20,
-    borderRadius: 12,
+    padding: scaledSizes.spacing.large,
     alignItems: "center",
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
   },
+
   menuIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: iconScale(48),
+    height: iconScale(48),
+    borderRadius: iconScale(24),
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 12,
+    marginBottom: scaledSizes.spacing.normal,
   },
+
   menuTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 4,
+    ...commonStyles.textSubtitle,
+    fontSize: scaledSizes.text.medium,
+    marginBottom: scaledSizes.spacing.tiny,
     textAlign: "center",
   },
+
   menuCount: {
-    fontSize: 14,
+    ...commonStyles.textCaption,
+    fontSize: scaledSizes.text.small,
   },
+
   actionsSection: {
-    marginBottom: 30,
+    marginBottom: scaledSizes.spacing.xxlarge,
   },
+
   actionButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 16,
-    borderRadius: 12,
-    gap: 8,
+    ...commonStyles.button,
+    ...commonStyles.rowCenter,
+    padding: scaledSizes.spacing.medium,
+    gap: scaledSizes.spacing.small,
   },
+
   actionButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
+    ...commonStyles.buttonText,
+    fontSize: scaledSizes.text.medium,
   },
 });
 
