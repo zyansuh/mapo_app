@@ -40,19 +40,39 @@ const CompanyEditScreen = () => {
     : null;
 
   const [formData, setFormData] = useState<CompanyFormData>({
-    name: existingCompany?.name || "",
-    type: existingCompany?.type || "고객사",
-    region: existingCompany?.region || "서울",
-    status: existingCompany?.status || "활성",
-    address: existingCompany?.address || "",
-    phoneNumber: existingCompany?.phoneNumber || "",
-    email: existingCompany?.email || "",
-    businessNumber: existingCompany?.businessNumber || "",
-    contactPerson: existingCompany?.contactPerson || "",
-    contactPhone: existingCompany?.contactPhone || "",
-    memo: existingCompany?.memo || "",
-    tags: existingCompany?.tags || [],
+    name: "",
+    type: "고객사",
+    region: "서울",
+    status: "활성",
+    address: "",
+    phoneNumber: "",
+    email: "",
+    businessNumber: "",
+    contactPerson: "",
+    contactPhone: "",
+    memo: "",
+    tags: [],
   });
+
+  // 기존 업체 데이터가 로드되면 폼 데이터 업데이트
+  useEffect(() => {
+    if (existingCompany) {
+      setFormData({
+        name: existingCompany.name || "",
+        type: existingCompany.type || "고객사",
+        region: existingCompany.region || "서울",
+        status: existingCompany.status || "활성",
+        address: existingCompany.address || "",
+        phoneNumber: existingCompany.phoneNumber || "",
+        email: existingCompany.email || "",
+        businessNumber: existingCompany.businessNumber || "",
+        contactPerson: existingCompany.contactPerson || "",
+        contactPhone: existingCompany.contactPhone || "",
+        memo: existingCompany.memo || "",
+        tags: existingCompany.tags || [],
+      });
+    }
+  }, [existingCompany]);
 
   // 주소 검색 관련 상태
   const [addressModalVisible, setAddressModalVisible] = useState(false);
