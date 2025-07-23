@@ -23,7 +23,7 @@ const InvoiceDetailScreen = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const insets = useSafeAreaInsets();
-  const { updateInvoiceStatus, getInvoiceById } = useInvoice();
+  const { updateInvoiceStatus, getInvoiceById, deleteInvoice } = useInvoice();
 
   const { invoiceId } = route.params;
 
@@ -66,6 +66,32 @@ const InvoiceDetailScreen = () => {
 
   const handleEdit = () => {
     navigation.navigate("InvoiceEdit", { invoiceId: invoice.id });
+  };
+
+  const handleDelete = () => {
+    Alert.alert(
+      "계산서 삭제",
+      `${invoice.invoiceNumber} 계산서를 삭제하시겠습니까?\n\n⚠️ 삭제된 계산서는 복구할 수 없습니다.`,
+      [
+        { text: "취소", style: "cancel" },
+        {
+          text: "삭제",
+          style: "destructive",
+          onPress: async () => {
+            const success = await deleteInvoice(invoiceId);
+            if (success) {
+              Alert.alert(
+                "삭제 완료",
+                `${invoice.invoiceNumber} 계산서가 삭제되었습니다.`,
+                [{ text: "확인", onPress: () => navigation.goBack() }]
+              );
+            } else {
+              Alert.alert("오류", "계산서 삭제에 실패했습니다.");
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleStatusChange = async (newStatus: InvoiceStatus) => {
@@ -469,6 +495,16 @@ const InvoiceDetailScreen = () => {
               />
               <Text style={[styles.actionButtonText, { color: COLORS.white }]}>
                 PDF 내보내기
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.actionButton, { backgroundColor: COLORS.error }]}
+              onPress={handleDelete}
+            >
+              <Ionicons name="trash-outline" size={20} color={COLORS.white} />
+              <Text style={[styles.actionButtonText, { color: COLORS.white }]}>
+                삭제하기
               </Text>
             </TouchableOpacity>
           </View>
