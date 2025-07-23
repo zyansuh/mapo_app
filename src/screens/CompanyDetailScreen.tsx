@@ -127,7 +127,8 @@ const CompanyDetailScreen = () => {
         { text: "취소" },
         {
           text: "확인",
-          onPress: () => navigation.navigate("InvoiceEdit" as any),
+          onPress: () =>
+            navigation.navigate("InvoiceEdit" as any, { companyId }),
         },
       ]
     );
@@ -203,7 +204,9 @@ const CompanyDetailScreen = () => {
               styles.createInvoiceButton,
               { backgroundColor: COLORS.primary },
             ]}
-            onPress={() => setShowProductSelection(true)}
+            onPress={() =>
+              navigation.navigate("InvoiceEdit" as any, { companyId })
+            }
           >
             <Text style={[styles.createInvoiceText, { color: COLORS.white }]}>
               첫 계산서 만들기
@@ -229,11 +232,13 @@ const CompanyDetailScreen = () => {
             styles.productSelectionButton,
             { backgroundColor: COLORS.primary },
           ]}
-          onPress={() => setShowProductSelection(true)}
+          onPress={() =>
+            navigation.navigate("InvoiceEdit" as any, { companyId })
+          }
         >
           <Ionicons name="add-outline" size={24} color={COLORS.white} />
           <Text style={[styles.productSelectionText, { color: COLORS.white }]}>
-            상품 선택하여 계산서 생성
+            계산서 생성
           </Text>
         </TouchableOpacity>
 

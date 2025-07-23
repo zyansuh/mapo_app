@@ -16,23 +16,22 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { COLORS } from "../styles/colors";
-import { InvoiceItem, TaxType, InvoiceStatus } from "../types";
+import { InvoiceItem, TaxType, InvoiceStatus, InvoiceFormData } from "../types";
 import { ProductCategory, CATEGORY_ITEMS } from "../types/product";
+import { useInvoice } from "../hooks";
 
 const InvoiceEditScreen = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const insets = useSafeAreaInsets();
+  const { addInvoice, updateInvoice, generateInvoiceNumber } = useInvoice();
 
   const invoiceId = route.params?.invoiceId;
+  const preselectedCompanyId = route.params?.companyId;
   const isEdit = !!invoiceId;
 
   const [invoiceNumber, setInvoiceNumber] = useState(
-    isEdit
-      ? "INV-2024-001"
-      : `INV-${new Date().getFullYear()}-${String(
-          Math.floor(Math.random() * 1000)
-        ).padStart(3, "0")}`
+    isEdit ? "INV-2024-001" : generateInvoiceNumber()
   );
   const [status, setStatus] = useState<InvoiceStatus>("임시저장");
   const [items, setItems] = useState<InvoiceItem[]>([
@@ -60,17 +59,39 @@ const InvoiceEditScreen = () => {
   const categories: ProductCategory[] = ["두부", "콩나물", "묵류"];
 
   const calculateAmounts = (item: InvoiceItem) => {
-    const amount = item.quantity * item.unitPrice;
-    const taxRate = item.taxType === "과세" ? 0.1 : 0;
-    const taxAmount = Math.round(amount * taxRate);
-    const totalAmount = amount + taxAmount;
+    const totalAmount = item.quantity * item.unitPrice;
 
-    return {
-      ...item,
-      amount,
-      taxAmount,
-      totalAmount,
-    };
+    if (item.taxType === "과세") {
+      // 부가세 포함 가격에서 공급가액과 부가세 역산
+      const amount = Math.round(totalAmount / 1.1);
+      const taxAmount = totalAmount - amount;
+
+      console.log(
+        `과세품목 계산: 단가=${item.unitPrice}, 수량=${item.quantity}, 총액=${totalAmount}, 공급가액=${amount}, 세액=${taxAmount}`
+      );
+
+      return {
+        ...item,
+        amount,
+        taxAmount,
+        totalAmount,
+      };
+    } else {
+      // 면세/영세는 기존 방식
+      const amount = totalAmount;
+      const taxAmount = 0;
+
+      console.log(
+        `면세품목 계산: 단가=${item.unitPrice}, 수량=${item.quantity}, 총액=${totalAmount}, 공급가액=${amount}, 세액=${taxAmount}`
+      );
+
+      return {
+        ...item,
+        amount,
+        taxAmount,
+        totalAmount,
+      };
+    }
   };
 
   const updateItem = (index: number, field: keyof InvoiceItem, value: any) => {
@@ -170,7 +191,7 @@ const InvoiceEditScreen = () => {
     return { totalSupplyAmount, totalTaxAmount, totalAmount };
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     // 유효성 검사
     if (!invoiceNumber.trim()) {
       Alert.alert("오류", "계산서 번호를 입력해주세요.");
@@ -183,11 +204,48 @@ const InvoiceEditScreen = () => {
       return;
     }
 
-    Alert.alert(
-      "저장 완료",
-      `계산서가 ${isEdit ? "수정" : "생성"}되었습니다.`,
-      [{ text: "확인", onPress: () => navigation.goBack() }]
-    );
+    if (!preselectedCompanyId && !isEdit) {
+      Alert.alert("오류", "거래처 정보가 필요합니다.");
+      return;
+    }
+
+    const totals = getTotals();
+
+    const invoiceFormData: InvoiceFormData = {
+      invoiceNumber,
+      companyId: preselectedCompanyId!,
+      items,
+      totalSupplyAmount: totals.totalSupplyAmount,
+      totalTaxAmount: totals.totalTaxAmount,
+      totalAmount: totals.totalAmount,
+      issueDate: new Date(),
+      status,
+    };
+
+    try {
+      if (isEdit) {
+        const success = await updateInvoice(invoiceId, invoiceFormData);
+        if (success) {
+          Alert.alert("수정 완료", "계산서가 수정되었습니다.", [
+            { text: "확인", onPress: () => navigation.goBack() },
+          ]);
+        } else {
+          Alert.alert("오류", "계산서 수정에 실패했습니다.");
+        }
+      } else {
+        const newInvoice = await addInvoice(invoiceFormData);
+        if (newInvoice) {
+          Alert.alert("생성 완료", "계산서가 생성되었습니다.", [
+            { text: "확인", onPress: () => navigation.goBack() },
+          ]);
+        } else {
+          Alert.alert("오류", "계산서 생성에 실패했습니다.");
+        }
+      }
+    } catch (error) {
+      Alert.alert("오류", "저장 중 오류가 발생했습니다.");
+      console.error("Save invoice error:", error);
+    }
   };
 
   const totals = getTotals();
@@ -371,7 +429,9 @@ const InvoiceEditScreen = () => {
         </View>
 
         <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}>
-          <Text style={[styles.label, { color: COLORS.text }]}>단가</Text>
+          <Text style={[styles.label, { color: COLORS.text }]}>
+            {item.taxType === "과세" ? "부가세 포함 단가" : "단가"}
+          </Text>
           <TextInput
             style={[
               styles.input,
@@ -386,7 +446,7 @@ const InvoiceEditScreen = () => {
               updateItem(index, "unitPrice", Number(value) || 0)
             }
             keyboardType="numeric"
-            placeholder="단가"
+            placeholder={item.taxType === "과세" ? "부가세 포함 단가" : "단가"}
             placeholderTextColor={COLORS.textSecondary}
           />
         </View>

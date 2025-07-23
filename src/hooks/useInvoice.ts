@@ -223,14 +223,43 @@ export const useInvoice = (): UseInvoiceReturn => {
     setError(null);
 
     try {
-      // 실제로는 스토리지에서 로드하지만, 지금은 샘플 데이터 사용
-      const sampleData = getSampleInvoices();
-      setInvoices(sampleData);
+      // 스토리지에서 데이터 로드
+      const storedData = await storageService.getItem<Invoice[]>(
+        STORAGE_KEYS.INVOICES
+      );
+
+      if (storedData && Array.isArray(storedData)) {
+        // 날짜 객체 복원
+        const restoredData = storedData.map((invoice) => ({
+          ...invoice,
+          issueDate: new Date(invoice.issueDate),
+          dueDate: invoice.dueDate ? new Date(invoice.dueDate) : undefined,
+          createdAt: new Date(invoice.createdAt),
+          updatedAt: new Date(invoice.updatedAt),
+        }));
+        setInvoices(restoredData);
+      } else {
+        // 초기 샘플 데이터 로드
+        const sampleData = getSampleInvoices();
+        setInvoices(sampleData);
+        // 샘플 데이터 저장
+        await saveToStorage(sampleData);
+      }
     } catch (err) {
       setError("계산서 데이터를 불러오는데 실패했습니다.");
       console.error("Invoice loading error:", err);
     } finally {
       setLoading(false);
+    }
+  }, []);
+
+  // 스토리지에 저장
+  const saveToStorage = useCallback(async (data: Invoice[]): Promise<void> => {
+    try {
+      await storageService.setItem(STORAGE_KEYS.INVOICES, data);
+    } catch (error) {
+      console.error("계산서 데이터 저장 실패:", error);
+      throw new Error("데이터 저장에 실패했습니다.");
     }
   }, []);
 
@@ -254,7 +283,10 @@ export const useInvoice = (): UseInvoiceReturn => {
           updatedAt: new Date(),
         };
 
-        setInvoices((prev) => [newInvoice, ...prev]);
+        const updatedInvoices = [newInvoice, ...invoices];
+        setInvoices(updatedInvoices);
+        await saveToStorage(updatedInvoices);
+
         return newInvoice;
       } catch (err) {
         setError("계산서 추가에 실패했습니다.");
@@ -262,19 +294,20 @@ export const useInvoice = (): UseInvoiceReturn => {
         return null;
       }
     },
-    []
+    [invoices, saveToStorage]
   );
 
   const updateInvoice = useCallback(
     async (id: string, data: Partial<InvoiceFormData>): Promise<boolean> => {
       try {
-        setInvoices((prev) =>
-          prev.map((invoice) =>
-            invoice.id === id
-              ? { ...invoice, ...data, updatedAt: new Date() }
-              : invoice
-          )
+        const updatedInvoices = invoices.map((invoice) =>
+          invoice.id === id
+            ? { ...invoice, ...data, updatedAt: new Date() }
+            : invoice
         );
+
+        setInvoices(updatedInvoices);
+        await saveToStorage(updatedInvoices);
         return true;
       } catch (err) {
         setError("계산서 수정에 실패했습니다.");
@@ -282,19 +315,24 @@ export const useInvoice = (): UseInvoiceReturn => {
         return false;
       }
     },
-    []
+    [invoices, saveToStorage]
   );
 
-  const deleteInvoice = useCallback(async (id: string): Promise<boolean> => {
-    try {
-      setInvoices((prev) => prev.filter((invoice) => invoice.id !== id));
-      return true;
-    } catch (err) {
-      setError("계산서 삭제에 실패했습니다.");
-      console.error("Delete invoice error:", err);
-      return false;
-    }
-  }, []);
+  const deleteInvoice = useCallback(
+    async (id: string): Promise<boolean> => {
+      try {
+        const updatedInvoices = invoices.filter((invoice) => invoice.id !== id);
+        setInvoices(updatedInvoices);
+        await saveToStorage(updatedInvoices);
+        return true;
+      } catch (err) {
+        setError("계산서 삭제에 실패했습니다.");
+        console.error("Delete invoice error:", err);
+        return false;
+      }
+    },
+    [invoices, saveToStorage]
+  );
 
   const getInvoiceById = useCallback(
     (id: string): Invoice | undefined => {
