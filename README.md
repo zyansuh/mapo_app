@@ -939,26 +939,88 @@ interface Delivery {
 
 ## 🚀 성능 최적화
 
-### ⚡ **렌더링 최적화**
+### ⚡ 적용된 최적화 기능
+
+#### 1. **React 컴포넌트 최적화**
 
 - **React.memo**: 불필요한 리렌더링 방지
-- **useMemo/useCallback**: 연산 결과 메모이제이션
-- **지연 로딩**: 화면별 컴포넌트 지연 로드
-- **이미지 최적화**: 적응형 이미지 크기
+- **useCallback**: 함수 메모이제이션으로 성능 향상
+- **useMemo**: 계산 결과 캐싱으로 연산 최적화
 
-### 💾 **메모리 관리**
+#### 2. **FlatList 성능 최적화**
 
-- **가비지 컬렉션**: 메모리 누수 방지
-- **이벤트 리스너 정리**: 컴포넌트 언마운트 시 정리
-- **대용량 리스트**: FlatList 가상화 활용
-- **캐시 관리**: 적절한 캐시 정책 적용
+```typescript
+// 최적화된 FlatList 설정
+const optimizedProps = {
+  removeClippedSubviews: true, // 화면 밖 아이템 제거
+  maxToRenderPerBatch: 10, // 배치당 렌더링 개수
+  updateCellsBatchingPeriod: 50, // 업데이트 주기
+  initialNumToRender: 15, // 초기 렌더링 개수
+  windowSize: 10, // 윈도우 크기
+};
+```
 
-### 📊 **데이터 최적화**
+#### 3. **검색 최적화**
 
-- **인덱싱**: 검색 성능 향상을 위한 인덱스
-- **페이지네이션**: 대용량 데이터 분할 로드
-- **압축**: 데이터 압축 저장
-- **중복 제거**: 중복 데이터 자동 감지 및 제거
+- **디바운싱**: 검색어 입력 시 300ms 지연으로 API 호출 최적화
+- **메모이제이션**: 검색 결과 캐싱
+
+#### 4. **메모리 최적화**
+
+- 이벤트 리스너 정리
+- 타이머 자동 정리
+- 큰 데이터셋 청크 처리
+
+### 📊 성능 측정 도구
+
+#### 개발 모드에서 성능 모니터링
+
+```typescript
+import {
+  logMemoryUsage,
+  runAfterInteractions,
+} from "./src/utils/performanceHelper";
+
+// 메모리 사용량 체크
+logMemoryUsage();
+
+// 인터랙션 완료 후 실행
+runAfterInteractions(() => {
+  console.log("UI 인터랙션 완료");
+});
+```
+
+### 🎯 성능 최적화 가이드
+
+#### FlatList 최적화 체크리스트
+
+- [ ] `removeClippedSubviews={true}` 설정
+- [ ] `keyExtractor` 함수 최적화
+- [ ] `renderItem` 함수 메모이제이션
+- [ ] `getItemLayout` 사용 (고정 높이인 경우)
+
+#### 컴포넌트 최적화 체크리스트
+
+- [ ] React.memo로 컴포넌트 래핑
+- [ ] useCallback으로 함수 메모이제이션
+- [ ] useMemo로 계산 결과 캐싱
+- [ ] 불필요한 상태 업데이트 제거
+
+#### 메모리 최적화 체크리스트
+
+- [ ] useEffect cleanup 함수 구현
+- [ ] 이미지 최적화 및 캐싱
+- [ ] 큰 객체 메모이제이션
+- [ ] 메모리 누수 모니터링
+
+### 📱 앱 성능 지표
+
+| 지표            | 목표    | 현재 상태        |
+| --------------- | ------- | ---------------- |
+| 초기 로딩 시간  | < 3초   | ✅ 최적화 완료   |
+| FlatList 스크롤 | 60fps   | ✅ 최적화 완료   |
+| 검색 응답 시간  | < 300ms | ✅ 디바운싱 적용 |
+| 메모리 사용량   | 최소화  | ✅ 모니터링 중   |
 
 ---
 

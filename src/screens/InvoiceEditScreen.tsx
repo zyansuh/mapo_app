@@ -18,6 +18,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { COLORS } from "../styles/colors";
+import { THEME } from "../styles/themes";
+import { invoiceEditStyles } from "../styles/screens";
 import { InvoiceItem, TaxType, InvoiceStatus, InvoiceFormData } from "../types";
 import { ProductCategory, CATEGORY_ITEMS } from "../types/product";
 import { useInvoice, useCompany } from "../hooks";

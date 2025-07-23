@@ -336,79 +336,50 @@ const InvoiceDetailScreen = () => {
                 </View>
 
                 <View style={invoiceDetailStyles.itemDetails}>
-                  <View style={styles.itemDetailRow}>
-                    <Text
-                      style={[
-                        styles.itemDetailLabel,
-                        { color: COLORS.textSecondary },
-                      ]}
-                    >
+                  <View style={invoiceDetailStyles.itemDetailRow}>
+                    <Text style={invoiceDetailStyles.itemDetailLabel}>
                       수량
                     </Text>
-                    <Text
-                      style={[styles.itemDetailValue, { color: COLORS.text }]}
-                    >
+                    <Text style={invoiceDetailStyles.itemDetailValue}>
                       {item.quantity}개
                     </Text>
                   </View>
 
-                  <View style={styles.itemDetailRow}>
-                    <Text
-                      style={[
-                        styles.itemDetailLabel,
-                        { color: COLORS.textSecondary },
-                      ]}
-                    >
+                  <View style={invoiceDetailStyles.itemDetailRow}>
+                    <Text style={invoiceDetailStyles.itemDetailLabel}>
                       단가
                     </Text>
-                    <Text
-                      style={[styles.itemDetailValue, { color: COLORS.text }]}
-                    >
+                    <Text style={invoiceDetailStyles.itemDetailValue}>
                       {formatCurrency(item.unitPrice)}
                     </Text>
                   </View>
 
-                  <View style={styles.itemDetailRow}>
-                    <Text
-                      style={[
-                        styles.itemDetailLabel,
-                        { color: COLORS.textSecondary },
-                      ]}
-                    >
+                  <View style={invoiceDetailStyles.itemDetailRow}>
+                    <Text style={invoiceDetailStyles.itemDetailLabel}>
                       공급가액
                     </Text>
-                    <Text
-                      style={[styles.itemDetailValue, { color: COLORS.text }]}
-                    >
+                    <Text style={invoiceDetailStyles.itemDetailValue}>
                       {formatCurrency(item.amount)}
                     </Text>
                   </View>
 
-                  <View style={styles.itemDetailRow}>
-                    <Text
-                      style={[
-                        styles.itemDetailLabel,
-                        { color: COLORS.textSecondary },
-                      ]}
-                    >
+                  <View style={invoiceDetailStyles.itemDetailRow}>
+                    <Text style={invoiceDetailStyles.itemDetailLabel}>
                       세액
                     </Text>
-                    <Text
-                      style={[styles.itemDetailValue, { color: COLORS.text }]}
-                    >
+                    <Text style={invoiceDetailStyles.itemDetailValue}>
                       {formatCurrency(item.taxAmount)}
                     </Text>
                   </View>
 
-                  <View style={[styles.itemDetailRow, styles.totalRow]}>
-                    <Text
-                      style={[styles.itemTotalLabel, { color: COLORS.text }]}
-                    >
-                      합계
-                    </Text>
-                    <Text
-                      style={[styles.itemTotalValue, { color: COLORS.primary }]}
-                    >
+                  <View
+                    style={[
+                      invoiceDetailStyles.itemDetailRow,
+                      invoiceDetailStyles.totalRow,
+                    ]}
+                  >
+                    <Text style={invoiceDetailStyles.itemTotalLabel}>합계</Text>
+                    <Text style={invoiceDetailStyles.itemTotalValue}>
                       {formatCurrency(item.totalAmount)}
                     </Text>
                   </View>
@@ -418,41 +389,32 @@ const InvoiceDetailScreen = () => {
           </View>
 
           {/* 합계 금액 */}
-          <View style={[styles.section, { backgroundColor: COLORS.white }]}>
-            <Text style={[styles.sectionTitle, { color: COLORS.text }]}>
-              합계 금액
-            </Text>
+          <View style={invoiceDetailStyles.section}>
+            <Text style={invoiceDetailStyles.sectionTitle}>합계 금액</Text>
 
-            <View style={styles.totalContainer}>
-              <View style={styles.totalRow}>
-                <Text
-                  style={[styles.totalLabel, { color: COLORS.textSecondary }]}
-                >
-                  공급가액
-                </Text>
-                <Text style={[styles.totalValue, { color: COLORS.text }]}>
+            <View style={invoiceDetailStyles.totalContainer}>
+              <View style={invoiceDetailStyles.totalRow}>
+                <Text style={invoiceDetailStyles.totalLabel}>공급가액</Text>
+                <Text style={invoiceDetailStyles.totalValue}>
                   {formatCurrency(invoice.totalSupplyAmount)}
                 </Text>
               </View>
 
-              <View style={styles.totalRow}>
-                <Text
-                  style={[styles.totalLabel, { color: COLORS.textSecondary }]}
-                >
-                  세액
-                </Text>
-                <Text style={[styles.totalValue, { color: COLORS.text }]}>
+              <View style={invoiceDetailStyles.totalRow}>
+                <Text style={invoiceDetailStyles.totalLabel}>세액</Text>
+                <Text style={invoiceDetailStyles.totalValue}>
                   {formatCurrency(invoice.totalTaxAmount)}
                 </Text>
               </View>
 
-              <View style={[styles.totalRow, styles.grandTotalRow]}>
-                <Text style={[styles.grandTotalLabel, { color: COLORS.text }]}>
-                  총 합계
-                </Text>
-                <Text
-                  style={[styles.grandTotalValue, { color: COLORS.primary }]}
-                >
+              <View
+                style={[
+                  invoiceDetailStyles.totalRow,
+                  invoiceDetailStyles.grandTotalRow,
+                ]}
+              >
+                <Text style={invoiceDetailStyles.grandTotalLabel}>총 합계</Text>
+                <Text style={invoiceDetailStyles.grandTotalValue}>
                   {formatCurrency(invoice.totalAmount)}
                 </Text>
               </View>
@@ -460,19 +422,27 @@ const InvoiceDetailScreen = () => {
           </View>
 
           {/* 액션 버튼들 */}
-          <View style={styles.actionSection}>
+          <View style={invoiceDetailStyles.actionSection}>
             <TouchableOpacity
-              style={[styles.actionButton, { backgroundColor: COLORS.primary }]}
+              style={[
+                invoiceDetailStyles.actionButton,
+                { backgroundColor: THEME.colors.primary },
+              ]}
               onPress={handleEdit}
             >
-              <Ionicons name="create-outline" size={20} color={COLORS.white} />
-              <Text style={[styles.actionButtonText, { color: COLORS.white }]}>
-                수정하기
-              </Text>
+              <Ionicons
+                name="create-outline"
+                size={20}
+                color={THEME.colors.white}
+              />
+              <Text style={invoiceDetailStyles.actionButtonText}>수정하기</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.actionButton, { backgroundColor: COLORS.success }]}
+              style={[
+                invoiceDetailStyles.actionButton,
+                { backgroundColor: THEME.colors.success },
+              ]}
               onPress={() =>
                 Alert.alert(
                   "기능 준비중",
@@ -483,21 +453,26 @@ const InvoiceDetailScreen = () => {
               <Ionicons
                 name="download-outline"
                 size={20}
-                color={COLORS.white}
+                color={THEME.colors.white}
               />
-              <Text style={[styles.actionButtonText, { color: COLORS.white }]}>
+              <Text style={invoiceDetailStyles.actionButtonText}>
                 PDF 내보내기
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.actionButton, { backgroundColor: COLORS.error }]}
+              style={[
+                invoiceDetailStyles.actionButton,
+                { backgroundColor: THEME.colors.error },
+              ]}
               onPress={handleDelete}
             >
-              <Ionicons name="trash-outline" size={20} color={COLORS.white} />
-              <Text style={[styles.actionButtonText, { color: COLORS.white }]}>
-                삭제하기
-              </Text>
+              <Ionicons
+                name="trash-outline"
+                size={20}
+                color={THEME.colors.white}
+              />
+              <Text style={invoiceDetailStyles.actionButtonText}>삭제하기</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -505,181 +480,5 @@ const InvoiceDetailScreen = () => {
     </>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-  },
-  headerContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  backButton: {
-    padding: 8,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    flex: 1,
-    textAlign: "center",
-    marginHorizontal: 16,
-  },
-  editButton: {
-    padding: 8,
-  },
-  content: {
-    flex: 1,
-    padding: 16,
-  },
-  section: {
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 16,
-  },
-  infoRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  infoLabel: {
-    fontSize: 14,
-    flex: 1,
-  },
-  infoValue: {
-    fontSize: 14,
-    fontWeight: "600",
-    flex: 2,
-    textAlign: "right",
-  },
-  statusContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  statusChangeButton: {
-    padding: 4,
-  },
-  itemCard: {
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-  },
-  itemHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  itemName: {
-    fontSize: 16,
-    fontWeight: "600",
-    flex: 1,
-  },
-  taxTypeBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  taxTypeText: {
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  itemDetails: {
-    gap: 4,
-  },
-  itemDetailRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  itemDetailLabel: {
-    fontSize: 14,
-  },
-  itemDetailValue: {
-    fontSize: 14,
-  },
-  itemTotalLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  itemTotalValue: {
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  totalContainer: {
-    gap: 8,
-  },
-  totalRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: "#e0e0e0",
-  },
-  totalLabel: {
-    fontSize: 14,
-  },
-  totalValue: {
-    fontSize: 14,
-  },
-  grandTotalRow: {
-    marginTop: 8,
-    paddingTop: 12,
-    borderTopWidth: 2,
-    borderTopColor: "#333",
-  },
-  grandTotalLabel: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  grandTotalValue: {
-    fontSize: 18,
-    fontWeight: "700",
-  },
-  actionSection: {
-    flexDirection: "row",
-    gap: 12,
-    marginTop: 16,
-    marginBottom: 100,
-  },
-  actionButton: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 12,
-    borderRadius: 8,
-    gap: 8,
-  },
-  actionButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
-});
 
 export default InvoiceDetailScreen;
