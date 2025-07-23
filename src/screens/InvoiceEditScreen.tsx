@@ -66,10 +66,6 @@ const InvoiceEditScreen = () => {
       const amount = Math.round(totalAmount / 1.1);
       const taxAmount = totalAmount - amount;
 
-      console.log(
-        `과세품목 계산: 단가=${item.unitPrice}, 수량=${item.quantity}, 총액=${totalAmount}, 공급가액=${amount}, 세액=${taxAmount}`
-      );
-
       return {
         ...item,
         amount,
@@ -80,10 +76,6 @@ const InvoiceEditScreen = () => {
       // 면세/영세는 기존 방식
       const amount = totalAmount;
       const taxAmount = 0;
-
-      console.log(
-        `면세품목 계산: 단가=${item.unitPrice}, 수량=${item.quantity}, 총액=${totalAmount}, 공급가액=${amount}, 세액=${taxAmount}`
-      );
 
       return {
         ...item,
