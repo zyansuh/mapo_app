@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,6 +10,8 @@ import {
   SafeAreaView,
   Platform,
   StatusBar,
+  FlatList,
+  Modal,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -18,13 +20,15 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { COLORS } from "../styles/colors";
 import { InvoiceItem, TaxType, InvoiceStatus, InvoiceFormData } from "../types";
 import { ProductCategory, CATEGORY_ITEMS } from "../types/product";
-import { useInvoice } from "../hooks";
+import { useInvoice, useCompany } from "../hooks";
 
 const InvoiceEditScreen = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const insets = useSafeAreaInsets();
-  const { addInvoice, updateInvoice, generateInvoiceNumber } = useInvoice();
+  const { addInvoice, updateInvoice, generateInvoiceNumber, getInvoiceById } =
+    useInvoice();
+  const { companies, getCompanyById } = useCompany();
 
   const invoiceId = route.params?.invoiceId;
   const preselectedCompanyId = route.params?.companyId;
@@ -33,6 +37,11 @@ const InvoiceEditScreen = () => {
   const [invoiceNumber, setInvoiceNumber] = useState(
     isEdit ? "INV-2024-001" : generateInvoiceNumber()
   );
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string>(
+    preselectedCompanyId || ""
+  );
+  const [companyModalVisible, setCompanyModalVisible] = useState(false);
+  const [companySearchQuery, setCompanySearchQuery] = useState("");
   const [status, setStatus] = useState<InvoiceStatus>("임시저장");
   const [items, setItems] = useState<InvoiceItem[]>([
     {
@@ -47,6 +56,19 @@ const InvoiceEditScreen = () => {
     },
   ]);
 
+  // 기존 계산서 데이터 로드 (편집 모드일 때)
+  useEffect(() => {
+    if (isEdit && invoiceId) {
+      const existingInvoice = getInvoiceById(invoiceId);
+      if (existingInvoice) {
+        setSelectedCompanyId(existingInvoice.companyId);
+        setInvoiceNumber(existingInvoice.invoiceNumber);
+        setItems(existingInvoice.items);
+        setStatus(existingInvoice.status);
+      }
+    }
+  }, [isEdit, invoiceId, getInvoiceById]);
+
   // 드롭다운 상태들
   const [dropdownStates, setDropdownStates] = useState<{
     [key: string]: {
@@ -57,6 +79,43 @@ const InvoiceEditScreen = () => {
   }>({});
 
   const categories: ProductCategory[] = ["두부", "콩나물", "묵류"];
+
+  // 거래처 선택 함수
+  const handleCompanySelect = (companyId: string) => {
+    setSelectedCompanyId(companyId);
+    setCompanyModalVisible(false);
+    setCompanySearchQuery(""); // 선택 후 검색어 초기화
+  };
+
+  const getSelectedCompanyName = () => {
+    if (!selectedCompanyId) return "거래처를 선택하세요";
+    const company = getCompanyById(selectedCompanyId);
+    return company?.name || "거래처를 선택하세요";
+  };
+
+  // 거래처 검색 함수
+  const getFilteredCompanies = () => {
+    if (!companySearchQuery.trim()) {
+      return companies;
+    }
+
+    const query = companySearchQuery.toLowerCase();
+    return companies.filter(
+      (company) =>
+        company.name.toLowerCase().includes(query) ||
+        company.type.toLowerCase().includes(query) ||
+        company.region.toLowerCase().includes(query) ||
+        company.address.toLowerCase().includes(query) ||
+        company.contactPerson?.toLowerCase().includes(query) ||
+        company.phoneNumber.includes(query)
+    );
+  };
+
+  // 거래처 모달 열기
+  const openCompanyModal = () => {
+    setCompanySearchQuery(""); // 모달 열 때 검색어 초기화
+    setCompanyModalVisible(true);
+  };
 
   const calculateAmounts = (item: InvoiceItem) => {
     const totalAmount = item.quantity * item.unitPrice;
@@ -196,8 +255,8 @@ const InvoiceEditScreen = () => {
       return;
     }
 
-    if (!preselectedCompanyId && !isEdit) {
-      Alert.alert("오류", "거래처 정보가 필요합니다.");
+    if (!selectedCompanyId) {
+      Alert.alert("오류", "거래처를 선택해주세요.");
       return;
     }
 
@@ -205,7 +264,7 @@ const InvoiceEditScreen = () => {
 
     const invoiceFormData: InvoiceFormData = {
       invoiceNumber,
-      companyId: preselectedCompanyId!,
+      companyId: selectedCompanyId,
       items,
       totalSupplyAmount: totals.totalSupplyAmount,
       totalTaxAmount: totals.totalTaxAmount,
@@ -218,18 +277,24 @@ const InvoiceEditScreen = () => {
       if (isEdit) {
         const success = await updateInvoice(invoiceId, invoiceFormData);
         if (success) {
-          Alert.alert("수정 완료", "계산서가 수정되었습니다.", [
-            { text: "확인", onPress: () => navigation.goBack() },
-          ]);
+          const selectedCompany = getCompanyById(selectedCompanyId);
+          Alert.alert(
+            "수정 완료",
+            `${selectedCompany?.name}의 계산서가 수정되었습니다.`,
+            [{ text: "확인", onPress: () => navigation.goBack() }]
+          );
         } else {
           Alert.alert("오류", "계산서 수정에 실패했습니다.");
         }
       } else {
         const newInvoice = await addInvoice(invoiceFormData);
         if (newInvoice) {
-          Alert.alert("생성 완료", "계산서가 생성되었습니다.", [
-            { text: "확인", onPress: () => navigation.goBack() },
-          ]);
+          const selectedCompany = getCompanyById(selectedCompanyId);
+          Alert.alert(
+            "생성 완료",
+            `${selectedCompany?.name}의 계산서가 생성되었습니다.\n계산서 번호: ${invoiceNumber}`,
+            [{ text: "확인", onPress: () => navigation.goBack() }]
+          );
         } else {
           Alert.alert("오류", "계산서 생성에 실패했습니다.");
         }
@@ -554,6 +619,40 @@ const InvoiceEditScreen = () => {
                 placeholderTextColor={COLORS.textSecondary}
               />
             </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={[styles.label, { color: COLORS.text }]}>
+                거래처 * {!selectedCompanyId && "(필수)"}
+              </Text>
+              <TouchableOpacity
+                style={[
+                  styles.companySelectButton,
+                  {
+                    backgroundColor: COLORS.background,
+                    borderColor: COLORS.border,
+                  },
+                ]}
+                onPress={openCompanyModal}
+              >
+                <Text
+                  style={[
+                    styles.companySelectText,
+                    {
+                      color: selectedCompanyId
+                        ? COLORS.text
+                        : COLORS.textSecondary,
+                    },
+                  ]}
+                >
+                  {getSelectedCompanyName()}
+                </Text>
+                <Ionicons
+                  name="chevron-down"
+                  size={20}
+                  color={COLORS.textSecondary}
+                />
+              </TouchableOpacity>
+            </View>
           </View>
 
           <View style={[styles.itemsCard, { backgroundColor: COLORS.white }]}>
@@ -612,6 +711,132 @@ const InvoiceEditScreen = () => {
             </View>
           </View>
         </ScrollView>
+
+        {/* 거래처 선택 모달 */}
+        <Modal
+          visible={companyModalVisible}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setCompanyModalVisible(false)}
+        >
+          <View style={styles.companyModalContainer}>
+            <View
+              style={[
+                styles.companyModalContent,
+                { backgroundColor: COLORS.white },
+              ]}
+            >
+              <View
+                style={[
+                  styles.companyModalHeader,
+                  { borderBottomColor: COLORS.border },
+                ]}
+              >
+                <Text
+                  style={[styles.companyModalTitle, { color: COLORS.text }]}
+                >
+                  거래처 선택{" "}
+                  {companySearchQuery.trim() &&
+                    `(${getFilteredCompanies().length}개)`}
+                </Text>
+                <TouchableOpacity onPress={() => setCompanyModalVisible(false)}>
+                  <Ionicons name="close" size={24} color={COLORS.text} />
+                </TouchableOpacity>
+              </View>
+
+              {/* 검색 입력 필드 */}
+              <View
+                style={[
+                  styles.searchContainer,
+                  { backgroundColor: COLORS.background },
+                ]}
+              >
+                <View style={styles.searchInputContainer}>
+                  <Ionicons
+                    name="search"
+                    size={20}
+                    color={COLORS.textSecondary}
+                    style={styles.searchIcon}
+                  />
+                  <TextInput
+                    style={[
+                      styles.searchInput,
+                      {
+                        color: COLORS.text,
+                        backgroundColor: COLORS.white,
+                        borderColor: COLORS.border,
+                      },
+                    ]}
+                    value={companySearchQuery}
+                    onChangeText={setCompanySearchQuery}
+                    placeholder="거래처명, 유형, 지역으로 검색..."
+                    placeholderTextColor={COLORS.textSecondary}
+                  />
+                  {companySearchQuery.length > 0 && (
+                    <TouchableOpacity
+                      style={styles.clearButton}
+                      onPress={() => setCompanySearchQuery("")}
+                    >
+                      <Ionicons
+                        name="close-circle"
+                        size={20}
+                        color={COLORS.textSecondary}
+                      />
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+
+              <FlatList
+                data={getFilteredCompanies()}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={[
+                      styles.companyItem,
+                      { borderBottomColor: COLORS.border },
+                    ]}
+                    onPress={() => handleCompanySelect(item.id)}
+                  >
+                    <Text
+                      style={[styles.companyItemName, { color: COLORS.text }]}
+                    >
+                      {item.name}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.companyItemType,
+                        { color: COLORS.textSecondary },
+                      ]}
+                    >
+                      {item.type} • {item.region}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+                showsVerticalScrollIndicator={false}
+                ListEmptyComponent={
+                  <View style={{ padding: 20, alignItems: "center" }}>
+                    <Text style={{ color: COLORS.textSecondary }}>
+                      {companySearchQuery.trim()
+                        ? `"${companySearchQuery}"에 대한 검색 결과가 없습니다.`
+                        : "등록된 거래처가 없습니다."}
+                    </Text>
+                    {companySearchQuery.trim() && (
+                      <TouchableOpacity
+                        style={{ marginTop: 10, padding: 8 }}
+                        onPress={() => setCompanySearchQuery("")}
+                      >
+                        <Text style={{ color: COLORS.primary, fontSize: 14 }}>
+                          전체 목록 보기
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                }
+              />
+            </View>
+          </View>
+        </Modal>
       </SafeAreaView>
     </>
   );
@@ -850,6 +1075,90 @@ const styles = StyleSheet.create({
   productSelectionText: {
     fontSize: 12,
     fontWeight: "500",
+  },
+  // 거래처 선택 관련 스타일
+  companySelectButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    minHeight: 48,
+  },
+  companySelectText: {
+    fontSize: 16,
+    flex: 1,
+  },
+  // 거래처 모달 스타일
+  companyModalContainer: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  companyModalContent: {
+    backgroundColor: "#ffffff",
+    borderRadius: 12,
+    margin: 20,
+    maxHeight: "80%",
+    width: "90%",
+  },
+  companyModalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
+  },
+  companyModalTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+  },
+  companyItem: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  companyItemName: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 4,
+  },
+  companyItemType: {
+    fontSize: 14,
+    color: "#666",
+  },
+  // 검색 관련 스타일
+  searchContainer: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
+  },
+  searchInputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    position: "relative",
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    paddingVertical: 4,
+  },
+  clearButton: {
+    padding: 4,
+    marginLeft: 8,
   },
 });
 
