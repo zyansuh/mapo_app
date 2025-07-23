@@ -2,7 +2,6 @@ import React from "react";
 import {
   View,
   Text,
-  StyleSheet,
   TouchableOpacity,
   ScrollView,
   SafeAreaView,
@@ -14,7 +13,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { COLORS } from "../styles/colors";
+import { THEME } from "../styles/themes";
+import { invoiceDetailStyles } from "../styles/screens";
 import { Invoice, InvoiceStatus, TaxType } from "../types";
 import { formatDate, formatCurrency } from "../utils/format";
 import { useInvoice } from "../hooks";
@@ -147,104 +147,110 @@ const InvoiceDetailScreen = () => {
   const getStatusColor = (status: InvoiceStatus) => {
     switch (status) {
       case "임시저장":
-        return COLORS.warning;
+        return THEME.colors.warning;
       case "발행":
-        return COLORS.success;
+        return THEME.colors.success;
       case "전송":
-        return COLORS.primary;
+        return THEME.colors.primary;
       case "승인":
-        return COLORS.success;
+        return THEME.colors.success;
       case "취소":
-        return COLORS.error;
+        return THEME.colors.error;
       default:
-        return COLORS.textSecondary;
+        return THEME.colors.textSecondary;
     }
   };
 
   const getTaxTypeColor = (taxType: TaxType) => {
     switch (taxType) {
       case "과세":
-        return COLORS.primary;
+        return THEME.colors.primary;
       case "면세":
-        return COLORS.success;
+        return THEME.colors.success;
       case "영세":
-        return COLORS.warning;
+        return THEME.colors.warning;
       default:
-        return COLORS.textSecondary;
+        return THEME.colors.textSecondary;
     }
   };
 
   return (
     <>
-      <StatusBar backgroundColor={COLORS.primary} barStyle="light-content" />
+      <StatusBar
+        backgroundColor={THEME.colors.primary}
+        barStyle="light-content"
+      />
       <SafeAreaView
         style={[
-          styles.container,
+          invoiceDetailStyles.container,
           {
-            backgroundColor: COLORS.background,
             paddingTop: Platform.OS === "android" ? 10 : insets.top,
           },
         ]}
       >
         <LinearGradient
-          colors={[COLORS.primary, COLORS.primary]}
-          style={styles.header}
+          colors={[THEME.colors.primary, THEME.colors.primary]}
+          style={invoiceDetailStyles.header}
         >
-          <View style={styles.headerContent}>
+          <View style={invoiceDetailStyles.headerContent}>
             <TouchableOpacity
-              style={styles.backButton}
+              style={invoiceDetailStyles.backButton}
               onPress={() => navigation.goBack()}
             >
-              <Ionicons name="arrow-back" size={24} color={COLORS.white} />
+              <Ionicons
+                name="arrow-back"
+                size={24}
+                color={THEME.colors.white}
+              />
             </TouchableOpacity>
-            <Text style={[styles.headerTitle, { color: COLORS.white }]}>
-              계산서 상세
-            </Text>
-            <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
-              <Ionicons name="create-outline" size={24} color={COLORS.white} />
+            <Text style={invoiceDetailStyles.headerTitle}>계산서 상세</Text>
+            <TouchableOpacity
+              style={invoiceDetailStyles.editButton}
+              onPress={handleEdit}
+            >
+              <Ionicons
+                name="create-outline"
+                size={24}
+                color={THEME.colors.white}
+              />
             </TouchableOpacity>
           </View>
         </LinearGradient>
 
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          style={invoiceDetailStyles.content}
+          showsVerticalScrollIndicator={false}
+        >
           {/* 기본 정보 */}
-          <View style={[styles.section, { backgroundColor: COLORS.white }]}>
-            <Text style={[styles.sectionTitle, { color: COLORS.text }]}>
-              기본 정보
-            </Text>
+          <View style={invoiceDetailStyles.section}>
+            <Text style={invoiceDetailStyles.sectionTitle}>기본 정보</Text>
 
-            <View style={styles.infoRow}>
-              <Text style={[styles.infoLabel, { color: COLORS.textSecondary }]}>
-                계산서 번호
-              </Text>
-              <Text style={[styles.infoValue, { color: COLORS.text }]}>
+            <View style={invoiceDetailStyles.infoRow}>
+              <Text style={invoiceDetailStyles.infoLabel}>계산서 번호</Text>
+              <Text style={invoiceDetailStyles.infoValue}>
                 {invoice.invoiceNumber}
               </Text>
             </View>
 
-            <View style={styles.infoRow}>
-              <Text style={[styles.infoLabel, { color: COLORS.textSecondary }]}>
-                발행일
-              </Text>
-              <Text style={[styles.infoValue, { color: COLORS.text }]}>
+            <View style={invoiceDetailStyles.infoRow}>
+              <Text style={invoiceDetailStyles.infoLabel}>발행일</Text>
+              <Text style={invoiceDetailStyles.infoValue}>
                 {formatDate(invoice.issueDate)}
               </Text>
             </View>
 
-            <View style={styles.infoRow}>
-              <Text style={[styles.infoLabel, { color: COLORS.textSecondary }]}>
-                상태
-              </Text>
-              <View style={styles.statusContainer}>
+            <View style={invoiceDetailStyles.infoRow}>
+              <Text style={invoiceDetailStyles.infoLabel}>상태</Text>
+              <View style={invoiceDetailStyles.statusContainer}>
                 <View
                   style={[
-                    styles.statusBadge,
+                    invoiceDetailStyles.statusBadge,
                     { backgroundColor: getStatusColor(invoice.status) + "20" },
                   ]}
                 >
                   <Text
                     style={[
-                      styles.statusText,
+                      invoiceDetailStyles.statusText,
                       { color: getStatusColor(invoice.status) },
                     ]}
                   >
@@ -252,7 +258,7 @@ const InvoiceDetailScreen = () => {
                   </Text>
                 </View>
                 <TouchableOpacity
-                  style={styles.statusChangeButton}
+                  style={invoiceDetailStyles.statusChangeButton}
                   onPress={() => {
                     const statusOptions = [
                       { text: "취소", style: "cancel" as const },
@@ -288,20 +294,16 @@ const InvoiceDetailScreen = () => {
                   <Ionicons
                     name="chevron-down"
                     size={16}
-                    color={COLORS.primary}
+                    color={THEME.colors.primary}
                   />
                 </TouchableOpacity>
               </View>
             </View>
 
             {invoice.memo && (
-              <View style={styles.infoRow}>
-                <Text
-                  style={[styles.infoLabel, { color: COLORS.textSecondary }]}
-                >
-                  메모
-                </Text>
-                <Text style={[styles.infoValue, { color: COLORS.text }]}>
+              <View style={invoiceDetailStyles.infoRow}>
+                <Text style={invoiceDetailStyles.infoLabel}>메모</Text>
+                <Text style={invoiceDetailStyles.infoValue}>
                   {invoice.memo}
                 </Text>
               </View>
@@ -309,32 +311,22 @@ const InvoiceDetailScreen = () => {
           </View>
 
           {/* 품목 정보 */}
-          <View style={[styles.section, { backgroundColor: COLORS.white }]}>
-            <Text style={[styles.sectionTitle, { color: COLORS.text }]}>
-              품목 정보
-            </Text>
+          <View style={invoiceDetailStyles.section}>
+            <Text style={invoiceDetailStyles.sectionTitle}>품목 정보</Text>
 
             {invoice.items.map((item, index) => (
-              <View
-                key={item.id}
-                style={[
-                  styles.itemCard,
-                  { backgroundColor: COLORS.background },
-                ]}
-              >
-                <View style={styles.itemHeader}>
-                  <Text style={[styles.itemName, { color: COLORS.text }]}>
-                    {item.name}
-                  </Text>
+              <View key={item.id} style={invoiceDetailStyles.itemCard}>
+                <View style={invoiceDetailStyles.itemHeader}>
+                  <Text style={invoiceDetailStyles.itemName}>{item.name}</Text>
                   <View
                     style={[
-                      styles.taxTypeBadge,
+                      invoiceDetailStyles.taxTypeBadge,
                       { backgroundColor: getTaxTypeColor(item.taxType) + "20" },
                     ]}
                   >
                     <Text
                       style={[
-                        styles.taxTypeText,
+                        invoiceDetailStyles.taxTypeText,
                         { color: getTaxTypeColor(item.taxType) },
                       ]}
                     >
@@ -343,7 +335,7 @@ const InvoiceDetailScreen = () => {
                   </View>
                 </View>
 
-                <View style={styles.itemDetails}>
+                <View style={invoiceDetailStyles.itemDetails}>
                   <View style={styles.itemDetailRow}>
                     <Text
                       style={[

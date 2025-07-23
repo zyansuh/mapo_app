@@ -1104,19 +1104,17 @@ git push origin feature/새기능명
 
 ## 📝 최근 업데이트
 
-### 🔥 **v2.0.4 (2025.07.23)** - 계산서 삭제 기능 추가
+### 🔥 **v2.0.5 (2025.07.23)** - 대규모 아키텍처 리팩터링
 
 #### **🎯 주요 변경 요약**
 
-| 분야          | 개선사항                  | 사용자 혜택                            |
-| ------------- | ------------------------- | -------------------------------------- |
-| **🗑️ 삭제**   | 계산서 삭제 기능 추가     | 불필요한 계산서 안전하게 제거 가능     |
-| **🎨 UI/UX**  | 거래처 선택 드롭다운 추가 | 계산서 생성 시 직관적 거래처 선택      |
-| **📊 상태**   | 계산서 상태 관리 시스템   | 체계적인 5단계 워크플로우 관리         |
-| **🏷️ 라벨링** | 과세구분별 동적 라벨 표시 | "부가세 포함 단가" vs "단가" 혼동 해소 |
-| **💬 피드백** | 거래처명 포함 완료 메시지 | 어느 거래처 계산서인지 명확히 확인     |
-| **🐛 버그**   | 폼 데이터 유지 문제 해결  | 업체/계산서 수정 시 기존 내용 보존     |
-| **💰 계산**   | 부가세 포함 가격 방식     | 24,000원 입력 = 24,000원 총액 (직관적) |
+| 분야            | 개선사항                    | 사용자 혜택                        |
+| --------------- | --------------------------- | ---------------------------------- |
+| **🏗️ 아키텍처** | 스케일링 기반 디자인 시스템 | 모든 디바이스에서 일관된 UI/UX     |
+| **📁 구조**     | 스타일 파일 체계화          | 유지보수성 및 확장성 대폭 향상     |
+| **🎨 테마**     | 통합 테마 시스템 구축       | 일관된 디자인 언어 및 브랜딩       |
+| **📱 반응형**   | 화면 크기별 최적화          | 작은 화면부터 태블릿까지 완벽 지원 |
+| **⚡ 성능**     | 코드 분할 및 모듈화         | 빠른 로딩 시간 및 메모리 효율성    |
 
 #### **🎨 UI/UX 개선**
 
@@ -1275,6 +1273,9 @@ git push origin feature/새기능명
 
 | 기능                     | 구현 완료  | 설명                          |
 | ------------------------ | ---------- | ----------------------------- |
+| ✅ 아키텍처 리팩터링     | 2025.07.23 | 스케일링 기반 디자인 시스템   |
+| ✅ 테마 시스템 구축      | 2025.07.23 | 통합 테마 + 타이포그래피      |
+| ✅ 반응형 디자인         | 2025.07.23 | 모든 화면 크기 지원           |
 | ✅ 계산서 삭제 기능      | 2025.07.23 | 안전한 삭제 + 확인 다이얼로그 |
 | ✅ 거래처 선택 & 검색    | 2025.07.23 | 드롭다운 + 실시간 검색        |
 | ✅ 부가세 포함 가격 계산 | 2025.07.23 | VAT 역산 방식                 |
@@ -1303,30 +1304,6 @@ git push origin feature/새기능명
 ## 📄 라이선스
 
 이 프로젝트는 **MIT 라이선스** 하에 배포됩니다. 자세한 내용은 [LICENSE](LICENSE) 파일을 참조하세요.
-
-```
-MIT License
-
-Copyright (c) 2025 Mapo Development Team
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
 
 ---
 
@@ -1365,3 +1342,163 @@ SOFTWARE.
 Made with ❤️ by Mapo Development Team
 
 </div>
+
+---
+
+### 🔥 **v2.0.5 (2025.07.23)** - 대규모 아키텍처 리팩터링
+
+#### **🎯 주요 변경 요약**
+
+| 분야            | 개선사항                    | 사용자 혜택                        |
+| --------------- | --------------------------- | ---------------------------------- |
+| **🏗️ 아키텍처** | 스케일링 기반 디자인 시스템 | 모든 디바이스에서 일관된 UI/UX     |
+| **📁 구조**     | 스타일 파일 체계화          | 유지보수성 및 확장성 대폭 향상     |
+| **🎨 테마**     | 통합 테마 시스템 구축       | 일관된 디자인 언어 및 브랜딩       |
+| **📱 반응형**   | 화면 크기별 최적화          | 작은 화면부터 태블릿까지 완벽 지원 |
+| **⚡ 성능**     | 코드 분할 및 모듈화         | 빠른 로딩 시간 및 메모리 효율성    |
+
+#### **🏗️ 아키텍처 개선사항**
+
+- **📐 스케일링 기반 디자인 시스템**
+
+  ```typescript
+  // 이전: 하드코딩된 픽셀 값
+  fontSize: 16,
+  padding: 12,
+
+  // 현재: 스케일링 기반 시스템
+  fontSize: TYPOGRAPHY.body2.fontSize,
+  padding: SPACING.normal,
+  ```
+
+  - iPhone SE부터 iPad까지 완벽한 반응형 지원
+  - 390×844 (iPhone 12) 기준으로 모든 크기 자동 계산
+  - 텍스트, 아이콘, 간격이 화면 크기에 맞게 조정
+
+- **🎨 통합 테마 시스템**
+
+  ```typescript
+  // 새로운 테마 구조
+  THEME = {
+    colors: COLORS,           // 색상 팔레트
+    typography: TYPOGRAPHY,   // 타이포그래피 시스템
+    spacing: SPACING,         // 간격 시스템
+    shadows: SHADOWS,         // 그림자 시스템
+    components: { ... }       // 컴포넌트별 기본 스타일
+  }
+  ```
+
+- **📁 모듈화된 스타일 구조**
+
+  ```
+  src/styles/
+  ├── themes.ts              # 통합 테마 시스템
+  ├── dimensions.ts          # 스케일링 차원 시스템
+  ├── components/            # 컴포넌트별 스타일
+  │   ├── buttonStyles.ts
+  │   ├── cardStyles.ts
+  │   └── ...
+  └── screens/               # 화면별 스타일
+      ├── invoiceDetailStyles.ts
+      ├── invoiceEditStyles.ts
+      └── ...
+  ```
+
+#### **📱 반응형 디자인 시스템**
+
+- **🔧 스마트 스케일링**
+
+  | 화면 크기 | 기준      | 스케일 팩터 | 최적화 대상    |
+  | --------- | --------- | ----------- | -------------- |
+  | 작은 화면 | < 350px   | 0.9x        | iPhone SE      |
+  | 중간 화면 | 350-414px | 1.0x        | iPhone 12/13   |
+  | 큰 화면   | > 414px   | 1.1x        | iPhone Pro Max |
+  | 태블릿    | > 768px   | 1.2x        | iPad           |
+
+- **📐 반응형 컴포넌트**
+
+  ```typescript
+  // 화면 크기에 따른 동적 스타일링
+  const padding = screenInfo.isSmallScreen ? scale(12) : scale(16);
+  const fontSize = screenInfo.isTablet ? textScale(18) : textScale(16);
+  ```
+
+#### **🎨 디자인 시스템 혁신**
+
+- **🎭 타이포그래피 시스템**
+
+  ```typescript
+  TYPOGRAPHY = {
+    h1: { fontSize: 32, lineHeight: 38.4, fontWeight: "700" },
+    h2: { fontSize: 24, lineHeight: 28.8, fontWeight: "600" },
+    body1: { fontSize: 16, lineHeight: 22.4, fontWeight: "400" },
+    caption: { fontSize: 12, lineHeight: 15.6, fontWeight: "400" },
+  };
+  ```
+
+- **📏 간격 시스템**
+
+  ```typescript
+  SPACING = {
+    tiny: 4,
+    small: 8,
+    normal: 12,
+    medium: 16,
+    large: 20,
+    xlarge: 24,
+    xxlarge: 32,
+    huge: 40,
+  };
+  ```
+
+- **🌊 그림자 시스템**
+
+  ```typescript
+  SHADOWS = {
+    small: { elevation: 2, shadowOpacity: 0.1 },
+    medium: { elevation: 4, shadowOpacity: 0.15 },
+    large: { elevation: 8, shadowOpacity: 0.2 },
+  };
+  ```
+
+#### **⚡ 성능 최적화**
+
+- **📦 코드 분할**: 화면별/컴포넌트별 스타일 분리
+- **🗑️ 중복 제거**: useCompany 훅 통합 및 최적화
+- **💾 메모리 효율**: 스타일 객체 재사용 및 캐싱
+- **🔄 지연 로딩**: 필요한 스타일만 동적 로드
+
+#### **🛠️ 개발자 경험 개선**
+
+- **📝 타입 안전성**: 모든 스타일 프로퍼티 타입 정의
+- **🔍 코드 인텔리센스**: IDE 자동완성 지원
+- **📖 문서화**: 각 컴포넌트별 스타일 가이드
+- **🧪 일관성**: 디자인 토큰 기반 통일된 스타일
+
+#### **🎯 사용 예시**
+
+```typescript
+// 이전 방식 (하드코딩)
+const styles = StyleSheet.create({
+  container: {
+    padding: 16,
+    backgroundColor: "#ffffff",
+    borderRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+});
+
+// 새로운 방식 (테마 시스템)
+const styles = StyleSheet.create({
+  container: {
+    ...THEME.components.card, // 자동으로 모든 스타일 적용
+  },
+});
+```
+
+---
+
+// ... existing code ...
