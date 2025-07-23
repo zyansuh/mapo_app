@@ -80,6 +80,33 @@ const InvoiceEditScreen = () => {
 
   const categories: ProductCategory[] = ["두부", "콩나물", "묵류"];
 
+  // 상태 옵션 정의
+  const statusOptions = [
+    { label: "임시저장", value: "임시저장" as InvoiceStatus },
+    { label: "발행", value: "발행" as InvoiceStatus },
+    { label: "전송", value: "전송" as InvoiceStatus },
+    { label: "승인", value: "승인" as InvoiceStatus },
+    { label: "취소", value: "취소" as InvoiceStatus },
+  ];
+
+  // 상태별 설명 함수
+  const getStatusDescription = (status: InvoiceStatus): string => {
+    switch (status) {
+      case "임시저장":
+        return "📝 작성 중인 계산서입니다. 언제든 수정할 수 있습니다.";
+      case "발행":
+        return "✅ 완성된 계산서입니다. 거래처에 발송할 준비가 되었습니다.";
+      case "전송":
+        return "📤 거래처에 발송된 계산서입니다. 승인을 기다리고 있습니다.";
+      case "승인":
+        return "🎉 거래처에서 승인된 계산서입니다. 거래가 확정되었습니다.";
+      case "취소":
+        return "❌ 취소된 계산서입니다. 더 이상 유효하지 않습니다.";
+      default:
+        return "";
+    }
+  };
+
   // 거래처 선택 함수
   const handleCompanySelect = (companyId: string) => {
     setSelectedCompanyId(companyId);
@@ -653,6 +680,57 @@ const InvoiceEditScreen = () => {
                 />
               </TouchableOpacity>
             </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={[styles.label, { color: COLORS.text }]}>
+                계산서 상태
+              </Text>
+              <View style={styles.statusSelectContainer}>
+                <View style={styles.statusRow}>
+                  {statusOptions.map((option) => (
+                    <TouchableOpacity
+                      key={option.value}
+                      style={[
+                        styles.statusButton,
+                        {
+                          backgroundColor:
+                            status === option.value
+                              ? COLORS.primary + "20"
+                              : COLORS.background,
+                          borderColor:
+                            status === option.value
+                              ? COLORS.primary
+                              : COLORS.border,
+                        },
+                      ]}
+                      onPress={() => setStatus(option.value)}
+                    >
+                      <Text
+                        style={[
+                          styles.statusButtonText,
+                          {
+                            color:
+                              status === option.value
+                                ? COLORS.primary
+                                : COLORS.text,
+                          },
+                        ]}
+                      >
+                        {option.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+              <Text
+                style={[
+                  styles.statusDescription,
+                  { color: COLORS.textSecondary },
+                ]}
+              >
+                {getStatusDescription(status)}
+              </Text>
+            </View>
           </View>
 
           <View style={[styles.itemsCard, { backgroundColor: COLORS.white }]}>
@@ -1159,6 +1237,35 @@ const styles = StyleSheet.create({
   clearButton: {
     padding: 4,
     marginLeft: 8,
+  },
+  // 상태 선택 관련 스타일
+  statusSelectContainer: {
+    marginBottom: 8,
+  },
+  statusRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  statusButton: {
+    flex: 1,
+    minWidth: 70,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    alignItems: "center",
+    marginBottom: 4,
+  },
+  statusButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  statusDescription: {
+    fontSize: 13,
+    lineHeight: 18,
+    marginTop: 4,
+    fontStyle: "italic",
   },
 });
 

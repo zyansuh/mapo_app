@@ -17,11 +17,13 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { COLORS } from "../styles/colors";
 import { Invoice, InvoiceStatus, TaxType } from "../types";
 import { formatDate, formatCurrency } from "../utils/format";
+import { useInvoice } from "../hooks";
 
 const InvoiceDetailScreen = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const insets = useSafeAreaInsets();
+  const { updateInvoiceStatus, getInvoiceById } = useInvoice();
 
   const { invoiceId } = route.params;
 
@@ -66,20 +68,54 @@ const InvoiceDetailScreen = () => {
     navigation.navigate("InvoiceEdit", { invoiceId: invoice.id });
   };
 
-  const handleStatusChange = (newStatus: InvoiceStatus) => {
+  const handleStatusChange = async (newStatus: InvoiceStatus) => {
+    const statusDescription = getStatusDescription(newStatus);
+
     Alert.alert(
       "상태 변경",
-      `계산서 상태를 "${newStatus}"로 변경하시겠습니까?`,
+      `계산서 상태를 "${newStatus}"로 변경하시겠습니까?\n\n${statusDescription}`,
       [
         { text: "취소", style: "cancel" },
         {
           text: "변경",
-          onPress: () => {
-            Alert.alert("완료", `상태가 "${newStatus}"로 변경되었습니다.`);
+          onPress: async () => {
+            const success = await updateInvoiceStatus(invoiceId, newStatus);
+            if (success) {
+              // 상태 변경 후 화면 새로고침을 위해 다시 가져오기
+              const updatedInvoice = getInvoiceById(invoiceId);
+              if (updatedInvoice) {
+                // 인보이스 상태 업데이트 (실제로는 useState로 관리해야 하지만 여기서는 단순화)
+                Alert.alert(
+                  "완료",
+                  `${updatedInvoice.invoiceNumber} 계산서 상태가 "${newStatus}"로 변경되었습니다.`,
+                  [{ text: "확인", onPress: () => navigation.goBack() }]
+                );
+              }
+            } else {
+              Alert.alert("오류", "상태 변경에 실패했습니다.");
+            }
           },
         },
       ]
     );
+  };
+
+  // 상태별 설명 함수 (계산서 생성 화면과 동일)
+  const getStatusDescription = (status: InvoiceStatus): string => {
+    switch (status) {
+      case "임시저장":
+        return "📝 작성 중인 계산서입니다. 언제든 수정할 수 있습니다.";
+      case "발행":
+        return "✅ 완성된 계산서입니다. 거래처에 발송할 준비가 되었습니다.";
+      case "전송":
+        return "📤 거래처에 발송된 계산서입니다. 승인을 기다리고 있습니다.";
+      case "승인":
+        return "🎉 거래처에서 승인된 계산서입니다. 거래가 확정되었습니다.";
+      case "취소":
+        return "❌ 취소된 계산서입니다. 더 이상 유효하지 않습니다.";
+      default:
+        return "";
+    }
   };
 
   const getStatusColor = (status: InvoiceStatus) => {
@@ -114,10 +150,7 @@ const InvoiceDetailScreen = () => {
 
   return (
     <>
-      <StatusBar
-        backgroundColor={COLORS.primary}
-        barStyle="light-content"
-      />
+      <StatusBar backgroundColor={COLORS.primary} barStyle="light-content" />
       <SafeAreaView
         style={[
           styles.container,
@@ -136,41 +169,26 @@ const InvoiceDetailScreen = () => {
               style={styles.backButton}
               onPress={() => navigation.goBack()}
             >
-              <Ionicons
-                name="arrow-back"
-                size={24}
-                color={COLORS.white}
-              />
+              <Ionicons name="arrow-back" size={24} color={COLORS.white} />
             </TouchableOpacity>
             <Text style={[styles.headerTitle, { color: COLORS.white }]}>
               계산서 상세
             </Text>
             <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
-              <Ionicons
-                name="create-outline"
-                size={24}
-                color={COLORS.white}
-              />
+              <Ionicons name="create-outline" size={24} color={COLORS.white} />
             </TouchableOpacity>
           </View>
         </LinearGradient>
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           {/* 기본 정보 */}
-          <View
-            style={[styles.section, { backgroundColor: COLORS.white }]}
-          >
+          <View style={[styles.section, { backgroundColor: COLORS.white }]}>
             <Text style={[styles.sectionTitle, { color: COLORS.text }]}>
               기본 정보
             </Text>
 
             <View style={styles.infoRow}>
-              <Text
-                style={[
-                  styles.infoLabel,
-                  { color: COLORS.textSecondary },
-                ]}
-              >
+              <Text style={[styles.infoLabel, { color: COLORS.textSecondary }]}>
                 계산서 번호
               </Text>
               <Text style={[styles.infoValue, { color: COLORS.text }]}>
@@ -179,12 +197,7 @@ const InvoiceDetailScreen = () => {
             </View>
 
             <View style={styles.infoRow}>
-              <Text
-                style={[
-                  styles.infoLabel,
-                  { color: COLORS.textSecondary },
-                ]}
-              >
+              <Text style={[styles.infoLabel, { color: COLORS.textSecondary }]}>
                 발행일
               </Text>
               <Text style={[styles.infoValue, { color: COLORS.text }]}>
@@ -193,12 +206,7 @@ const InvoiceDetailScreen = () => {
             </View>
 
             <View style={styles.infoRow}>
-              <Text
-                style={[
-                  styles.infoLabel,
-                  { color: COLORS.textSecondary },
-                ]}
-              >
+              <Text style={[styles.infoLabel, { color: COLORS.textSecondary }]}>
                 상태
               </Text>
               <View style={styles.statusContainer}>
@@ -220,25 +228,35 @@ const InvoiceDetailScreen = () => {
                 <TouchableOpacity
                   style={styles.statusChangeButton}
                   onPress={() => {
-                    Alert.alert("상태 변경", "변경할 상태를 선택하세요", [
-                      { text: "취소", style: "cancel" },
+                    const statusOptions = [
+                      { text: "취소", style: "cancel" as const },
                       {
-                        text: "임시저장",
+                        text: "📝 임시저장",
                         onPress: () => handleStatusChange("임시저장"),
                       },
                       {
-                        text: "발행",
+                        text: "✅ 발행",
                         onPress: () => handleStatusChange("발행"),
                       },
                       {
-                        text: "전송",
+                        text: "📤 전송",
                         onPress: () => handleStatusChange("전송"),
                       },
                       {
-                        text: "승인",
+                        text: "🎉 승인",
                         onPress: () => handleStatusChange("승인"),
                       },
-                    ]);
+                      {
+                        text: "❌ 취소",
+                        onPress: () => handleStatusChange("취소"),
+                      },
+                    ];
+
+                    Alert.alert(
+                      "계산서 상태 변경",
+                      `현재 상태: ${invoice.status}\n\n변경할 상태를 선택하세요:`,
+                      statusOptions
+                    );
                   }}
                 >
                   <Ionicons
@@ -253,10 +271,7 @@ const InvoiceDetailScreen = () => {
             {invoice.memo && (
               <View style={styles.infoRow}>
                 <Text
-                  style={[
-                    styles.infoLabel,
-                    { color: COLORS.textSecondary },
-                  ]}
+                  style={[styles.infoLabel, { color: COLORS.textSecondary }]}
                 >
                   메모
                 </Text>
@@ -268,9 +283,7 @@ const InvoiceDetailScreen = () => {
           </View>
 
           {/* 품목 정보 */}
-          <View
-            style={[styles.section, { backgroundColor: COLORS.white }]}
-          >
+          <View style={[styles.section, { backgroundColor: COLORS.white }]}>
             <Text style={[styles.sectionTitle, { color: COLORS.text }]}>
               품목 정보
             </Text>
@@ -315,10 +328,7 @@ const InvoiceDetailScreen = () => {
                       수량
                     </Text>
                     <Text
-                      style={[
-                        styles.itemDetailValue,
-                        { color: COLORS.text },
-                      ]}
+                      style={[styles.itemDetailValue, { color: COLORS.text }]}
                     >
                       {item.quantity}개
                     </Text>
@@ -334,10 +344,7 @@ const InvoiceDetailScreen = () => {
                       단가
                     </Text>
                     <Text
-                      style={[
-                        styles.itemDetailValue,
-                        { color: COLORS.text },
-                      ]}
+                      style={[styles.itemDetailValue, { color: COLORS.text }]}
                     >
                       {formatCurrency(item.unitPrice)}
                     </Text>
@@ -353,10 +360,7 @@ const InvoiceDetailScreen = () => {
                       공급가액
                     </Text>
                     <Text
-                      style={[
-                        styles.itemDetailValue,
-                        { color: COLORS.text },
-                      ]}
+                      style={[styles.itemDetailValue, { color: COLORS.text }]}
                     >
                       {formatCurrency(item.amount)}
                     </Text>
@@ -372,10 +376,7 @@ const InvoiceDetailScreen = () => {
                       세액
                     </Text>
                     <Text
-                      style={[
-                        styles.itemDetailValue,
-                        { color: COLORS.text },
-                      ]}
+                      style={[styles.itemDetailValue, { color: COLORS.text }]}
                     >
                       {formatCurrency(item.taxAmount)}
                     </Text>
@@ -383,18 +384,12 @@ const InvoiceDetailScreen = () => {
 
                   <View style={[styles.itemDetailRow, styles.totalRow]}>
                     <Text
-                      style={[
-                        styles.itemTotalLabel,
-                        { color: COLORS.text },
-                      ]}
+                      style={[styles.itemTotalLabel, { color: COLORS.text }]}
                     >
                       합계
                     </Text>
                     <Text
-                      style={[
-                        styles.itemTotalValue,
-                        { color: COLORS.primary },
-                      ]}
+                      style={[styles.itemTotalValue, { color: COLORS.primary }]}
                     >
                       {formatCurrency(item.totalAmount)}
                     </Text>
@@ -405,9 +400,7 @@ const InvoiceDetailScreen = () => {
           </View>
 
           {/* 합계 금액 */}
-          <View
-            style={[styles.section, { backgroundColor: COLORS.white }]}
-          >
+          <View style={[styles.section, { backgroundColor: COLORS.white }]}>
             <Text style={[styles.sectionTitle, { color: COLORS.text }]}>
               합계 금액
             </Text>
@@ -415,10 +408,7 @@ const InvoiceDetailScreen = () => {
             <View style={styles.totalContainer}>
               <View style={styles.totalRow}>
                 <Text
-                  style={[
-                    styles.totalLabel,
-                    { color: COLORS.textSecondary },
-                  ]}
+                  style={[styles.totalLabel, { color: COLORS.textSecondary }]}
                 >
                   공급가액
                 </Text>
@@ -429,10 +419,7 @@ const InvoiceDetailScreen = () => {
 
               <View style={styles.totalRow}>
                 <Text
-                  style={[
-                    styles.totalLabel,
-                    { color: COLORS.textSecondary },
-                  ]}
+                  style={[styles.totalLabel, { color: COLORS.textSecondary }]}
                 >
                   세액
                 </Text>
@@ -442,16 +429,11 @@ const InvoiceDetailScreen = () => {
               </View>
 
               <View style={[styles.totalRow, styles.grandTotalRow]}>
-                <Text
-                  style={[styles.grandTotalLabel, { color: COLORS.text }]}
-                >
+                <Text style={[styles.grandTotalLabel, { color: COLORS.text }]}>
                   총 합계
                 </Text>
                 <Text
-                  style={[
-                    styles.grandTotalValue,
-                    { color: COLORS.primary },
-                  ]}
+                  style={[styles.grandTotalValue, { color: COLORS.primary }]}
                 >
                   {formatCurrency(invoice.totalAmount)}
                 </Text>
@@ -462,29 +444,17 @@ const InvoiceDetailScreen = () => {
           {/* 액션 버튼들 */}
           <View style={styles.actionSection}>
             <TouchableOpacity
-              style={[
-                styles.actionButton,
-                { backgroundColor: COLORS.primary },
-              ]}
+              style={[styles.actionButton, { backgroundColor: COLORS.primary }]}
               onPress={handleEdit}
             >
-              <Ionicons
-                name="create-outline"
-                size={20}
-                color={COLORS.white}
-              />
-              <Text
-                style={[styles.actionButtonText, { color: COLORS.white }]}
-              >
+              <Ionicons name="create-outline" size={20} color={COLORS.white} />
+              <Text style={[styles.actionButtonText, { color: COLORS.white }]}>
                 수정하기
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[
-                styles.actionButton,
-                { backgroundColor: COLORS.success },
-              ]}
+              style={[styles.actionButton, { backgroundColor: COLORS.success }]}
               onPress={() =>
                 Alert.alert(
                   "기능 준비중",
@@ -497,9 +467,7 @@ const InvoiceDetailScreen = () => {
                 size={20}
                 color={COLORS.white}
               />
-              <Text
-                style={[styles.actionButtonText, { color: COLORS.white }]}
-              >
+              <Text style={[styles.actionButtonText, { color: COLORS.white }]}>
                 PDF 내보내기
               </Text>
             </TouchableOpacity>
