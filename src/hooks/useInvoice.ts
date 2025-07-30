@@ -184,6 +184,293 @@ const getSampleInvoices = (): Invoice[] => [
     createdAt: new Date("2024-06-15"),
     updatedAt: new Date("2024-06-15"),
   },
+  // 추가 샘플 데이터 - 매출분석을 위한 다양한 거래처 데이터
+  {
+    id: "7",
+    invoiceNumber: "INV-2024-007",
+    companyId: "comp4", // (유)승일
+    items: [
+      {
+        id: "item10",
+        name: "착한손두부",
+        quantity: 50,
+        unitPrice: 2000,
+        amount: 100000,
+        taxType: "면세" as TaxType,
+        taxAmount: 0,
+        totalAmount: 100000,
+      },
+    ],
+    totalSupplyAmount: 100000,
+    totalTaxAmount: 0,
+    totalAmount: 100000,
+    issueDate: new Date("2024-01-20"),
+    status: "승인" as InvoiceStatus,
+    createdAt: new Date("2024-01-20"),
+    updatedAt: new Date("2024-01-20"),
+  },
+  {
+    id: "8",
+    invoiceNumber: "INV-2024-008",
+    companyId: "comp5", // 강진터미널마트
+    items: [
+      {
+        id: "item11",
+        name: "도토리묵",
+        quantity: 25,
+        unitPrice: 2500,
+        amount: 62500,
+        taxType: "과세" as TaxType,
+        taxAmount: 6250,
+        totalAmount: 68750,
+      },
+      {
+        id: "item12",
+        name: "청포묵",
+        quantity: 15,
+        unitPrice: 2200,
+        amount: 33000,
+        taxType: "과세" as TaxType,
+        taxAmount: 3300,
+        totalAmount: 36300,
+      },
+    ],
+    totalSupplyAmount: 95500,
+    totalTaxAmount: 9550,
+    totalAmount: 105050,
+    issueDate: new Date("2024-02-25"),
+    status: "발행" as InvoiceStatus,
+    createdAt: new Date("2024-02-25"),
+    updatedAt: new Date("2024-02-25"),
+  },
+  {
+    id: "9",
+    invoiceNumber: "INV-2024-009",
+    companyId: "comp6", // 고향맛집
+    items: [
+      {
+        id: "item13",
+        name: "시루콩나물",
+        quantity: 40,
+        unitPrice: 1500,
+        amount: 60000,
+        taxType: "면세" as TaxType,
+        taxAmount: 0,
+        totalAmount: 60000,
+      },
+      {
+        id: "item14",
+        name: "순두부",
+        quantity: 20,
+        unitPrice: 1800,
+        amount: 36000,
+        taxType: "면세" as TaxType,
+        taxAmount: 0,
+        totalAmount: 36000,
+      },
+    ],
+    totalSupplyAmount: 96000,
+    totalTaxAmount: 0,
+    totalAmount: 96000,
+    issueDate: new Date("2024-03-10"),
+    status: "승인" as InvoiceStatus,
+    createdAt: new Date("2024-03-10"),
+    updatedAt: new Date("2024-03-10"),
+  },
+  {
+    id: "10",
+    invoiceNumber: "INV-2024-010",
+    companyId: "comp7", // 담양마트
+    items: [
+      {
+        id: "item15",
+        name: "묵사발",
+        quantity: 100,
+        unitPrice: 1500,
+        amount: 150000,
+        taxType: "과세" as TaxType,
+        taxAmount: 15000,
+        totalAmount: 165000,
+      },
+    ],
+    totalSupplyAmount: 150000,
+    totalTaxAmount: 15000,
+    totalAmount: 165000,
+    issueDate: new Date("2024-04-05"),
+    status: "발행" as InvoiceStatus,
+    createdAt: new Date("2024-04-05"),
+    updatedAt: new Date("2024-04-05"),
+  },
+  {
+    id: "11",
+    invoiceNumber: "INV-2024-011",
+    companyId: "comp1", // 마포종합식품 (추가 거래)
+    items: [
+      {
+        id: "item16",
+        name: "착한손두부",
+        quantity: 35,
+        unitPrice: 2000,
+        amount: 70000,
+        taxType: "면세" as TaxType,
+        taxAmount: 0,
+        totalAmount: 70000,
+      },
+      {
+        id: "item17",
+        name: "대파콩나물",
+        quantity: 25,
+        unitPrice: 1200,
+        amount: 30000,
+        taxType: "면세" as TaxType,
+        taxAmount: 0,
+        totalAmount: 30000,
+      },
+    ],
+    totalSupplyAmount: 100000,
+    totalTaxAmount: 0,
+    totalAmount: 100000,
+    issueDate: new Date("2024-05-15"),
+    status: "승인" as InvoiceStatus,
+    createdAt: new Date("2024-05-15"),
+    updatedAt: new Date("2024-05-15"),
+  },
+  {
+    id: "12",
+    invoiceNumber: "INV-2024-012",
+    companyId: "comp8", // 백제회관
+    items: [
+      {
+        id: "item18",
+        name: "도토리묵",
+        quantity: 12,
+        unitPrice: 2500,
+        amount: 30000,
+        taxType: "과세" as TaxType,
+        taxAmount: 3000,
+        totalAmount: 33000,
+      },
+      {
+        id: "item19",
+        name: "메밀묵",
+        quantity: 8,
+        unitPrice: 3000,
+        amount: 24000,
+        taxType: "과세" as TaxType,
+        taxAmount: 2400,
+        totalAmount: 26400,
+      },
+      {
+        id: "item20",
+        name: "순두부",
+        quantity: 15,
+        unitPrice: 1800,
+        amount: 27000,
+        taxType: "면세" as TaxType,
+        taxAmount: 0,
+        totalAmount: 27000,
+      },
+    ],
+    totalSupplyAmount: 81000,
+    totalTaxAmount: 5400,
+    totalAmount: 86400,
+    issueDate: new Date("2024-06-20"),
+    status: "발행" as InvoiceStatus,
+    createdAt: new Date("2024-06-20"),
+    updatedAt: new Date("2024-06-20"),
+  },
+  {
+    id: "13",
+    invoiceNumber: "INV-2024-013",
+    companyId: "comp2", // (유)승일 (추가 거래)
+    items: [
+      {
+        id: "item21",
+        name: "청포묵",
+        quantity: 30,
+        unitPrice: 2200,
+        amount: 66000,
+        taxType: "과세" as TaxType,
+        taxAmount: 6600,
+        totalAmount: 72600,
+      },
+    ],
+    totalSupplyAmount: 66000,
+    totalTaxAmount: 6600,
+    totalAmount: 72600,
+    issueDate: new Date("2024-07-01"),
+    status: "승인" as InvoiceStatus,
+    createdAt: new Date("2024-07-01"),
+    updatedAt: new Date("2024-07-01"),
+  },
+  {
+    id: "14",
+    invoiceNumber: "INV-2024-014",
+    companyId: "comp9", // 담양대통죽순순대
+    items: [
+      {
+        id: "item22",
+        name: "시루콩나물",
+        quantity: 60,
+        unitPrice: 1500,
+        amount: 90000,
+        taxType: "면세" as TaxType,
+        taxAmount: 0,
+        totalAmount: 90000,
+      },
+      {
+        id: "item23",
+        name: "착한손두부",
+        quantity: 10,
+        unitPrice: 2000,
+        amount: 20000,
+        taxType: "면세" as TaxType,
+        taxAmount: 0,
+        totalAmount: 20000,
+      },
+    ],
+    totalSupplyAmount: 110000,
+    totalTaxAmount: 0,
+    totalAmount: 110000,
+    issueDate: new Date("2024-07-10"),
+    status: "발행" as InvoiceStatus,
+    createdAt: new Date("2024-07-10"),
+    updatedAt: new Date("2024-07-10"),
+  },
+  {
+    id: "15",
+    invoiceNumber: "INV-2024-015",
+    companyId: "comp10", // 담양백동숯불갈비
+    items: [
+      {
+        id: "item24",
+        name: "묵사발",
+        quantity: 45,
+        unitPrice: 1500,
+        amount: 67500,
+        taxType: "과세" as TaxType,
+        taxAmount: 6750,
+        totalAmount: 74250,
+      },
+      {
+        id: "item25",
+        name: "도토리묵",
+        quantity: 18,
+        unitPrice: 2500,
+        amount: 45000,
+        taxType: "과세" as TaxType,
+        taxAmount: 4500,
+        totalAmount: 49500,
+      },
+    ],
+    totalSupplyAmount: 112500,
+    totalTaxAmount: 11250,
+    totalAmount: 123750,
+    issueDate: new Date("2024-07-15"),
+    status: "승인" as InvoiceStatus,
+    createdAt: new Date("2024-07-15"),
+    updatedAt: new Date("2024-07-15"),
+  },
 ];
 
 interface UseInvoiceReturn {
@@ -344,13 +631,14 @@ export const useInvoice = (): UseInvoiceReturn => {
   const updateInvoiceStatus = useCallback(
     async (id: string, status: InvoiceStatus): Promise<boolean> => {
       try {
-        setInvoices((prev) =>
-          prev.map((invoice) =>
-            invoice.id === id
-              ? { ...invoice, status, updatedAt: new Date() }
-              : invoice
-          )
+        const updatedInvoices = invoices.map((invoice) =>
+          invoice.id === id
+            ? { ...invoice, status, updatedAt: new Date() }
+            : invoice
         );
+
+        setInvoices(updatedInvoices);
+        await saveToStorage(updatedInvoices);
         return true;
       } catch (err) {
         setError("계산서 상태 변경에 실패했습니다.");
@@ -358,7 +646,7 @@ export const useInvoice = (): UseInvoiceReturn => {
         return false;
       }
     },
-    []
+    [invoices, saveToStorage]
   );
 
   const refreshData = useCallback(async () => {

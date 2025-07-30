@@ -122,21 +122,32 @@ const InvoiceEditScreen = () => {
     return company?.name || "거래처를 선택하세요";
   };
 
-  // 거래처 검색 함수
+  // 거래처 검색 함수 (CompanyListScreen과 동일한 로직)
   const getFilteredCompanies = () => {
     if (!companySearchQuery.trim()) {
       return companies;
     }
 
-    const query = companySearchQuery.toLowerCase();
+    const query = companySearchQuery.toLowerCase().trim();
     return companies.filter(
       (company) =>
         company.name.toLowerCase().includes(query) ||
         company.type.toLowerCase().includes(query) ||
         company.region.toLowerCase().includes(query) ||
         company.address.toLowerCase().includes(query) ||
-        company.contactPerson?.toLowerCase().includes(query) ||
-        company.phoneNumber.includes(query)
+        (company.contactPerson &&
+          company.contactPerson.toLowerCase().includes(query)) ||
+        company.phoneNumber
+          .replace(/[^0-9]/g, "")
+          .includes(query.replace(/[^0-9]/g, "")) ||
+        (company.businessNumber &&
+          company.businessNumber
+            .replace(/[^0-9]/g, "")
+            .includes(query.replace(/[^0-9]/g, ""))) ||
+        (company.contactPhone &&
+          company.contactPhone
+            .replace(/[^0-9]/g, "")
+            .includes(query.replace(/[^0-9]/g, "")))
     );
   };
 

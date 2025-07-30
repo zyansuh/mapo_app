@@ -86,14 +86,16 @@ _마포종합식품의 거래처, 계산서, 배송, 매출을 한 번에 관리
 
 ### **🎨 UI/UX & Design System**
 
-[![Styled Components](https://img.shields.io/badge/Styled_Components-DB7093?style=for-the-badge&logo=styled-components&logoColor=white)](https://styled-components.com/)
 [![React Native SVG](https://img.shields.io/badge/React_Native_SVG-15.12.0-FF6B6B?style=for-the-badge&logo=svg&logoColor=white)](https://github.com/software-mansion/react-native-svg)
 [![Linear Gradient](https://img.shields.io/badge/Linear_Gradient-14.1.5-4ECDC4?style=for-the-badge&logo=gradient&logoColor=white)](https://docs.expo.dev/versions/latest/sdk/linear-gradient/)
-[![Vector Icons](https://img.shields.io/badge/Vector_Icons-Ionicons-3498DB?style=for-the-badge&logo=ionic&logoColor=white)](https://ionicons.com/)
+[![Safe Area Context](https://img.shields.io/badge/Safe_Area_Context-5.4.0-32CD32?style=for-the-badge&logo=react&logoColor=white)](https://github.com/th3rdwave/react-native-safe-area-context)
+[![Screens](https://img.shields.io/badge/Screens-4.11.1-9370DB?style=for-the-badge&logo=react&logoColor=white)](https://github.com/software-mansion/react-native-screens)
 
 ### **🧭 Navigation & State**
 
 [![React Navigation](https://img.shields.io/badge/React_Navigation-7.1.14-6366F1?style=for-the-badge&logo=react&logoColor=white)](https://reactnavigation.org/)
+[![Bottom Tabs](https://img.shields.io/badge/Bottom_Tabs-7.4.2-4169E1?style=for-the-badge&logo=react&logoColor=white)](https://reactnavigation.org/docs/bottom-tab-navigator/)
+[![Stack Navigator](https://img.shields.io/badge/Stack_Navigator-7.4.2-191970?style=for-the-badge&logo=react&logoColor=white)](https://reactnavigation.org/docs/stack-navigator/)
 [![React Hooks](https://img.shields.io/badge/React_Hooks-Custom-61DAFB?style=for-the-badge&logo=react&logoColor=white)](https://reactjs.org/docs/hooks-intro.html)
 [![Context API](https://img.shields.io/badge/Context_API-React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/docs/context.html)
 
@@ -124,13 +126,20 @@ _마포종합식품의 거래처, 계산서, 배송, 매출을 한 번에 관리
 
 [![Android](https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://developer.android.com/)
 [![iOS](https://img.shields.io/badge/iOS-000000?style=for-the-badge&logo=ios&logoColor=white)](https://developer.apple.com/ios/)
-[![Metro](https://img.shields.io/badge/Metro-5.0.4-FF6B6B?style=for-the-badge&logo=metro&logoColor=white)](https://metrobundler.dev/)
+[![React Native Web](https://img.shields.io/badge/React_Native_Web-0.20.0-61DAFB?style=for-the-badge&logo=react&logoColor=white)](https://necolas.github.io/react-native-web/)
+[![Metro Runtime](https://img.shields.io/badge/Metro_Runtime-5.0.4-FF6B6B?style=for-the-badge&logo=metro&logoColor=white)](https://metrobundler.dev/)
+
+### **📱 Expo SDK & Services**
+
+[![Expo Constants](https://img.shields.io/badge/Expo_Constants-17.1.7-000020?style=for-the-badge&logo=expo&logoColor=white)](https://docs.expo.dev/versions/latest/sdk/constants/)
+[![Expo Device](https://img.shields.io/badge/Expo_Device-7.1.4-000020?style=for-the-badge&logo=expo&logoColor=white)](https://docs.expo.dev/versions/latest/sdk/device/)
+[![Expo Status Bar](https://img.shields.io/badge/Expo_Status_Bar-2.2.3-000020?style=for-the-badge&logo=expo&logoColor=white)](https://docs.expo.dev/versions/latest/sdk/status-bar/)
 
 ### **🛠️ Development Tools**
 
 [![Babel](https://img.shields.io/badge/Babel-7.25.2-F9DC3E?style=for-the-badge&logo=babel&logoColor=black)](https://babeljs.io/)
 [![Sharp](https://img.shields.io/badge/Sharp-0.34.3-99CC00?style=for-the-badge&logo=sharp&logoColor=white)](https://sharp.pixelplumbing.com/)
-[![ESLint](https://img.shields.io/badge/ESLint-4B32C3?style=for-the-badge&logo=eslint&logoColor=white)](https://eslint.org/)
+[![TypeScript Types](https://img.shields.io/badge/TypeScript_Types-React_Native-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.npmjs.com/package/@types/react-native)
 
 ---
 
@@ -193,10 +202,13 @@ _마포종합식품의 거래처, 계산서, 배송, 매출을 한 번에 관리
 
 #### 🔍 **고급 검색 및 필터링**
 
-- **실시간 검색**: 거래처명, 주소, 담당자명, 전화번호, 사업자번호
+- **🆕 통합 검색 시스템**: 모든 화면에서 동일한 검색 로직 적용
+- **실시간 검색**: 거래처명, 주소, 담당자명, 전화번호, 사업자번호, 담당자 연락처
+- **🆕 스마트 번호 검색**: 전화번호/사업자번호 입력 시 특수문자 자동 제거하여 검색
 - **퍼지 검색**: 오타나 부분 일치에도 정확한 결과
 - **다중 필터**: 거래처 유형, 지역, 등록일별 필터링
 - **검색 결과 하이라이팅**: 일치하는 텍스트 강조 표시
+- **🆕 안전한 검색**: undefined/null 값 체크로 검색 오류 방지
 
 #### 📞 **통신 기능**
 
@@ -227,7 +239,9 @@ _마포종합식품의 거래처, 계산서, 배송, 매출을 한 번에 관리
 
   - 세련된 드롭다운 버튼으로 거래처 선택
   - 전체화면 모달에서 거래처 목록 표시 (거래처명, 유형, 지역)
-  - **🔍 스마트 검색**: 거래처명, 유형, 지역, 주소, 담당자, 전화번호로 검색
+  - **🔍 스마트 검색**: 거래처명, 유형, 지역, 주소, 담당자, 전화번호, 사업자번호, 담당자 연락처로 검색
+  - **🆕 고급 번호 검색**: 전화번호/사업자번호 입력 시 하이픈(-) 등 특수문자 자동 제거
+  - **🆕 안전한 검색**: null/undefined 값 체크로 검색 오류 방지
   - 실시간 검색 결과 개수 표시
   - 거래처별 계산서 생성 시 자동 선택
   - 계산서 편집 시 기존 거래처 정보 자동 로드
@@ -356,15 +370,18 @@ _마포종합식품의 거래처, 계산서, 배송, 매출을 한 번에 관리
 #### 🔍 **검색 및 필터링 엔진**
 
 - **실시간 검색**: 타이핑과 동시에 결과 표시
+- **🆕 스마트 번호 검색**: 전화번호/사업자번호 형식 자동 처리
+- **🆕 통합 검색 로직**: 모든 화면에서 일관된 검색 경험
 - **퍼지 매칭**: 오타 허용 검색
 - **고급 필터**: 다중 조건 조합 검색
+- **🆕 안전한 검색**: 에러 방지를 위한 데이터 검증
 - **검색 히스토리**: 최근 검색어 저장
 
 ---
 
 ## 📱 화면 구성
 
-### 🏠 **홈 화면 (HomeScreen)** - 13KB, 437줄
+### 🏠 **홈 화면 (HomeScreen)**
 
 - **HERO 섹션**: 브랜드 로고 및 환영 메시지
 - **빠른 통계**: 총 거래처 수, 계산서 수 등 핵심 지표
@@ -379,7 +396,7 @@ _마포종합식품의 거래처, 계산서, 배송, 매출을 한 번에 관리
 
 ### 🏢 **거래처 관련 화면**
 
-#### **거래처 목록 화면 (CompanyListScreen)** - 17KB, 619줄
+#### **거래처 목록 화면 (CompanyListScreen)**
 
 - **헤더**: 검색 버튼 및 총 거래처 수 표시
 - **검색 기능**: 펼침/접힘 가능한 검색 바
@@ -499,26 +516,112 @@ src/
 ├── components/           # 재사용 가능한 UI 컴포넌트
 │   ├── common/          # 공통 컴포넌트
 │   │   ├── OptimizedFlatList.tsx      # 성능 최적화 리스트
-│   │   └── PerformanceOptimizedFlatList.tsx  # 고성능 리스트
+│   │   ├── PerformanceOptimizedFlatList.tsx # 고성능 리스트
+│   │   └── Card.tsx                   # 카드 컴포넌트
 │   ├── forms/           # 폼 관련 컴포넌트
-│   │   └── Select.tsx   # 드롭다운 선택 컴포넌트
+│   │   ├── Select.tsx               # 드롭다운 선택 컴포넌트
+│   │   ├── Input.tsx                # 입력 필드 컴포넌트
+│   │   ├── Picker.tsx               # 피커 컴포넌트
+│   │   ├── Button.tsx               # 버튼 컴포넌트
+│   │   └── TextInput.tsx            # 텍스트 입력 컴포넌트
 │   ├── modals/          # 모달 컴포넌트
-│   ├── charts/          # 차트 컴포넌트
+│   │   ├── CompanyRegistrationModal.tsx # 거래처 등록 모달
+│   │   └── DeliveryRegistrationModal.tsx # 배송 등록 모달
+│   ├── charts/          # 차트 컴포넌트 (미래 확장용)
 │   ├── company/         # 거래처 전용 컴포넌트
+│   │   └── CompanyListItem.tsx      # 거래처 목록 아이템
 │   ├── styles/          # 컴포넌트별 스타일
-│   ├── ProductSelection.tsx  # 상품 선택 컴포넌트 (19KB, 697줄)
-│   └── QRCodeGenerator.tsx   # QR 코드 생성기 (8KB, 310줄)
+│   │   ├── index.ts                 # 스타일 통합 익스포트
+│   │   ├── listStyles.ts            # 리스트 스타일
+│   │   ├── formStyles.ts            # 폼 스타일
+│   │   └── modalStyles.ts           # 모달 스타일
+│   ├── ProductSelection.tsx  # 상품 선택 컴포넌트
+│   ├── QRCodeGenerator.tsx   # QR 코드 생성기
+│   └── index.ts              # 컴포넌트 통합 익스포트
 ├── screens/             # 화면 컴포넌트 (14개)
+│   ├── HomeScreen.tsx              # 홈 화면
+│   ├── CompanyListScreen.tsx       # 거래처 목록
+│   ├── CompanyDetailScreen.tsx     # 거래처 상세
+│   ├── CompanyEditScreen.tsx       # 거래처 편집
+│   ├── CompanyImportScreen.tsx     # 거래처 가져오기
+│   ├── DirectImportScreen.tsx      # 직접 가져오기
+│   ├── InvoiceManagementScreen.tsx # 계산서 관리
+│   ├── InvoiceEditScreen.tsx       # 계산서 편집
+│   ├── InvoiceDetailScreen.tsx     # 계산서 상세
+│   ├── CompanySalesAnalysisScreen.tsx # 매출 분석
+│   ├── CompanySalesDetailScreen.tsx   # 매출 상세
+│   ├── DeliveryManagementScreen.tsx   # 배송 관리
+│   ├── DeliveryDetailScreen.tsx       # 배송 상세
+│   ├── DeliveryEditScreen.tsx         # 배송 편집
+│   └── index.ts                # 화면 통합 익스포트
 ├── navigation/          # 네비게이션 설정
+│   ├── AppNavigator.tsx        # 메인 네비게이터
+│   └── index.ts                # 네비게이션 익스포트
 ├── hooks/              # 커스텀 훅 (13개)
+│   ├── useApi.ts               # API 훅
+│   ├── useCallAnalytics.ts     # 통화 분석 훅
+│   ├── useCallDetection.ts     # 통화 감지 훅
+│   ├── useCompany.v2.ts        # 거래처 관리 훅 v2
+│   ├── useCompany.ts           # 거래처 관리 훅
+│   ├── useInvoice.ts           # 계산서 관리 훅
+│   ├── useDelivery.ts          # 배송 관리 훅
+│   ├── usePhoneCall.ts         # 전화 걸기 훅
+│   ├── useSalesAnalytics.ts    # 매출 분석 훅
+│   ├── useKeyboardShortcuts.ts # 키보드 단축키
+│   ├── useCommonActions.ts     # 공통 액션 훅
+│   ├── useOptimizedComponent.ts # React 최적화 훅
+│   ├── useOptimizedData.ts     # 데이터 최적화 훅
+│   └── index.ts                # 훅 통합 익스포트
 ├── services/           # API 및 외부 서비스
+│   ├── api.ts                  # API 서비스
+│   ├── kakaoApi.ts             # 카카오맵 API
+│   └── storage.ts              # 스토리지 서비스
 ├── utils/              # 유틸리티 함수 (10개)
+│   ├── format.ts               # 포맷팅 함수
+│   ├── validation.ts           # 유효성 검사
+│   ├── scaling.ts              # 스케일링 시스템
+│   ├── importCompanies.ts      # 거래처 가져오기
+│   ├── bulkImportCompanies.ts  # 일괄 가져오기
+│   ├── directImportCompanies.ts # 직접 가져오기
+│   ├── resetImport.ts          # 가져오기 초기화
+│   ├── performanceHelper.ts    # 성능 도구
+│   ├── performanceOptimizer.ts # 성능 최적화
+│   └── index.ts                # 유틸리티 익스포트
 ├── types/              # TypeScript 타입 정의 (9개)
+│   ├── common.ts               # 공통 타입
+│   ├── company.ts              # 거래처 타입
+│   ├── invoice.ts              # 계산서 타입
+│   ├── delivery.ts             # 배송 타입
+│   ├── product.ts              # 상품 타입
+│   ├── analytics.ts            # 분석 타입
+│   ├── call.ts                 # 통화 타입
+│   ├── navigation.ts           # 네비게이션 타입
+│   ├── react-native-phone-call.d.ts # 전화 타입 선언
+│   └── index.ts                # 타입 통합 익스포트
 ├── styles/             # 스타일 시스템
+│   ├── themes.ts               # 통합 테마 시스템
+│   ├── colors.ts               # 색상 팔레트
+│   ├── dimensions.ts           # 반응형 차원
+│   ├── index.ts                # 스타일 통합 익스포트
+│   ├── components/             # 컴포넌트별 스타일
+│   │   ├── index.ts            # 컴포넌트 스타일 익스포트
+│   │   ├── cardStyles.ts       # 카드 스타일
+│   │   └── buttonStyles.ts     # 버튼 스타일
+│   └── screens/                # 화면별 스타일
+│       ├── index.ts            # 화면 스타일 익스포트
+│       ├── invoiceEditStyles.ts # 계산서 편집 스타일
+│       └── invoiceDetailStyles.ts # 계산서 상세 스타일
 ├── constants/          # 상수 정의
+│   ├── app.ts                  # 앱 상수
+│   ├── messages.ts             # 메시지 상수
+│   └── index.ts                # 상수 통합 익스포트
 ├── data/               # 초기 데이터
+│   └── companies.ts            # 거래처 초기 데이터
 ├── providers/          # 컨텍스트 프로바이더
-└── scripts/            # 빌드 및 배포 스크립트
+│   └── CallProvider.tsx        # 통화 컨텍스트
+├── scripts/            # 빌드 및 배포 스크립트
+│   └── importCompanies.ts      # 가져오기 스크립트
+└── App.tsx             # 메인 앱 컴포넌트
 ```
 
 ### 🎨 **스타일 시스템**
@@ -555,24 +658,57 @@ styles/
 
 #### **데이터 관리 훅**
 
-- **useCompany.v2.ts**: 거래처 데이터 CRUD (11KB, 391줄)
-- **useInvoice.ts**: 계산서 관리 (10KB, 395줄)
-- **useDelivery.ts**: 배송 관리 (8KB, 288줄)
-- **useSalesAnalytics.ts**: 매출 분석 (14KB, 444줄)
+- **useCompany.v2.ts**: 거래처 데이터 CRUD
+- **useCompany.ts**: 기본 거래처 훅
+- **useInvoice.ts**: 계산서 관리
+- **useDelivery.ts**: 배송 관리
+- **useSalesAnalytics.ts**: 매출 분석
 
 #### **UI/UX 최적화 훅**
 
-- **useOptimizedComponent.ts**: React 컴포넌트 최적화 (1.7KB, 73줄)
-- **useOptimizedData.ts**: 데이터 처리 최적화 (2.6KB, 104줄)
-- **useCommonActions.ts**: 공통 액션 관리 (8KB, 346줄)
-- **useKeyboardShortcuts.ts**: 키보드 단축키 (9KB, 351줄)
+- **useOptimizedComponent.ts**: React 컴포넌트 최적화
+- **useOptimizedData.ts**: 데이터 처리 최적화
+- **useCommonActions.ts**: 공통 액션 관리
+- **useKeyboardShortcuts.ts**: 키보드 단축키
 
 #### **통신 관련 훅**
 
-- **usePhoneCall.ts**: 전화 기능 (4KB, 160줄)
-- **useCallDetection.ts**: 통화 감지 (1.8KB, 70줄)
-- **useCallAnalytics.ts**: 통화 분석 (2.4KB, 80줄)
-- **useApi.ts**: API 통신 (1.8KB, 71줄)
+- **usePhoneCall.ts**: 전화 기능
+- **useCallDetection.ts**: 통화 감지
+- **useCallAnalytics.ts**: 통화 분석
+- **useApi.ts**: API 통신
+
+#### **🎯 주요 훅별 기능 상세**
+
+##### **useCompany.v2.ts** - 메인 거래처 관리
+
+- **CRUD 작업**: 생성, 조회, 수정, 삭제 전체 기능
+- **검색 및 필터링**: 실시간 검색, 다중 조건 필터
+- **즐겨찾기 관리**: 즐겨찾기 추가/제거
+- **데이터 가져오기**: CSV/Excel 파일 대량 가져오기 지원
+- **QR 코드 생성**: 거래처 정보 공유
+
+##### **useSalesAnalytics.ts** - 매출 분석 엔진
+
+- **통계 계산**: 일/월/년별 매출 집계
+- **차트 데이터**: 파이차트, 라인차트 데이터 생성
+- **트렌드 분석**: 전년 대비, 성장률 계산
+- **거래처별 분석**: 개별 거래처 매출 상세 분석
+- **상품별 분석**: 카테고리별, 상품별 판매량 분석
+
+##### **useKeyboardShortcuts.ts** - 키보드 최적화
+
+- **단축키 관리**: 전체 앱 키보드 단축키 시스템
+- **생산성 향상**: 빠른 네비게이션 및 액션 실행
+- **접근성 지원**: 키보드만으로 앱 전체 조작 가능
+
+##### **useCommonActions.ts** - 공통 액션 허브
+
+- **로딩 상태**: useLoading 훅 제공
+- **CRUD 액션**: useCrudActions 훅 제공
+- **알림 관리**: useNotifications 훅 제공
+- **폼 관리**: useForm 훅 제공
+- **데이터 페칭**: useDataFetching 훅 제공
 
 ### 💾 **데이터 관리 아키텍처**
 
@@ -586,6 +722,8 @@ interface DataLayer {
   deliveries: Delivery[]; // 배송 데이터
   products: Product[]; // 상품 데이터
   settings: AppSettings; // 앱 설정
+  analytics: AnalyticsData; // 분석 데이터
+  calls: CallHistory[]; // 통화 이력
 }
 ```
 
@@ -779,6 +917,9 @@ npm install -g @expo/cli
 
 ```
 📁 mapo-business-manager/
+├── 📁 .expo/                       # Expo 개발 캐시 (자동 생성)
+├── 📁 .git/                        # Git 버전 관리 디렉토리
+├── 📁 .idea/                       # IDE 설정 (Android Studio/IntelliJ)
 ├── 📁 android/                     # Android 네이티브 코드
 │   ├── 📁 app/
 │   │   ├── 📁 src/main/
@@ -792,6 +933,8 @@ npm install -g @expo/cli
 │   ├── 🖼️ mapo-icon.png            # 앱 아이콘
 │   ├── 🖼️ splash-icon.png          # 스플래시 이미지
 │   └── 🖼️ favicon.png              # 웹 파비콘
+├── 📁 mapoproject/                 # 레거시 프로젝트 디렉토리
+├── 📁 node_modules/                # npm 패키지 디렉토리 (자동 생성)
 ├── 📁 src/                         # 소스 코드
 │   ├── 📁 components/              # 재사용 컴포넌트
 │   │   ├── 📁 common/              # 공통 컴포넌트
@@ -882,17 +1025,19 @@ npm install -g @expo/cli
 │   ├── 📁 providers/               # 컨텍스트 프로바이더
 │   │   └── 📄 CallProvider.tsx     # 통화 컨텍스트
 │   ├── 📁 scripts/                 # 빌드 및 배포 스크립트
-│   └── 📄 App.tsx                  # 메인 앱 컴포넌트 (207B, 9줄)
+│   └── 📄 App.tsx                  # 메인 앱 컴포넌트
+├── 📄 .gitignore                   # Git 무시 파일 목록
 ├── 📄 App.tsx                      # 앱 진입점
-├── 📄 index.ts                     # Expo 진입점
 ├── 📄 app.json                     # Expo 설정
-├── 📄 eas.json                     # EAS 빌드 설정
-├── 📄 package.json                 # 의존성 및 스크립트
-├── 📄 tsconfig.json                # TypeScript 설정
 ├── 📄 babel.config.js              # Babel 설정
+├── 📄 eas.json                     # EAS 빌드 설정
+├── 📄 index.ts                     # Expo 진입점
 ├── 📄 metro.config.js              # Metro 번들러 설정
+├── 📄 package-lock.json            # npm 락 파일
+├── 📄 package.json                 # 의존성 및 스크립트
 ├── 📄 PERFORMANCE_OPTIMIZATION.md  # 성능 최적화 가이드
-└── 📄 README.md                    # 프로젝트 문서
+├── 📄 README.md                    # 프로젝트 문서
+└── 📄 tsconfig.json                # TypeScript 설정
 ```
 
 ---
@@ -1068,6 +1213,16 @@ npm run format
 - **검증 시스템**: 데이터 무결성 보장
 
 ## 🔄 업데이트 내역
+
+### **v2.1.1** (2024.11.28)
+
+- ✅ **거래처 검색 기능 대폭 개선**
+  - 🔍 **사업자번호 검색 추가**: 숫자만 추출하여 정확한 검색
+  - 📞 **담당자 연락처 검색 추가**: contactPhone 필드 검색 지원
+  - 🎯 **전화번호 형식 처리 개선**: 하이픈(-) 등 특수문자 자동 제거
+  - 🛡️ **안전한 문자열 처리**: undefined/null 값 체크로 에러 방지
+  - 📋 **InvoiceEditScreen 검색 통합**: CompanyListScreen과 동일한 검색 로직 적용
+  - 🚀 **검색 성능 향상**: 실시간 검색 결과 개수 표시
 
 ### **v2.1.0** (2024.07.24)
 

@@ -101,18 +101,24 @@ const HomeScreen = () => {
     autoImportCompanies();
   }, [refreshData]);
 
-  // 과세/면세 계산서 통계 계산
+  // 과세/면세 계산서 통계 계산 (중복 카운트 방지)
   const invoiceStats = React.useMemo(() => {
+    // 과세 항목이 하나라도 있으면 과세 계산서로 분류
     const taxableInvoices = invoices.filter((invoice) =>
       invoice.items.some((item) => item.taxType === "과세")
     );
-    const taxFreeInvoices = invoices.filter((invoice) =>
-      invoice.items.some((item) => item.taxType === "면세")
+
+    // 모든 항목이 면세인 경우만 면세 계산서로 분류
+    const taxFreeInvoices = invoices.filter(
+      (invoice) =>
+        invoice.items.every((item) => item.taxType === "면세") &&
+        invoice.items.length > 0
     );
 
     return {
       taxable: taxableInvoices.length,
       taxFree: taxFreeInvoices.length,
+      total: invoices.length, // 총 계산서 수 추가
     };
   }, [invoices]);
 
