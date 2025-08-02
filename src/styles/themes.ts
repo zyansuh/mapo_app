@@ -80,7 +80,7 @@ export const TYPOGRAPHY = {
   },
 } as const;
 
-// 간격 시스템
+// Spacing 시스템
 export const SPACING = {
   ...scaledSizes.spacing,
   // 시맨틱 간격

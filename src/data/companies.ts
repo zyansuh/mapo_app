@@ -1,7 +1,7 @@
 import { Company, CompanyType, CompanyRegion, CompanyStatus } from "../types";
 import { generateId } from "../utils";
 
-// CSV 데이터
+// CSV data
 const csvData = `사업자번호	상호	성명	주소	담당자성명1	전화1	HP1	이메일1
 403-03-86421	(라)이랴꿍꿍	송형규	익산시 영등동 851-4				
 266-88-00933	(유)승일	김갑례	담양읍 중앙로 98-1	승일총무	1034886700	1088463063	kangbok1@hanmail.net
@@ -236,7 +236,7 @@ const csvData = `사업자번호	상호	성명	주소	담당자성명1	전화1	H
 372-73-00215	황후쟁반짜장	이진호	담양읍 지침3길 10	이진호	1050130626	1050130626	whang77@chol.com
 418-81-35015	후레쉬푸드	배희문	전주시 덕진구 송천중앙로233-16`;
 
-// 지역별 분류 함수
+// Region classification function
 function classifyRegion(address: string): CompanyRegion {
   if (address.includes("순창")) return "순창";
   if (address.includes("담양")) return "담양";
@@ -244,9 +244,9 @@ function classifyRegion(address: string): CompanyRegion {
   return "기타";
 }
 
-// 업체 유형 분류 함수
+// Company type classification function
 function classifyType(companyName: string): CompanyType {
-  // 공급업체 키워드
+  // Supplier keywords
   const supplierKeywords = [
     "식품",
     "농산",
@@ -257,7 +257,7 @@ function classifyType(companyName: string): CompanyType {
     "농협",
     "마트",
   ];
-  // 협력업체 키워드
+  // Partner keywords
   const partnerKeywords = [
     "법인",
     "주식회사",
@@ -268,7 +268,7 @@ function classifyType(companyName: string): CompanyType {
     "조합법인",
   ];
 
-  // 정확한 매칭을 위해 키워드 체크
+  // Check keywords for exact matching
   for (const keyword of supplierKeywords) {
     if (companyName.includes(keyword)) return "공급업체";
   }
@@ -277,23 +277,23 @@ function classifyType(companyName: string): CompanyType {
     if (companyName.includes(keyword)) return "협력업체";
   }
 
-  // 기본적으로 고객사로 분류
+  // Classify as customer by default
   return "고객사";
 }
 
-// 전화번호 포맷팅 함수
+// Phone number formatting function
 function formatPhoneNumber(phone: string): string {
   if (!phone) return "";
 
-  // 숫자만 추출
+  // Extract numbers only
   let numbers = phone.replace(/\D/g, "");
 
-  // 10으로 시작하는 경우 010으로 변경
+  // Change to 010 if starts with 10
   if (numbers.startsWith("10") && numbers.length === 10) {
     numbers = "0" + numbers;
   }
 
-  // 휴대폰 번호 (010, 011 등으로 시작하는 11자리)
+  // Mobile number (11 digits starting with 010, 011, etc.)
   if (
     numbers.length === 11 &&
     (numbers.startsWith("010") ||
@@ -309,7 +309,7 @@ function formatPhoneNumber(phone: string): string {
     )}-${numbers.substring(7)}`;
   }
 
-  // 지역번호 (10자리)
+  // Area code (10 digits)
   if (numbers.length === 10) {
     return `${numbers.substring(0, 3)}-${numbers.substring(
       3,
@@ -317,7 +317,7 @@ function formatPhoneNumber(phone: string): string {
     )}-${numbers.substring(6)}`;
   }
 
-  // 지역번호 (9자리)
+  // Area code (9 digits)
   if (numbers.length === 9) {
     return `${numbers.substring(0, 2)}-${numbers.substring(
       2,
@@ -328,7 +328,7 @@ function formatPhoneNumber(phone: string): string {
   return phone;
 }
 
-// CSV 파싱 및 Company 객체 변환 함수
+// CSV parsing and Company object conversion function
 function parseCSVData(): Company[] {
   const lines = csvData.trim().split("\n");
   const companies: Company[] = [];
@@ -374,7 +374,7 @@ function parseCSVData(): Company[] {
   return companies;
 }
 
-// 모든 회사 데이터를 반환하는 함수
+// Function to return all company data
 export const getInitialCompanies = (): Company[] => {
   return parseCSVData();
 };

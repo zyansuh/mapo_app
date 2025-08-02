@@ -2,6 +2,9 @@
   "name": "mapo",
   "version": "1.0.0",
   "main": "index.ts",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "start": "expo start --dev-client",
     "android": "expo run:android",

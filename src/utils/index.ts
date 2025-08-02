@@ -3,7 +3,7 @@ export * from "./validation";
 export * from "./format";
 export * from "./scaling";
 
-// ID 생성 함수
+// ID generation function
 export const generateId = (): string => {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
 };

@@ -12,7 +12,7 @@ export const useCallDetection = () => {
   const [unknownNumbers, setUnknownNumbers] = useState<UnknownNumber[]>([]);
   const [isAndroidSupported] = useState(Platform.OS === "android");
 
-  // 전화 감지 시작 (단순화된 버전)
+  // Phone detection 시작 (단순화된 버전)
   const startDetection = () => {
     if (!isAndroidSupported) {
       console.log("Call detection is only supported on Android");
@@ -23,13 +23,13 @@ export const useCallDetection = () => {
     console.log("Call detection started (simplified version)");
   };
 
-  // 전화 감지 중지
+  // Phone detection 중지
   const stopDetection = () => {
     setIsDetectionActive(false);
     console.log("Call detection stopped");
   };
 
-  // 테스트용 미지의 번호 추가
+  // Add unknown number for testing
   const addTestUnknownNumber = (phoneNumber: string) => {
     const unknownNumber: UnknownNumber = {
       id: Date.now().toString(),
@@ -40,17 +40,17 @@ export const useCallDetection = () => {
     setUnknownNumbers((prev) => [unknownNumber, ...prev]);
   };
 
-  // 미지의 번호 제거
+  // Remove unknown number
   const removeUnknownNumber = (id: string) => {
     setUnknownNumbers((prev) => prev.filter((num) => num.id !== id));
   };
 
-  // 모든 미지의 번호 제거
+  // Remove all unknown numbers
   const clearUnknownNumbers = () => {
     setUnknownNumbers([]);
   };
 
-  // 미지의 번호 개수
+  // Count of unknown numbers
   const unknownNumberCount = unknownNumbers.length;
 
   return {

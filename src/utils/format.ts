@@ -102,15 +102,15 @@ export const formatCurrency = (
 export const formatPhoneNumber = (phoneNumber: string): string => {
   if (!phoneNumber) return "";
 
-  // 숫자만 추출
+  // Extract numbers only
   let cleaned = phoneNumber.replace(/\D/g, "");
 
-  // 1로 시작하는 10자리 번호를 010으로 변경 (휴대폰 번호)
+  // Change 10-digit number starting with 1 to 010 (mobile number)
   if (cleaned.startsWith("1") && cleaned.length === 10) {
     cleaned = "01" + cleaned.substring(1);
   }
 
-  // 휴대폰 번호 (010, 011 등으로 시작하는 11자리)
+  // Mobile number (11 digits starting with 010, 011, etc.)
   if (
     cleaned.length === 11 &&
     (cleaned.startsWith("010") ||
@@ -123,12 +123,12 @@ export const formatPhoneNumber = (phoneNumber: string): string => {
     return cleaned.replace(/(\d{3})(\d{4})(\d{4})/, "$1-$2-$3");
   }
 
-  // 지역번호 (10자리)
+  // Area code (10 digits)
   if (cleaned.length === 10) {
     return cleaned.replace(/(\d{3})(\d{3})(\d{4})/, "$1-$2-$3");
   }
 
-  // 지역번호 (9자리)
+  // Area code (9 digits)
   if (cleaned.length === 9) {
     return cleaned.replace(/(\d{2})(\d{3})(\d{4})/, "$1-$2-$3");
   }

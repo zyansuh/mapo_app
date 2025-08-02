@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Company, CompanyType, CompanyRegion, CompanyStatus } from "../types";
 
-// 제공된 거래처 데이터
+// Provided company data
 const rawCompanyData = `403-03-86421	(라)이랴꿍꿍	송형규	익산시 영등동 851-4				
 266-88-00933	(유)승일	김갑례	담양읍 중앙로 98-1	승일총무	1034886700	1088463063	kangbok1@hanmail.net
 409-86-20167	(주) 죽향산업개발	정광성	담양읍 지침1길 18 101호(대동파라시티)				
@@ -235,7 +235,7 @@ const rawCompanyData = `403-03-86421	(라)이랴꿍꿍	송형규	익산시 영�
 372-73-00215	황후쟁반짜장	이진호	담양읍 지침3길 10	이진호	1050130626	1050130626	whang77@chol.com
 418-81-35015	후레쉬푸드	배희문	전주시 덕진구 송천중앙로233-16				`;
 
-// 지역 매핑 함수
+// Region mapping function
 function getRegionFromAddress(address: string): CompanyRegion {
   if (address.includes("담양")) return "전남";
   if (address.includes("순창")) return "전북";
@@ -251,7 +251,7 @@ function getRegionFromAddress(address: string): CompanyRegion {
   return "기타" as CompanyRegion;
 }
 
-// 거래처 유형 결정 함수
+// Company type determination function
 function getCompanyType(name: string, businessNumber: string): CompanyType {
   const nameUpper = name.toUpperCase();
   if (
@@ -279,27 +279,27 @@ function getCompanyType(name: string, businessNumber: string): CompanyType {
   ) {
     return "고객사";
   }
-  return "고객사"; // 기본값
+  return "고객사"; // Default value
 }
 
-// 전화번호 포맷팅 함수
+// Phone number formatting function
 function formatPhoneNumber(phone: string): string {
   if (!phone || phone.length < 8) return phone;
 
-  // 숫자만 추출
+  // Extract numbers only
   let cleaned = phone.replace(/\D/g, "");
 
-  // 1로 시작하는 10자리 번호를 010으로 변경 (휴대폰 번호)
+  // Change 10-digit number starting with 1 to 010 (mobile number)
   if (cleaned.startsWith("1") && cleaned.length === 10) {
     cleaned = "01" + cleaned.substring(1);
   }
 
-  // 휴대폰 번호 (11자리)
+  // Mobile number (11 digits)
   if (cleaned.length === 11) {
     return cleaned.replace(/(\d{3})(\d{4})(\d{4})/, "$1-$2-$3");
   }
 
-  // 지역번호 (10자리)
+  // Area code (10 digits)
   if (cleaned.length === 10) {
     return cleaned.replace(/(\d{3})(\d{3})(\d{4})/, "$1-$2-$3");
   }
@@ -307,12 +307,12 @@ function formatPhoneNumber(phone: string): string {
   return phone;
 }
 
-// ID 생성 함수
+// ID generation function
 function generateId(): string {
   return Date.now().toString() + Math.random().toString(36).substr(2, 9);
 }
 
-// 데이터 파싱 함수
+// Data parsing function
 export function parseCompanyData(): Company[] {
   const lines = rawCompanyData.trim().split("\n");
   const companies: Company[] = [];
@@ -331,7 +331,7 @@ export function parseCompanyData(): Company[] {
         email,
       ] = fields;
 
-      // 필수 정보가 있는 경우만 추가
+      // Only add if required information exists
       if (name && name.trim()) {
         const cleanName = name.trim();
         const cleanAddress = address?.trim() || "";
@@ -341,7 +341,7 @@ export function parseCompanyData(): Company[] {
         const cleanPhone2 = phone2?.trim() || "";
         const cleanEmail = email?.trim() || "";
 
-        // 전화번호 선택 (phone1 우선, 없으면 phone2)
+        // Phone number selection (phone1 first, then phone2)
         const phoneNumber = cleanPhone1 || cleanPhone2;
         const contactPhone =
           cleanPhone1 && cleanPhone2 && cleanPhone1 !== cleanPhone2
@@ -374,7 +374,7 @@ export function parseCompanyData(): Company[] {
   return companies;
 }
 
-// 데이터베이스에 직접 저장하는 함수
+// Function to save directly to database
 export async function importCompaniesToDatabase(): Promise<{
   success: number;
   errors: string[];
@@ -382,7 +382,7 @@ export async function importCompaniesToDatabase(): Promise<{
   try {
     const companies = parseCompanyData();
 
-    // 기존 데이터 가져오기
+    // Get existing data
     const existingDataStr = await AsyncStorage.getItem("companies");
     const existingCompanies: Company[] = existingDataStr
       ? JSON.parse(existingDataStr)
@@ -391,10 +391,10 @@ export async function importCompaniesToDatabase(): Promise<{
     let successCount = 0;
     const errors: string[] = [];
 
-    // 각 회사 추가 (중복 체크)
+    // Add each company (duplicate check)
     for (const company of companies) {
       try {
-        // 사업자번호나 이름으로 중복 체크
+        // Duplicate check by business number or name
         const duplicate = existingCompanies.find(
           (existing) =>
             (existing.businessNumber &&
@@ -413,7 +413,7 @@ export async function importCompaniesToDatabase(): Promise<{
       }
     }
 
-    // 데이터베이스에 저장
+    // Save to database
     await AsyncStorage.setItem("companies", JSON.stringify(existingCompanies));
 
     return {
@@ -429,7 +429,7 @@ export async function importCompaniesToDatabase(): Promise<{
   }
 }
 
-// 통계 정보
+// Statistics information
 export function getImportStats() {
   const companies = parseCompanyData();
   const total = companies.length;

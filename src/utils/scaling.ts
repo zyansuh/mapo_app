@@ -1,12 +1,12 @@
 import { Dimensions } from "react-native";
 
-// 가이드라인 기준 화면 크기 (iPhone 12 기준)
+// Guideline screen size (iPhone 12 standard)
 const guidelineBaseWidth = 390;
 const guidelineBaseHeight = 844;
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
-// 화면 크기에 따른 스케일 계산
+// Scale calculation based on screen size
 const scaleHorizontal = screenWidth / guidelineBaseWidth;
 const scaleVertical = screenHeight / guidelineBaseHeight;
 const scaleModerate = (scaleHorizontal + scaleVertical) / 2;
@@ -66,9 +66,9 @@ export const spacingScale = (size: number): number => {
   return scale(size);
 };
 
-// 자주 사용하는 스케일된 값들
+// Frequently used scaled values
 export const scaledSizes = {
-  // 텍스트 크기
+  // Text sizes
   text: {
     tiny: textScale(10),
     small: textScale(12),
@@ -80,7 +80,7 @@ export const scaledSizes = {
     huge: textScale(32),
   },
 
-  // 아이콘 크기
+  // Icon sizes
   icon: {
     tiny: iconScale(12),
     small: iconScale(16),
@@ -91,7 +91,7 @@ export const scaledSizes = {
     xxlarge: iconScale(48),
   },
 
-  // 간격
+  // Spacing
   spacing: {
     tiny: spacingScale(4),
     small: spacingScale(8),
@@ -103,7 +103,7 @@ export const scaledSizes = {
     huge: spacingScale(40),
   },
 
-  // 버튼 높이
+  // Button height
   button: {
     small: verticalScale(32),
     normal: verticalScale(40),
@@ -111,7 +111,7 @@ export const scaledSizes = {
     large: verticalScale(56),
   },
 
-  // 입력 필드 높이
+  // Input field height
   input: {
     small: verticalScale(36),
     normal: verticalScale(44),

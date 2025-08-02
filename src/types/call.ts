@@ -96,7 +96,7 @@ export interface CallSettings {
   recordIncoming: boolean; // 수신 통화 녹음
   recordOutgoing: boolean; // 발신 통화 녹음
   detectUnknownNumbers: boolean; // 미지의 번호 감지
-  showCallHistory: boolean; // 통화 기록 표시
+  showCallHistory: boolean; // Call history 표시
   callVibration: boolean; // 통화 진동
   callSound: boolean; // 통화음
   blockUnknownNumbers: boolean; // 미지의 번호 차단
