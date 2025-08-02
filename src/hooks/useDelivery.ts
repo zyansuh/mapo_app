@@ -140,7 +140,7 @@ export const useDelivery = (): UseDeliveryReturn => {
       setDeliveries(sampleData);
     } catch (err) {
       setError("배송 데이터를 불러오는데 실패했습니다.");
-      console.error("Delivery loading error:", err);
+      console.error("배송 데이터 로드 오류:", err);
     } finally {
       setLoading(false);
     }
@@ -176,7 +176,7 @@ export const useDelivery = (): UseDeliveryReturn => {
         return newDelivery;
       } catch (err) {
         setError("배송 등록에 실패했습니다.");
-        console.error("Add delivery error:", err);
+        console.error("배송 추가 오류:", err);
         return null;
       }
     },
@@ -196,7 +196,7 @@ export const useDelivery = (): UseDeliveryReturn => {
         return true;
       } catch (err) {
         setError("배송 정보 수정에 실패했습니다.");
-        console.error("Update delivery error:", err);
+        console.error("배송 수정 오류:", err);
         return false;
       }
     },
@@ -216,7 +216,7 @@ export const useDelivery = (): UseDeliveryReturn => {
         return true;
       } catch (err) {
         setError("배송 상태 변경에 실패했습니다.");
-        console.error("Update delivery status error:", err);
+        console.error("배송 상태 수정 오류:", err);
         return false;
       }
     },
@@ -229,7 +229,7 @@ export const useDelivery = (): UseDeliveryReturn => {
       return true;
     } catch (err) {
       setError("배송 삭제에 실패했습니다.");
-      console.error("Delete delivery error:", err);
+      console.error("배송 삭제 오류:", err);
       return false;
     }
   }, []);

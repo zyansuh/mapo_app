@@ -45,7 +45,7 @@ class StorageService implements IStorageService {
         return rawValue as unknown as T;
       }
     } catch (error) {
-      console.error(`Storage getItem error for key ${key}:`, error);
+      console.error(`스토리지 getItem 오류 (키: ${key}):`, error);
       return null;
     }
   }
@@ -61,8 +61,8 @@ class StorageService implements IStorageService {
         await AsyncStorage.setItem(key, stringValue);
       }
     } catch (error) {
-      console.error(`Storage setItem error for key ${key}:`, error);
-      throw new Error(`Storage save failed: ${key}`);
+      console.error(`스토리지 setItem 오류 (키: ${key}):`, error);
+      throw new Error(`스토리지 저장 실패: ${key}`);
     }
   }
 
@@ -74,8 +74,8 @@ class StorageService implements IStorageService {
         await AsyncStorage.removeItem(key);
       }
     } catch (error) {
-      console.error(`Storage removeItem error for key ${key}:`, error);
-      throw new Error(`Storage delete failed: ${key}`);
+      console.error(`스토리지 removeItem 오류 (키: ${key}):`, error);
+      throw new Error(`스토리지 삭제 실패: ${key}`);
     }
   }
 
@@ -89,8 +89,8 @@ class StorageService implements IStorageService {
         await AsyncStorage.clear();
       }
     } catch (error) {
-      console.error("Storage clear error:", error);
-      throw new Error("Storage clear failed");
+      console.error("스토리지 전체 삭제 오류:", error);
+      throw new Error("스토리지 전체 삭제 실패");
     }
   }
 
@@ -103,7 +103,7 @@ class StorageService implements IStorageService {
         return [...keys]; // Convert readonly array to mutable array
       }
     } catch (error) {
-      console.error("Storage getAllKeys error:", error);
+      console.error("스토리지 getAllKeys 오류:", error);
       return [];
     }
   }
@@ -131,7 +131,7 @@ class StorageService implements IStorageService {
         });
       }
     } catch (error) {
-      console.error("Storage multiGet error:", error);
+      console.error("스토리지 multiGet 오류:", error);
       return [];
     }
   }
@@ -152,7 +152,7 @@ class StorageService implements IStorageService {
         await AsyncStorage.multiSet(stringPairs);
       }
     } catch (error) {
-      console.error("Storage multiSet error:", error);
+      console.error("스토리지 multiSet 오류:", error);
       throw new Error("다중 스토리지 저장 실패");
     }
   }
@@ -165,7 +165,7 @@ class StorageService implements IStorageService {
         await AsyncStorage.multiRemove(keys);
       }
     } catch (error) {
-      console.error("Storage multiRemove error:", error);
+      console.error("스토리지 multiRemove 오류:", error);
       throw new Error("다중 스토리지 삭제 실패");
     }
   }
@@ -196,7 +196,7 @@ class StorageService implements IStorageService {
         appKeys: appKeys.length,
       };
     } catch (error) {
-      console.error("Storage info error:", error);
+      console.error("스토리지 정보 오류:", error);
       return { usedSize: 0, totalKeys: 0, appKeys: 0 };
     }
   }
@@ -222,8 +222,8 @@ class StorageService implements IStorageService {
         },
       };
     } catch (error) {
-      console.error("Storage backup error:", error);
-      throw new Error("Storage backup failed");
+      console.error("스토리지 백업 오류:", error);
+      throw new Error("스토리지 백업 실패");
     }
   }
 
@@ -240,14 +240,14 @@ class StorageService implements IStorageService {
         await this.multiSet(pairs);
       } catch (restoreError) {
         // Rollback to existing data if restore fails
-        console.error("Restore failed, rolling back:", restoreError);
+        console.error("복원 실패, 롤백 중:", restoreError);
         const rollbackPairs: Array<[string, any]> =
           Object.entries(currentBackup);
         await this.multiSet(rollbackPairs);
-        throw new Error("Storage restore failed");
+        throw new Error("스토리지 복원 실패");
       }
     } catch (error) {
-      console.error("Storage restore error:", error);
+      console.error("스토리지 복원 오류:", error);
       throw error;
     }
   }

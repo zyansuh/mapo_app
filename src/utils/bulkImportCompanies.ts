@@ -421,7 +421,7 @@ export async function importCompaniesToDatabase(): Promise<{
       errors,
     };
   } catch (error) {
-    console.error("Import error:", error);
+    console.error("임포트 오류:", error);
     return {
       success: 0,
       errors: [`전체 임포트 실패: ${error}`],

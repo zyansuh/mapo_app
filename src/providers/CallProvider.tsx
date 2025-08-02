@@ -130,7 +130,7 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
         }, 2000);
       }
     } catch (error) {
-      console.error("Enhanced call failed:", error);
+      console.error("향상된 전화 걸기 실패:", error);
     }
   };
 

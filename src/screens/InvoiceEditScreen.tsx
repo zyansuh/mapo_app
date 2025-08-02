@@ -341,7 +341,7 @@ const InvoiceEditScreen = () => {
       }
     } catch (error) {
       Alert.alert("오류", "저장 중 오류가 발생했습니다.");
-      console.error("Save invoice error:", error);
+      console.error("계산서 저장 오류:", error);
     }
   };
 

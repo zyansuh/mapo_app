@@ -88,8 +88,8 @@ export const searchAddress = async (
       y: doc.y,
     }));
   } catch (error) {
-    console.error("Address search error:", error);
-    throw new Error("Address search failed. Please try again later.");
+    console.error("주소 검색 오류:", error);
+    throw new Error("주소 검색에 실패했습니다. 잠시 후 다시 시도해주세요.");
   }
 };
 

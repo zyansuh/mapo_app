@@ -151,7 +151,7 @@ export class BatchProcessor {
       try {
         await Promise.all(batch.map((task) => task()));
       } catch (error) {
-        console.error("Batch processing error:", error);
+        console.error("배치 처리 오류:", error);
       }
 
       // 다음 배치 처리 전 지연
