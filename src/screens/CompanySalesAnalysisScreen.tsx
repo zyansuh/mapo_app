@@ -18,186 +18,9 @@ import { useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { COLORS } from "../styles/colors";
 import { useCompany } from "../hooks/useCompany";
+import { useInvoice } from "../hooks/useInvoice";
 import { Invoice, TaxType } from "../types/invoice";
 import { formatCurrency, formatDate } from "../utils/format";
-
-// 샘플 인보이스 데이터 (임시)
-const getSampleInvoices = (): Invoice[] => [
-  {
-    id: "1",
-    invoiceNumber: "INV-2024-001",
-    companyId: "comp1",
-    items: [
-      {
-        id: "item1",
-        name: "착한손두부",
-        quantity: 10,
-        unitPrice: 2000,
-        amount: 20000,
-        taxType: "면세" as TaxType,
-        taxAmount: 0,
-        totalAmount: 20000,
-      },
-      {
-        id: "item2",
-        name: "순두부",
-        quantity: 5,
-        unitPrice: 1800,
-        amount: 9000,
-        taxType: "면세" as TaxType,
-        taxAmount: 0,
-        totalAmount: 9000,
-      },
-    ],
-    totalSupplyAmount: 29000,
-    totalTaxAmount: 0,
-    totalAmount: 29000,
-    issueDate: new Date("2024-01-15"),
-    status: "발행",
-    createdAt: new Date("2024-01-15"),
-    updatedAt: new Date("2024-01-15"),
-  },
-  {
-    id: "2",
-    invoiceNumber: "INV-2024-002",
-    companyId: "comp2",
-    items: [
-      {
-        id: "item3",
-        name: "묵사발",
-        quantity: 20,
-        unitPrice: 1500,
-        amount: 30000,
-        taxType: "과세" as TaxType,
-        taxAmount: 3000,
-        totalAmount: 33000,
-      },
-    ],
-    totalSupplyAmount: 30000,
-    totalTaxAmount: 3000,
-    totalAmount: 33000,
-    issueDate: new Date("2024-02-10"),
-    status: "승인",
-    createdAt: new Date("2024-02-10"),
-    updatedAt: new Date("2024-02-10"),
-  },
-  {
-    id: "3",
-    invoiceNumber: "INV-2024-003",
-    companyId: "comp1",
-    items: [
-      {
-        id: "item4",
-        name: "콩나물",
-        quantity: 15,
-        unitPrice: 1200,
-        amount: 18000,
-        taxType: "면세" as TaxType,
-        taxAmount: 0,
-        totalAmount: 18000,
-      },
-      {
-        id: "item5",
-        name: "도토리묵",
-        quantity: 8,
-        unitPrice: 2500,
-        amount: 20000,
-        taxType: "과세" as TaxType,
-        taxAmount: 2000,
-        totalAmount: 22000,
-      },
-    ],
-    totalSupplyAmount: 38000,
-    totalTaxAmount: 2000,
-    totalAmount: 40000,
-    issueDate: new Date("2024-03-05"),
-    status: "발행",
-    createdAt: new Date("2024-03-05"),
-    updatedAt: new Date("2024-03-05"),
-  },
-  {
-    id: "4",
-    invoiceNumber: "INV-2024-004",
-    companyId: "comp3",
-    items: [
-      {
-        id: "item6",
-        name: "청포묵",
-        quantity: 12,
-        unitPrice: 2200,
-        amount: 26400,
-        taxType: "과세" as TaxType,
-        taxAmount: 2640,
-        totalAmount: 29040,
-      },
-    ],
-    totalSupplyAmount: 26400,
-    totalTaxAmount: 2640,
-    totalAmount: 29040,
-    issueDate: new Date("2024-04-12"),
-    status: "전송",
-    createdAt: new Date("2024-04-12"),
-    updatedAt: new Date("2024-04-12"),
-  },
-  {
-    id: "5",
-    invoiceNumber: "INV-2024-005",
-    companyId: "comp2",
-    items: [
-      {
-        id: "item7",
-        name: "두부",
-        quantity: 25,
-        unitPrice: 1800,
-        amount: 45000,
-        taxType: "면세" as TaxType,
-        taxAmount: 0,
-        totalAmount: 45000,
-      },
-    ],
-    totalSupplyAmount: 45000,
-    totalTaxAmount: 0,
-    totalAmount: 45000,
-    issueDate: new Date("2024-05-20"),
-    status: "승인",
-    createdAt: new Date("2024-05-20"),
-    updatedAt: new Date("2024-05-20"),
-  },
-  {
-    id: "6",
-    invoiceNumber: "INV-2024-006",
-    companyId: "comp1",
-    items: [
-      {
-        id: "item8",
-        name: "콩나물",
-        quantity: 30,
-        unitPrice: 1200,
-        amount: 36000,
-        taxType: "면세" as TaxType,
-        taxAmount: 0,
-        totalAmount: 36000,
-      },
-      {
-        id: "item9",
-        name: "메밀묵",
-        quantity: 6,
-        unitPrice: 3000,
-        amount: 18000,
-        taxType: "과세" as TaxType,
-        taxAmount: 1800,
-        totalAmount: 19800,
-      },
-    ],
-    totalSupplyAmount: 54000,
-    totalTaxAmount: 1800,
-    totalAmount: 55800,
-    issueDate: new Date("2024-06-15"),
-    status: "발행",
-    createdAt: new Date("2024-06-15"),
-    updatedAt: new Date("2024-06-15"),
-  },
-];
 
 interface CompanySalesData {
   companyId: string;
@@ -215,6 +38,7 @@ const CompanySalesAnalysisScreen = () => {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const { companies, getCompanyById } = useCompany();
+  const { invoices } = useInvoice();
 
   // 상태 관리
   const [searchText, setSearchText] = useState("");
@@ -228,15 +52,38 @@ const CompanySalesAnalysisScreen = () => {
   const [tempStartDate, setTempStartDate] = useState("");
   const [tempEndDate, setTempEndDate] = useState("");
 
-  const invoices = getSampleInvoices();
-
   // 거래처별 매출 통계 계산
   const companySalesData = useMemo(() => {
+    // 임시: comp1-comp10을 실제 거래처명으로 매핑
+    const companyMapping: { [key: string]: string } = {
+      comp1: "(유)승일",
+      comp2: "강진터미널마트",
+      comp3: "고향맛집",
+      comp4: "담양마트",
+      comp5: "백제회관",
+      comp6: "담양대통죽순순대",
+      comp7: "담양백동숯불갈비",
+      comp8: "담양갈비창고",
+      comp9: "금성참숯갈비",
+      comp10: "국민닭갈비",
+    };
+
     const salesMap = new Map<string, CompanySalesData>();
 
     invoices.forEach((invoice) => {
-      const company = getCompanyById(invoice.companyId);
-      if (!company) return;
+      let company = getCompanyById(invoice.companyId);
+
+      // comp1-comp10인 경우 이름으로 찾기
+      if (!company && companyMapping[invoice.companyId]) {
+        const companyName = companyMapping[invoice.companyId];
+        company = companies.find(
+          (c) => c.name.includes(companyName) || companyName.includes(c.name)
+        );
+      }
+
+      if (!company) {
+        return;
+      }
 
       const invoiceDate = new Date(invoice.issueDate);
 
@@ -316,7 +163,7 @@ const CompanySalesAnalysisScreen = () => {
     });
 
     return Array.from(salesMap.values());
-  }, [invoices, getCompanyById, selectedPeriod, startDate, endDate]);
+  }, [invoices, companies, getCompanyById, selectedPeriod, startDate, endDate]);
 
   // 검색 및 정렬
   const filteredAndSortedData = useMemo(() => {

@@ -115,10 +115,16 @@ const HomeScreen = () => {
         invoice.items.length > 0
     );
 
+    // 계산서가 있는 거래처 수 계산 (매출 분석용)
+    const companiesWithInvoices = new Set(
+      invoices.map((invoice) => invoice.companyId)
+    ).size;
+
     return {
       taxable: taxableInvoices.length,
       taxFree: taxFreeInvoices.length,
       total: invoices.length, // 총 계산서 수 추가
+      companiesWithSales: companiesWithInvoices, // 매출이 있는 거래처 수
     };
   }, [invoices]);
 
@@ -165,7 +171,7 @@ const HomeScreen = () => {
       icon: "bar-chart" as const,
       color: "#9333EA",
       onPress: () => navigation.navigate("CompanySalesAnalysis"),
-      count: stats.total,
+      count: invoiceStats.companiesWithSales,
     },
   ];
 
