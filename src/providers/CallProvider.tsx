@@ -7,26 +7,26 @@ import { useCompany } from "../hooks/useCompany";
 import { CallHistoryItem } from "../types";
 
 interface CallContextType {
-  // 전화 걸기
+  // Make phone call
   makeCall: (phoneNumber: string, companyName?: string) => Promise<void>;
 
-  // 통화 기록
+  // Call history
   callHistory: CallHistoryItem[];
   clearCallHistory: () => void;
   deleteCallRecord: (id: string) => void;
   formatPhoneNumber: (phoneNumber: string) => string;
 
-  // 전화 감지
+  // Phone detection
   isDetectionActive: boolean;
   startDetection: () => void;
   stopDetection: () => void;
   unknownNumbers: any[];
   unknownNumberCount: number;
 
-  // 분석 데이터
+  // Analytics data
   analytics: any;
 
-  // 설정
+  // Settings
   enableAutoDetection: boolean;
   setEnableAutoDetection: (enabled: boolean) => void;
 }
@@ -67,15 +67,15 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
 
   const { analytics } = useCallAnalytics(callHistory, companies);
 
-  // 설정 상태
+  // Settings 상태
   const [enableAutoDetection, setEnableAutoDetection] = useState(false);
 
-  // 앱 시작 시 초기화
+  // Initialize on app start
   useEffect(() => {
     initializeCallFeatures();
   }, []);
 
-  // 자동 감지 설정에 따른 동작
+  // Action based on auto detection settings
   useEffect(() => {
     if (enableAutoDetection && !isDetectionActive) {
       startDetection();
@@ -85,24 +85,24 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
   }, [enableAutoDetection, isDetectionActive, startDetection, stopDetection]);
 
   const initializeCallFeatures = () => {
-    // 개발 환경에서 샘플 통화 기록 추가
+    // Add sample call history in development environment
     if (__DEV__ && callHistory.length === 0) {
       addSampleCallHistory();
     }
 
-    // 권한 확인 및 설정
+    // Permission check and setup
     checkPermissions();
   };
 
   const checkPermissions = async () => {
     if (Platform.OS === "android") {
-      // Android에서 필요한 권한들
-      // 실제 구현시에는 react-native-permissions 라이브러리 사용
+      // Permissions required for Android
+      // Use react-native-permissions library in actual implementation
       console.log("Checking call detection permissions...");
     }
   };
 
-  // 향상된 전화 걸기
+  // Enhanced phone calling
   const enhancedMakeCall = async (
     phoneNumber: string,
     companyName?: string
@@ -111,7 +111,7 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
       await makeCall(phoneNumber, companyName);
 
       if (enableAutoDetection) {
-        // 통화 후 처리
+        // Post-call processing
         setTimeout(() => {
           Alert.alert(
             "통화 완료",
@@ -121,7 +121,7 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
               {
                 text: "메모 추가",
                 onPress: () => {
-                  // 실제로는 메모 추가 모달을 열어야 함
+                  // Actually should open memo add modal
                   Alert.alert("메모", "통화 메모 기능은 곧 추가될 예정입니다.");
                 },
               },
@@ -130,11 +130,11 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
         }, 2000);
       }
     } catch (error) {
-      console.error("Enhanced call failed:", error);
+      console.error("향상된 전화 걸기 실패:", error);
     }
   };
 
-  // 미지의 번호 감지 시뮬레이션
+  // Unknown number detection simulation
   const simulateIncomingCall = (phoneNumber: string) => {
     if (isDetectionActive) {
       const isKnownNumber = companies.some(
@@ -156,7 +156,7 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
               {
                 text: "등록",
                 onPress: () => {
-                  // 실제로는 거래처 등록 화면으로 이동
+                  // Actually should navigate to company registration screen
                   Alert.alert("등록", "거래처 등록 화면으로 이동합니다.");
                 },
               },
@@ -167,7 +167,7 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
     }
   };
 
-  // 테스트용 함수들 (개발 환경에서만 사용)
+  // Test functions (development environment only)
   const testFeatures = __DEV__
     ? {
         simulateIncomingCall,
@@ -181,30 +181,30 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
     : {};
 
   const value: CallContextType = {
-    // 전화 걸기
+    // Make phone call
     makeCall: enhancedMakeCall,
 
-    // 통화 기록
+    // Call history
     callHistory,
     clearCallHistory,
     deleteCallRecord,
     formatPhoneNumber,
 
-    // 전화 감지
+    // Phone detection
     isDetectionActive,
     startDetection,
     stopDetection,
     unknownNumbers,
     unknownNumberCount,
 
-    // 분석 데이터
+    // Analytics data
     analytics,
 
-    // 설정
+    // Settings
     enableAutoDetection,
     setEnableAutoDetection,
 
-    // 테스트 기능 (개발 환경에서만)
+    // Test functionality (development only)
     ...testFeatures,
   };
 

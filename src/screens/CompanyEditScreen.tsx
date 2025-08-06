@@ -140,7 +140,7 @@ const CompanyEditScreen = () => {
       }
     } catch (error) {
       Alert.alert("검색 오류", "주소 검색 중 오류가 발생했습니다.");
-      console.error("Address search error:", error);
+      console.error("주소 검색 오류:", error);
     } finally {
       setSearchLoading(false);
     }

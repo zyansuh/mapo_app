@@ -8,7 +8,7 @@ export const invoiceDetailStyles = StyleSheet.create({
     backgroundColor: THEME.colors.background,
   },
 
-  // 헤더 스타일
+  // Header styles
   header: {
     paddingHorizontal: SPACING.medium,
     paddingVertical: SPACING.medium,
@@ -32,7 +32,7 @@ export const invoiceDetailStyles = StyleSheet.create({
     padding: SPACING.small,
   },
 
-  // 콘텐츠 스타일
+  // Content styles
   content: {
     flex: 1,
     padding: SPACING.medium,
@@ -49,7 +49,7 @@ export const invoiceDetailStyles = StyleSheet.create({
     marginBottom: SPACING.medium,
   },
 
-  // 정보 행 스타일
+  // Info row styles
   infoRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -69,7 +69,7 @@ export const invoiceDetailStyles = StyleSheet.create({
     textAlign: "right",
   },
 
-  // 상태 관련 스타일
+  // Status related styles
   statusContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -88,7 +88,7 @@ export const invoiceDetailStyles = StyleSheet.create({
     padding: SPACING.tiny,
   },
 
-  // 품목 카드 스타일
+  // Item card styles
   itemCard: {
     backgroundColor: THEME.colors.background,
     padding: SPACING.normal,
@@ -119,7 +119,7 @@ export const invoiceDetailStyles = StyleSheet.create({
     fontWeight: "600",
   },
 
-  // 품목 상세 정보
+  // Item detail information
   itemDetails: {
     gap: SPACING.tiny,
   },
@@ -147,7 +147,7 @@ export const invoiceDetailStyles = StyleSheet.create({
     color: THEME.colors.primary,
   },
 
-  // 합계 스타일
+  // Total styles
   totalContainer: {
     gap: SPACING.small,
   },
@@ -184,7 +184,7 @@ export const invoiceDetailStyles = StyleSheet.create({
     color: THEME.colors.primary,
   },
 
-  // 액션 버튼 스타일
+  // Action button styles
   actionSection: {
     flexDirection: "row",
     gap: SPACING.normal,

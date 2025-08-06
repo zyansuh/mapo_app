@@ -6,14 +6,14 @@ import {
 export async function executeCompanyImport() {
   console.log("=== 거래처 데이터 임포트 시작 ===");
 
-  // 통계 먼저 확인
+  // Check statistics first
   const stats = getImportStats();
   console.log(`총 ${stats.total}개의 거래처 데이터를 처리합니다.`);
   console.log("지역별 분포:", stats.byRegion);
   console.log("유형별 분포:", stats.byType);
 
   try {
-    // 실제 데이터베이스에 저장
+    // Save to actual database
     const result = await importCompaniesToDatabase();
 
     console.log("\n=== 임포트 완료 ===");
@@ -31,7 +31,7 @@ export async function executeCompanyImport() {
   }
 }
 
-// 즉시 실행
+// Execute immediately
 executeCompanyImport()
   .then((result) => {
     console.log("✅ 거래처 데이터 임포트가 완료되었습니다!");

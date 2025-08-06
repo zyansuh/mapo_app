@@ -1,23 +1,23 @@
-// 앱 정보 상수
+// App information constants
 export const APP_INFO = {
   NAME: "Mapo Business Manager",
   VERSION: "2.0.0",
   BUILD_NUMBER: "2024010100",
-  AUTHOR: "Mapo Development Team",
+  AUTHOR: "서지안",
   DESCRIPTION: "마포종합식품 관리프로그램",
 } as const;
 
-// API 관련 상수
+// API related constants
 export const API_CONFIG = {
   BASE_URL: process.env.EXPO_PUBLIC_API_URL || "https://api.mapo.com",
-  TIMEOUT: 30000, // 30초
+  TIMEOUT: 30000, // 30 seconds
   RETRY_ATTEMPTS: 3,
-  RETRY_DELAY: 1000, // 1초
-  // 추가 API 키들
+  RETRY_DELAY: 1000, // 1 second
+  // Additional API keys
   KAKAO_API_KEY: process.env.KAKAO_REST_API_KEY,
 } as const;
 
-// 스토리지 관련 상수 (storage.ts에서 이동)
+// Storage related constants (moved from storage.ts)
 export const STORAGE_KEYS = {
   COMPANIES: "mapo_companies_v2",
   PRODUCTS: "mapo_products_v2",
@@ -31,16 +31,16 @@ export const STORAGE_KEYS = {
   ANALYTICS: "mapo_analytics_v2",
 } as const;
 
-// 제한값 상수
+// Limit constants
 export const LIMITS = {
   MAX_COMPANIES: 10000,
   MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB
   MAX_IMAGE_SIZE: 5 * 1024 * 1024, // 5MB
   SEARCH_DEBOUNCE: 300, // ms
-  AUTO_SAVE_INTERVAL: 5000, // 5초
+  AUTO_SAVE_INTERVAL: 5000, // 5 seconds
 } as const;
 
-// 페이지네이션 상수
+// Pagination constants
 export const PAGINATION = {
   DEFAULT_PAGE_SIZE: 20,
   LARGE_PAGE_SIZE: 50,
@@ -48,7 +48,7 @@ export const PAGINATION = {
   MAX_PAGE_SIZE: 100,
 } as const;
 
-// 날짜 형식 상수
+// Date format constants
 export const DATE_FORMATS = {
   DISPLAY: "YYYY년 MM월 DD일",
   SHORT: "MM/DD",
@@ -58,29 +58,29 @@ export const DATE_FORMATS = {
   MONTH_YEAR: "YYYY년 MM월",
 } as const;
 
-// 통화 관련 상수
+// Currency related constants
 export const CURRENCY = {
   KRW: {
     code: "KRW",
     symbol: "₩",
-    name: "한국 원",
+    name: "Korean Won",
     decimals: 0,
   },
   USD: {
     code: "USD",
     symbol: "$",
-    name: "미국 달러",
+    name: "US Dollar",
     decimals: 2,
   },
   EUR: {
     code: "EUR",
     symbol: "€",
-    name: "유로",
+    name: "Euro",
     decimals: 2,
   },
 } as const;
 
-// 정규식 패턴
+// Regex patterns
 export const REGEX_PATTERNS = {
   EMAIL: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
   PHONE: /^[0-9]{10,11}$/,
@@ -91,13 +91,13 @@ export const REGEX_PATTERNS = {
   NUMBER_ONLY: /^[0-9]+$/,
 } as const;
 
-// 성능 관련 상수
+// Performance related constants
 export const PERFORMANCE = {
-  VIRTUAL_LIST_THRESHOLD: 50, // 이 개수 이상일 때 가상화 사용
-  IMAGE_LAZY_LOAD_THRESHOLD: 10, // 이 개수 이상일 때 lazy loading 사용
+  VIRTUAL_LIST_THRESHOLD: 50, // Use virtualization when count exceeds this
+  IMAGE_LAZY_LOAD_THRESHOLD: 10, // Use lazy loading when count exceeds this
   DEBOUNCE_SEARCH: 300, // ms
   THROTTLE_SCROLL: 100, // ms
-  CACHE_TTL: 5 * 60 * 1000, // 5분
+  CACHE_TTL: 5 * 60 * 1000, // 5 minutes
 } as const;
 
 // 애니메이션 상수

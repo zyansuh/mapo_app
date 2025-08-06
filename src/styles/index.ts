@@ -48,7 +48,7 @@ export const commonStyles = StyleSheet.create({
     elevation: 2,
   },
 
-  // 헤더 스타일
+  // Header styles
   header: {
     paddingHorizontal: scaledSizes.spacing.large,
     paddingVertical: scaledSizes.spacing.medium,
@@ -189,7 +189,7 @@ export const commonStyles = StyleSheet.create({
     marginTop: scaledSizes.spacing.tiny,
   },
 
-  // 간격 유틸리티
+  // Spacing 유틸리티
   marginTop: {
     marginTop: scaledSizes.spacing.medium,
   },

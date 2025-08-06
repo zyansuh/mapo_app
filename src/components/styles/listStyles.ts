@@ -208,7 +208,7 @@ export const listStyles = StyleSheet.create({
     elevation: 8,
   },
 
-  // 헤더 스타일
+  // Header styles
   header: {
     backgroundColor: COLORS.surface,
     paddingHorizontal: 20,

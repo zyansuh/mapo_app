@@ -1,14 +1,14 @@
-// 카카오 REST API를 사용한 주소 검색 서비스
+// Address search service using Kakao REST API
 
-// 환경변수에서 카카오 API 키를 가져오거나 기본값 사용
+// Get Kakao API key from environment variables or use default value
 const KAKAO_REST_API_KEY =
   process.env.KAKAO_REST_API_KEY || "79e0ebfe320bd60e62e40f9cf7bc2aa0";
 
 export interface KakaoAddressDocument {
   address_name: string;
   address_type: string;
-  x: string; // 경도
-  y: string; // 위도
+  x: string; // longitude
+  y: string; // latitude
   address: {
     address_name: string;
     region_1depth_name: string;
@@ -51,11 +51,11 @@ export interface AddressSearchResult {
 }
 
 /**
- * 카카오 주소 검색 API를 통해 주소를 검색합니다
- * @param query 검색할 주소 키워드
- * @param page 페이지 번호 (기본값: 1)
- * @param size 페이지당 문서 수 (기본값: 10, 최대 30)
- * @returns 주소 검색 결과
+ * Search addresses through Kakao address search API
+ * @param query Address keyword to search
+ * @param page Page number (default: 1)
+ * @param size Number of documents per page (default: 10, max: 30)
+ * @returns Address search results
  */
 export const searchAddress = async (
   query: string,

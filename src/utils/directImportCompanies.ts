@@ -2,7 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Company, CompanyType, CompanyRegion } from "../types";
 import { STORAGE_KEYS } from "../constants/app";
 
-// CSV 데이터
+// CSV data
 const csvData = `403-03-86421	(라)이랴꿍꿍	송형규	익산시 영등동 851-4				
 266-88-00933	(유)승일	김갑례	담양읍 중앙로 98-1	승일총무	1034886700	1088463063	kangbok1@hanmail.net
 409-86-20167	(주) 죽향산업개발	정광성	담양읍 지침1길 18 101호(대동파라시티)				
@@ -328,14 +328,14 @@ const classifyCompanyType = (businessName: string): CompanyType => {
     return "협력업체";
   }
 
-  return "고객사"; // 기본값
+  return "고객사"; // Default value
 };
 
-// 전화번호 포맷팅 함수
+// Phone number formatting function
 const formatPhoneNumber = (phone: string): string => {
   if (!phone || phone === "ㅂ" || phone === "ㅈ") return "";
 
-  // 숫자만 추출
+  // Extract numbers only
   const numbers = phone.replace(/\D/g, "");
 
   if (numbers.length === 11) {
@@ -500,7 +500,7 @@ export const directImportToStorage = async (): Promise<{
   }
 };
 
-// 통계 정보 반환
+// Statistics information 반환
 export const getImportStats = (): {
   totalRows: number;
   byRegion: Record<CompanyRegion, number>;

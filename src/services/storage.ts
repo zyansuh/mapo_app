@@ -1,13 +1,13 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
 
-// 스토리지 키 상수들은 constants/app.ts에서 import
+// Storage key constants imported from constants/app.ts
 import { STORAGE_KEYS } from "../constants/app";
 export { STORAGE_KEYS };
 
 export type StorageKey = keyof typeof STORAGE_KEYS;
 
-// 스토리지 인터페이스
+// Storage interface
 export interface IStorageService {
   getItem<T = any>(key: string): Promise<T | null>;
   setItem<T = any>(key: string, value: T): Promise<void>;
@@ -19,7 +19,7 @@ export interface IStorageService {
   multiRemove(keys: string[]): Promise<void>;
 }
 
-// 웹/네이티브 호환 스토리지 구현
+// Web/Native compatible storage implementation
 class StorageService implements IStorageService {
   private isWeb = Platform.OS === "web";
 
@@ -37,15 +37,15 @@ class StorageService implements IStorageService {
         return null;
       }
 
-      // JSON 파싱 시도
+      // Try JSON parsing
       try {
         return JSON.parse(rawValue) as T;
       } catch {
-        // JSON이 아닌 경우 원본 문자열 반환
+        // Return original string if not JSON
         return rawValue as unknown as T;
       }
     } catch (error) {
-      console.error(`Storage getItem error for key ${key}:`, error);
+      console.error(`스토리지 getItem 오류 (키: ${key}):`, error);
       return null;
     }
   }
@@ -61,7 +61,7 @@ class StorageService implements IStorageService {
         await AsyncStorage.setItem(key, stringValue);
       }
     } catch (error) {
-      console.error(`Storage setItem error for key ${key}:`, error);
+      console.error(`스토리지 setItem 오류 (키: ${key}):`, error);
       throw new Error(`스토리지 저장 실패: ${key}`);
     }
   }
@@ -74,7 +74,7 @@ class StorageService implements IStorageService {
         await AsyncStorage.removeItem(key);
       }
     } catch (error) {
-      console.error(`Storage removeItem error for key ${key}:`, error);
+      console.error(`스토리지 removeItem 오류 (키: ${key}):`, error);
       throw new Error(`스토리지 삭제 실패: ${key}`);
     }
   }
@@ -82,14 +82,14 @@ class StorageService implements IStorageService {
   async clear(): Promise<void> {
     try {
       if (this.isWeb) {
-        // 웹에서는 앱 관련 키만 삭제
+        // Only delete app-related keys in web
         const keys = Object.values(STORAGE_KEYS) as string[];
         keys.forEach((key) => localStorage.removeItem(key));
       } else {
         await AsyncStorage.clear();
       }
     } catch (error) {
-      console.error("Storage clear error:", error);
+      console.error("스토리지 전체 삭제 오류:", error);
       throw new Error("스토리지 전체 삭제 실패");
     }
   }
@@ -100,10 +100,10 @@ class StorageService implements IStorageService {
         return Object.keys(localStorage);
       } else {
         const keys = await AsyncStorage.getAllKeys();
-        return [...keys]; // readonly 배열을 mutable 배열로 변환
+        return [...keys]; // Convert readonly array to mutable array
       }
     } catch (error) {
-      console.error("Storage getAllKeys error:", error);
+      console.error("스토리지 getAllKeys 오류:", error);
       return [];
     }
   }
@@ -131,7 +131,7 @@ class StorageService implements IStorageService {
         });
       }
     } catch (error) {
-      console.error("Storage multiGet error:", error);
+      console.error("스토리지 multiGet 오류:", error);
       return [];
     }
   }
@@ -152,7 +152,7 @@ class StorageService implements IStorageService {
         await AsyncStorage.multiSet(stringPairs);
       }
     } catch (error) {
-      console.error("Storage multiSet error:", error);
+      console.error("스토리지 multiSet 오류:", error);
       throw new Error("다중 스토리지 저장 실패");
     }
   }
@@ -165,12 +165,12 @@ class StorageService implements IStorageService {
         await AsyncStorage.multiRemove(keys);
       }
     } catch (error) {
-      console.error("Storage multiRemove error:", error);
+      console.error("스토리지 multiRemove 오류:", error);
       throw new Error("다중 스토리지 삭제 실패");
     }
   }
 
-  // 유틸리티 메서드들
+  // Utility methods
   async getStorageInfo(): Promise<{
     usedSize: number;
     totalKeys: number;
@@ -196,7 +196,7 @@ class StorageService implements IStorageService {
         appKeys: appKeys.length,
       };
     } catch (error) {
-      console.error("Storage info error:", error);
+      console.error("스토리지 정보 오류:", error);
       return { usedSize: 0, totalKeys: 0, appKeys: 0 };
     }
   }
@@ -222,41 +222,41 @@ class StorageService implements IStorageService {
         },
       };
     } catch (error) {
-      console.error("Storage backup error:", error);
+      console.error("스토리지 백업 오류:", error);
       throw new Error("스토리지 백업 실패");
     }
   }
 
   async restore(backupData: Record<string, any>): Promise<void> {
     try {
-      // 메타데이터 제거
+      // Remove metadata
       const { _metadata, ...data } = backupData;
 
-      // 기존 데이터 백업
+      // Backup current data
       const currentBackup = await this.backup();
 
       try {
         const pairs: Array<[string, any]> = Object.entries(data);
         await this.multiSet(pairs);
       } catch (restoreError) {
-        // 복원 실패 시 기존 데이터로 롤백
-        console.error("Restore failed, rolling back:", restoreError);
+        // Rollback to existing data if restore fails
+        console.error("복원 실패, 롤백 중:", restoreError);
         const rollbackPairs: Array<[string, any]> =
           Object.entries(currentBackup);
         await this.multiSet(rollbackPairs);
         throw new Error("스토리지 복원 실패");
       }
     } catch (error) {
-      console.error("Storage restore error:", error);
+      console.error("스토리지 복원 오류:", error);
       throw error;
     }
   }
 }
 
-// 싱글톤 인스턴스
+// Singleton instance
 export const storageService = new StorageService();
 
-// 편의 함수들
+// Convenience functions
 export const storage = {
   companies: {
     get: () => storageService.getItem(STORAGE_KEYS.COMPANIES),

@@ -11,7 +11,7 @@ export const usePhoneCall = () => {
     try {
       let cleanPhoneNumber = phoneNumber.replace(/[^0-9]/g, "");
 
-      // 10으로 시작하는 경우 010으로 변경
+      // Change to 010 if starts with 10
       if (cleanPhoneNumber.startsWith("10") && cleanPhoneNumber.length === 10) {
         cleanPhoneNumber = "0" + cleanPhoneNumber;
       }
@@ -25,7 +25,7 @@ export const usePhoneCall = () => {
       const supported = await Linking.canOpenURL(url);
 
       if (supported) {
-        // 통화 기록 추가
+        // Call history 추가
         const callRecord: CallHistoryItem = {
           id: Date.now().toString(),
           phoneNumber: formatPhoneNumber(cleanPhoneNumber),
@@ -45,7 +45,7 @@ export const usePhoneCall = () => {
     }
   };
 
-  // 통화 기록 삭제
+  // Call history 삭제
   const clearCallHistory = () => {
     Alert.alert("통화 기록 삭제", "모든 통화 기록을 삭제하시겠습니까?", [
       { text: "취소", style: "cancel" },
@@ -66,12 +66,12 @@ export const usePhoneCall = () => {
   const formatPhoneNumber = (phoneNumber: string): string => {
     let cleaned = phoneNumber.replace(/[^0-9]/g, "");
 
-    // 1로 시작하는 10자리 번호를 010으로 변경 (휴대폰 번호)
+    // Change 10-digit number starting with 1 to 010 (mobile number)
     if (cleaned.startsWith("1") && cleaned.length === 10) {
       cleaned = "01" + cleaned.substring(1);
     }
 
-    // 휴대폰 번호 (010, 011 등으로 시작하는 11자리)
+    // Mobile number (11 digits starting with 010, 011, etc.)
     if (
       cleaned.length === 11 &&
       (cleaned.startsWith("010") ||
@@ -86,14 +86,14 @@ export const usePhoneCall = () => {
       )}`;
     }
 
-    // 지역번호 (10자리)
+    // Area code (10 digits)
     if (cleaned.length === 10) {
       return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 6)}-${cleaned.slice(
         6
       )}`;
     }
 
-    // 지역번호 (9자리)
+    // Area code (9 digits)
     if (cleaned.length === 9) {
       return `${cleaned.slice(0, 2)}-${cleaned.slice(2, 5)}-${cleaned.slice(
         5
@@ -108,7 +108,7 @@ export const usePhoneCall = () => {
     return phoneNumber;
   };
 
-  // 통화 기록 필터링
+  // Call history 필터링
   const getFilteredCallHistory = (
     type?: "outgoing" | "incoming" | "missed"
   ) => {

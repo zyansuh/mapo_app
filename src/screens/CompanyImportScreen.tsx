@@ -126,7 +126,7 @@ const CompanyImportScreen = () => {
       );
     } catch (error) {
       Alert.alert("오류", "일괄 등록 중 오류가 발생했습니다.");
-      console.error("Import error:", error);
+      console.error("임포트 오류:", error);
     } finally {
       setIsImporting(false);
     }

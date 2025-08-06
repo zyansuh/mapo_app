@@ -8,7 +8,7 @@ export const invoiceEditStyles = StyleSheet.create({
     backgroundColor: THEME.colors.background,
   },
 
-  // 헤더 스타일
+  // Header styles
   header: {
     paddingHorizontal: SPACING.medium,
     paddingVertical: SPACING.medium,

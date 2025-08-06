@@ -1047,7 +1047,7 @@ export const useInvoice = (): UseInvoiceReturn => {
       }
     } catch (err) {
       setError("계산서 데이터를 불러오는데 실패했습니다.");
-      console.error("Invoice loading error:", err);
+      console.error("계산서 로드 오류:", err);
     } finally {
       setLoading(false);
     }
@@ -1090,7 +1090,7 @@ export const useInvoice = (): UseInvoiceReturn => {
         return newInvoice;
       } catch (err) {
         setError("계산서 추가에 실패했습니다.");
-        console.error("Add invoice error:", err);
+        console.error("계산서 추가 오류:", err);
         return null;
       }
     },
@@ -1111,7 +1111,7 @@ export const useInvoice = (): UseInvoiceReturn => {
         return true;
       } catch (err) {
         setError("계산서 수정에 실패했습니다.");
-        console.error("Update invoice error:", err);
+        console.error("계산서 수정 오류:", err);
         return false;
       }
     },
@@ -1127,7 +1127,7 @@ export const useInvoice = (): UseInvoiceReturn => {
         return true;
       } catch (err) {
         setError("계산서 삭제에 실패했습니다.");
-        console.error("Delete invoice error:", err);
+        console.error("계산서 삭제 오류:", err);
         return false;
       }
     },
@@ -1155,7 +1155,7 @@ export const useInvoice = (): UseInvoiceReturn => {
         return true;
       } catch (err) {
         setError("계산서 상태 변경에 실패했습니다.");
-        console.error("Update invoice status error:", err);
+        console.error("계산서 상태 수정 오류:", err);
         return false;
       }
     },

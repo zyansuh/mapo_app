@@ -30,7 +30,7 @@ export const modalStyles = StyleSheet.create({
     elevation: 5,
   },
 
-  // 헤더 스타일
+  // Header styles
   header: {
     flexDirection: "row",
     justifyContent: "space-between",

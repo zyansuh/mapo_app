@@ -296,7 +296,7 @@ export class GlobalShortcutManager {
   }
 }
 
-// 싱글톤 인스턴스
+// Singleton instance
 export const globalShortcutManager = GlobalShortcutManager.getInstance();
 
 // 단축키 조합 생성 헬퍼

@@ -77,14 +77,14 @@ const classifyCompanyType = (name: string): CompanyType => {
     return "협력업체";
   }
 
-  return "고객사"; // 기본값
+  return "고객사"; // Default value
 };
 
-// 전화번호 포맷팅 함수
+// Phone number formatting function
 const formatPhoneNumber = (phone: string): string => {
   if (!phone) return "";
 
-  // 숫자만 추출
+  // Extract numbers only
   const numbersOnly = phone.replace(/\D/g, "");
 
   // 10자리 또는 11자리 휴대폰 번호 포맷팅
@@ -168,7 +168,7 @@ export const parseCompaniesFromCSV = (csvText: string): Company[] => {
   return companies;
 };
 
-// 제공된 거래처 데이터 (하드코딩)
+// Provided company data (하드코딩)
 export const providedCompaniesData = `사업자번호	상호	성명	주소	담당자성명1	전화1	HP1	이메일1
 403-03-86421	(라)이랴꿍꿍	송형규	익산시 영등동 851-4				
 266-88-00933	(유)승일	김갑례	담양읍 중앙로 98-1	승일총무	1034886700	1088463063	kangbok1@hanmail.net
@@ -403,7 +403,7 @@ export const providedCompaniesData = `사업자번호	상호	성명	주소	담�
 372-73-00215	황후쟁반짜장	이진호	담양읍 지침3길 10	이진호	1050130626	1050130626	whang77@chol.com
 418-81-35015	후레쉬푸드	배희문	전주시 덕진구 송천중앙로233-16`;
 
-// 제공된 거래처 데이터를 파싱하여 Company 배열로 변환
+// Provided company data를 파싱하여 Company 배열로 변환
 export const parseProvidedCompanies = (): Company[] => {
   return parseCompaniesFromCSV(providedCompaniesData);
 };

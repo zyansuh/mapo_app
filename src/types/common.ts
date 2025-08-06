@@ -226,7 +226,7 @@ export interface UserRole {
   description?: string;
 }
 
-// 설정 관련
+// Settings 관련
 export interface AppSettings {
   theme: "light" | "dark" | "auto";
   language: string;
