@@ -169,12 +169,13 @@ const InvoiceEditScreen = () => {
   };
 
   const calculateAmounts = (item: InvoiceItem) => {
-    const totalAmount = item.quantity * item.unitPrice;
+    const supplyAmount = item.quantity * item.unitPrice; // 부가세 미포함 공급가액
 
     if (item.taxType === "과세") {
-      // 부가세 포함 가격에서 공급가액과 부가세 역산
-      const amount = Math.round(totalAmount / 1.1);
-      const taxAmount = totalAmount - amount;
+      // 부가세 미포함 개별 단가 기준으로 계산
+      const amount = supplyAmount;
+      const taxAmount = Math.round(supplyAmount * 0.1); // 부가세 10%
+      const totalAmount = amount + taxAmount;
 
       return {
         ...item,
@@ -184,8 +185,9 @@ const InvoiceEditScreen = () => {
       };
     } else {
       // 면세/영세는 기존 방식
-      const amount = totalAmount;
+      const amount = supplyAmount;
       const taxAmount = 0;
+      const totalAmount = amount;
 
       return {
         ...item,
@@ -547,7 +549,7 @@ const InvoiceEditScreen = () => {
 
         <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}>
           <Text style={[styles.label, { color: COLORS.text }]}>
-            {item.taxType === "과세" ? "부가세 포함 단가" : "단가"}
+            {item.taxType === "과세" ? "부가세 미포함 개별 단가" : "단가"}
           </Text>
           <TextInput
             style={[
@@ -563,7 +565,7 @@ const InvoiceEditScreen = () => {
               updateItem(index, "unitPrice", Number(value) || 0)
             }
             keyboardType="numeric"
-            placeholder={item.taxType === "과세" ? "부가세 포함 단가" : "단가"}
+            placeholder={item.taxType === "과세" ? "부가세 미포함 개별 단가" : "단가"}
             placeholderTextColor={COLORS.textSecondary}
           />
         </View>

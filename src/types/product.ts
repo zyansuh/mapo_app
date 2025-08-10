@@ -43,7 +43,7 @@ export const CATEGORY_ITEMS: Record<ProductCategory, string[]> = {
     "모두부",
     "콩물",
   ],
-  콩나물: ["콩나물", "시루콩나물", "박스콩나물", "두절콩나물", "대파콩나물"],
+  콩나물: ["시루콩나물", "박스콩나물", "두절콩나물"],
   묵류: [
     "묵사발",
     "도토리묵",
@@ -55,7 +55,7 @@ export const CATEGORY_ITEMS: Record<ProductCategory, string[]> = {
     "청포묵",
     "메밀묵",
   ],
-  기타: [],
+  기타: ["콩나물"],
 };
 
 export interface Product extends BaseEntity {

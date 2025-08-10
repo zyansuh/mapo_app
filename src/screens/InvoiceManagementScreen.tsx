@@ -62,7 +62,7 @@ const InvoiceManagementScreen = () => {
     if (filterType === "과세") {
       return ["묵사발", "도토리묵", "청포묵"]; // 묵류
     } else if (filterType === "면세") {
-      return ["착한손두부", "순두부", "시루콩나물", "대파콩나물"]; // 두부, 콩나물
+      return ["착한손두부", "순두부", "시루콩나물"]; // 두부, 콩나물
     }
     return [];
   }, [filterType]);

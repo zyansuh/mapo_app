@@ -318,7 +318,7 @@ const getSampleInvoices = (): Invoice[] => [
       },
       {
         id: "item17",
-        name: "대파콩나물",
+        name: "시루콩나물",
         quantity: 25,
         unitPrice: 1200,
         amount: 30000,
@@ -1167,9 +1167,15 @@ export const useInvoice = (): UseInvoiceReturn => {
   }, [loadInvoices]);
 
   const generateInvoiceNumber = useCallback((): string => {
-    const year = new Date().getFullYear();
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+
+    // 날짜별 계산서 번호 생성 (예: INV-2024-1128-001)
+    const datePrefix = `${year}${month}${day}`;
     const existingNumbers = invoices
-      .filter((inv) => inv.invoiceNumber.includes(year.toString()))
+      .filter((inv) => inv.invoiceNumber.includes(datePrefix))
       .map((inv) => {
         const match = inv.invoiceNumber.match(/-(\d+)$/);
         return match ? parseInt(match[1]) : 0;
@@ -1177,7 +1183,14 @@ export const useInvoice = (): UseInvoiceReturn => {
 
     const nextNumber =
       existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : 1;
-    return `INV-${year}-${String(nextNumber).padStart(3, "0")}`;
+
+    // 시간 기반 추가 고유성 보장 (초 단위)
+    const timestamp = Math.floor(now.getTime() / 1000) % 10000; // 마지막 4자리
+
+    return `INV-${year}-${month}${day}-${String(nextNumber).padStart(
+      3,
+      "0"
+    )}-${timestamp}`;
   }, [invoices]);
 
   return {
