@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Alert, Linking } from "react-native";
 import { CallHistoryItem } from "../types";
+import { sampleCallHistory } from "../data/sampleCallHistory";
 
 export const usePhoneCall = () => {
   const [callHistory, setCallHistory] = useState<CallHistoryItem[]>([]);
@@ -118,30 +119,7 @@ export const usePhoneCall = () => {
 
   // 테스트용 샘플 통화 기록 추가
   const addSampleCallHistory = () => {
-    const sampleCalls: CallHistoryItem[] = [
-      {
-        id: "1",
-        phoneNumber: "02-1234-5678",
-        companyName: "(주)삼성전자",
-        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24),
-        type: "outgoing",
-      },
-      {
-        id: "2",
-        phoneNumber: "031-987-6543",
-        companyName: "엘지디스플레이",
-        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 48),
-        type: "incoming",
-      },
-      {
-        id: "3",
-        phoneNumber: "010-1234-5678",
-        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 72),
-        type: "missed",
-      },
-    ];
-
-    setCallHistory(sampleCalls);
+    setCallHistory(sampleCallHistory);
   };
 
   return {

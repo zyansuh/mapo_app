@@ -4,6 +4,7 @@ import { usePhoneCall } from "../hooks/usePhoneCall";
 import { useCallDetection } from "../hooks/useCallDetection";
 import { useCallAnalytics } from "../hooks/useCallAnalytics";
 import { useCompany } from "../hooks/useCompany";
+import { usePermissions } from "../hooks/usePermissions";
 import { CallHistoryItem } from "../types";
 
 interface CallContextType {
@@ -29,6 +30,16 @@ interface CallContextType {
   // Settings
   enableAutoDetection: boolean;
   setEnableAutoDetection: (enabled: boolean) => void;
+
+  // Permissions
+  permissionStatus: {
+    callPhone: boolean;
+    readCallLog: boolean;
+    readPhoneState: boolean;
+    allGranted: boolean;
+  };
+  requestPermissions: () => Promise<boolean>;
+  isPermissionLoading: boolean;
 }
 
 const CallContext = createContext<CallContextType | undefined>(undefined);
@@ -55,6 +66,13 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
     formatPhoneNumber,
     addSampleCallHistory,
   } = usePhoneCall();
+
+  const {
+    permissionStatus,
+    isLoading: isPermissionLoading,
+    requestAllPermissions,
+    checkPermissions,
+  } = usePermissions();
 
   const {
     isDetectionActive,
@@ -94,11 +112,13 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
     checkPermissions();
   };
 
-  const checkPermissions = async () => {
-    if (Platform.OS === "android") {
-      // Permissions required for Android
-      // Use react-native-permissions library in actual implementation
-      console.log("Checking call detection permissions...");
+  // 권한 요청 래퍼 함수
+  const requestPermissions = async (): Promise<boolean> => {
+    try {
+      return await requestAllPermissions();
+    } catch (error) {
+      console.error("권한 요청 실패:", error);
+      return false;
     }
   };
 
@@ -203,6 +223,11 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
     // Settings
     enableAutoDetection,
     setEnableAutoDetection,
+
+    // Permissions
+    permissionStatus,
+    requestPermissions,
+    isPermissionLoading,
 
     // Test functionality (development only)
     ...testFeatures,

@@ -24,6 +24,7 @@ import {
   useLoading,
   useNotifications,
 } from "../hooks";
+import { useCall } from "../providers/CallProvider";
 import {
   COLORS,
   commonStyles,
@@ -47,6 +48,7 @@ const HomeScreen = () => {
   const { stats: deliveryStats } = useDelivery();
   const { loading } = useLoading();
   const { showSuccess, showError } = useNotifications();
+  const { callHistory } = useCall();
 
   // getStats는 이미 계산된 객체이므로 직접 사용
   const stats = getStats;
@@ -172,6 +174,13 @@ const HomeScreen = () => {
       color: "#9333EA",
       onPress: () => navigation.navigate("CompanySalesAnalysis"),
       count: invoiceStats.companiesWithSales,
+    },
+    {
+      title: "통화 기록",
+      icon: "call" as const,
+      color: "#0ea5e9",
+      onPress: () => navigation.navigate("CallHistory"),
+      count: callHistory.length,
     },
   ];
 
