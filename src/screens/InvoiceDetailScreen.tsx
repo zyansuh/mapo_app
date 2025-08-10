@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -11,7 +11,11 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import {
+  useNavigation,
+  useRoute,
+  useFocusEffect,
+} from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
@@ -33,8 +37,8 @@ const InvoiceDetailScreen = () => {
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [company, setCompany] = useState<any>(null);
 
-  // 실제 계산서 데이터 로드
-  useEffect(() => {
+  // 계산서 데이터 로드 함수
+  const loadInvoiceData = useCallback(() => {
     const invoiceData = getInvoiceById(invoiceId);
     if (invoiceData) {
       setInvoice(invoiceData);
@@ -42,14 +46,31 @@ const InvoiceDetailScreen = () => {
       setCompany(companyData);
     } else {
       Alert.alert("오류", "계산서를 찾을 수 없습니다.", [
-        { text: "확인", onPress: () => navigation.goBack() }
+        { text: "확인", onPress: () => navigation.goBack() },
       ]);
     }
   }, [invoiceId, getInvoiceById, getCompanyById, navigation]);
 
+  // 초기 데이터 로드
+  useEffect(() => {
+    loadInvoiceData();
+  }, [loadInvoiceData]);
+
+  // 화면 포커스시 데이터 새로고침
+  useFocusEffect(
+    useCallback(() => {
+      loadInvoiceData();
+    }, [loadInvoiceData])
+  );
+
   if (!invoice) {
     return (
-      <SafeAreaView style={[invoiceDetailStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+      <SafeAreaView
+        style={[
+          invoiceDetailStyles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
         <Text>로딩 중...</Text>
       </SafeAreaView>
     );
@@ -171,7 +192,7 @@ const InvoiceDetailScreen = () => {
       const companyName = company?.name || "거래처명 없음";
       const companyAddress = company?.address || "";
       const companyPhone = company?.contactPhone || "";
-      
+
       const htmlContent = `
         <!DOCTYPE html>
         <html>
@@ -344,21 +365,29 @@ const InvoiceDetailScreen = () => {
               </tr>
             </thead>
             <tbody>
-              ${invoice.items.map(item => `
+              ${invoice.items
+                .map(
+                  (item) => `
                 <tr>
                   <td>${item.name}</td>
                   <td class="text-right">${item.quantity}개</td>
                   <td class="text-right">${formatCurrency(item.unitPrice)}</td>
                   <td class="text-right">${formatCurrency(item.amount)}</td>
                   <td>
-                    <span class="tax-badge ${item.taxType === '과세' ? 'tax-taxable' : 'tax-exempt'}">
+                    <span class="tax-badge ${
+                      item.taxType === "과세" ? "tax-taxable" : "tax-exempt"
+                    }">
                       ${item.taxType}
                     </span>
                   </td>
                   <td class="text-right">${formatCurrency(item.taxAmount)}</td>
-                  <td class="text-right">${formatCurrency(item.totalAmount)}</td>
+                  <td class="text-right">${formatCurrency(
+                    item.totalAmount
+                  )}</td>
                 </tr>
-              `).join('')}
+              `
+                )
+                .join("")}
             </tbody>
           </table>
 
@@ -377,16 +406,20 @@ const InvoiceDetailScreen = () => {
             </div>
           </div>
 
-          ${invoice.memo ? `
+          ${
+            invoice.memo
+              ? `
             <div class="memo-section">
               <h4>메모</h4>
               <p>${invoice.memo}</p>
             </div>
-          ` : ''}
+          `
+              : ""
+          }
 
           <div class="footer">
             <p>마포 비즈니스 매니저에서 생성된 계산서입니다.</p>
-            <p>생성일시: ${new Date().toLocaleString('ko-KR')}</p>
+            <p>생성일시: ${new Date().toLocaleString("ko-KR")}</p>
           </div>
         </body>
         </html>
@@ -399,9 +432,9 @@ const InvoiceDetailScreen = () => {
 
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(uri, {
-          mimeType: 'application/pdf',
+          mimeType: "application/pdf",
           dialogTitle: `계산서 공유 - ${invoice.invoiceNumber}`,
-          UTI: 'com.adobe.pdf',
+          UTI: "com.adobe.pdf",
         });
       } else {
         Alert.alert(
@@ -410,11 +443,8 @@ const InvoiceDetailScreen = () => {
         );
       }
     } catch (error) {
-      console.error('PDF 생성 오류:', error);
-      Alert.alert(
-        "오류",
-        "PDF 생성 중 오류가 발생했습니다."
-      );
+      console.error("PDF 생성 오류:", error);
+      Alert.alert("오류", "PDF 생성 중 오류가 발생했습니다.");
     }
   };
 

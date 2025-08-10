@@ -369,7 +369,13 @@ const InvoiceManagementScreen = () => {
   );
 
   const renderInvoiceCard = ({ item }: { item: Invoice }) => (
-    <View style={[styles.invoiceCard, { backgroundColor: COLORS.white }]}>
+    <TouchableOpacity
+      style={[styles.invoiceCard, { backgroundColor: COLORS.white }]}
+      onPress={() =>
+        navigation.navigate("InvoiceDetail", { invoiceId: item.id })
+      }
+      activeOpacity={0.7}
+    >
       <View style={styles.invoiceHeader}>
         <Text style={[styles.invoiceNumber, { color: COLORS.text }]}>
           {item.invoiceNumber}
@@ -407,7 +413,10 @@ const InvoiceManagementScreen = () => {
             styles.actionButton,
             { backgroundColor: COLORS.primary + "20" },
           ]}
-          onPress={() => handleEditInvoice(item)}
+          onPress={(e) => {
+            e.stopPropagation();
+            handleEditInvoice(item);
+          }}
         >
           <Ionicons name="pencil-outline" size={16} color={COLORS.primary} />
           <Text style={[styles.actionText, { color: COLORS.primary }]}>
@@ -419,13 +428,16 @@ const InvoiceManagementScreen = () => {
             styles.actionButton,
             { backgroundColor: COLORS.error + "20" },
           ]}
-          onPress={() => deleteInvoice(item.id)}
+          onPress={(e) => {
+            e.stopPropagation();
+            handleDeleteInvoice(item.id);
+          }}
         >
           <Ionicons name="trash-outline" size={16} color={COLORS.error} />
           <Text style={[styles.actionText, { color: COLORS.error }]}>삭제</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   return (
@@ -503,13 +515,25 @@ const InvoiceManagementScreen = () => {
             data={filteredInvoices}
             renderItem={renderInvoiceCard}
             keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.listContainer}
+            contentContainerStyle={[
+              styles.listContainer,
+              { paddingBottom: 100 },
+            ]}
             showsVerticalScrollIndicator={false}
           />
         )}
 
         {/* 기간 설정 모달 */}
         {renderDateFilterModal()}
+
+        {/* 플로팅 액션 버튼 (계산서 추가) */}
+        <TouchableOpacity
+          style={[styles.fab, { backgroundColor: COLORS.primary }]}
+          onPress={handleCreateInvoice}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="add" size={28} color={COLORS.white} />
+        </TouchableOpacity>
       </SafeAreaView>
     </>
   );
@@ -760,6 +784,25 @@ const styles = StyleSheet.create({
   applyButtonText: {
     fontSize: 16,
     fontWeight: "600",
+  },
+  fab: {
+    position: "absolute",
+    bottom: 20,
+    right: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 8,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
+    zIndex: 1000,
   },
 });
 
