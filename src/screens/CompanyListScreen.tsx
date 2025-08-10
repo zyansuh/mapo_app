@@ -10,6 +10,7 @@ import {
   SafeAreaView,
   TextInput,
   Modal,
+  ScrollView,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
@@ -38,15 +39,30 @@ export const CompanyListScreen: React.FC = () => {
     "recent"
   );
   const [sortModalVisible, setSortModalVisible] = useState(false);
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [selectedCompanyType, setSelectedCompanyType] =
+    useState<string>("전체");
 
-  // 검색 및 정렬된 회사 목록
+  // 검색, 필터링 및 정렬된 회사 목록
   const filteredAndSortedCompanies = useMemo(() => {
     let filtered = companies;
+
+    // 즐겨찾기 필터 적용
+    if (showFavoritesOnly) {
+      filtered = filtered.filter((company) => company.isFavorite);
+    }
+
+    // 거래처 유형 필터 적용
+    if (selectedCompanyType !== "전체") {
+      filtered = filtered.filter(
+        (company) => company.type === selectedCompanyType
+      );
+    }
 
     // 검색 필터 적용
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
-      filtered = companies.filter(
+      filtered = filtered.filter(
         (company) =>
           company.name.toLowerCase().includes(query) ||
           company.address.toLowerCase().includes(query) ||
@@ -62,8 +78,14 @@ export const CompanyListScreen: React.FC = () => {
       );
     }
 
-    // 정렬 적용
+    // 정렬 적용 (즐겨찾기 필터가 꺼져있을 때는 즐겨찾기를 항상 상단에)
     const sorted = [...filtered].sort((a, b) => {
+      // 즐겨찾기 필터가 꺼져있고, 일반 정렬일 때는 즐겨찾기를 먼저
+      if (!showFavoritesOnly && sortBy !== "favorite") {
+        if (a.isFavorite && !b.isFavorite) return -1;
+        if (!a.isFavorite && b.isFavorite) return 1;
+      }
+
       switch (sortBy) {
         case "name":
           return a.name.localeCompare(b.name, "ko-KR");
@@ -83,7 +105,7 @@ export const CompanyListScreen: React.FC = () => {
     });
 
     return sorted;
-  }, [companies, searchQuery, sortBy]);
+  }, [companies, searchQuery, sortBy, showFavoritesOnly, selectedCompanyType]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -159,9 +181,6 @@ export const CompanyListScreen: React.FC = () => {
           <View style={styles.companyMainInfo}>
             <View style={styles.companyTitleRow}>
               <Text style={styles.companyName}>{item.name}</Text>
-              {item.isFavorite && (
-                <Ionicons name="star" size={16} color="#f59e0b" />
-              )}
             </View>
             <Text style={styles.businessDescription}>
               {getBusinessDescription(item.type)}
@@ -286,31 +305,49 @@ export const CompanyListScreen: React.FC = () => {
           <View style={styles.headerTitleRow}>
             <View style={styles.titleSection}>
               <Text style={styles.headerTitle}>거래처 관리</Text>
-              <Text style={styles.headerSubtitle}>
-                총{" "}
-                {searchQuery
-                  ? filteredAndSortedCompanies.length
-                  : companies.length}
-                개 거래처 • {companies.filter((c) => c.isFavorite).length}개
-                즐겨찾기
-              </Text>
             </View>
-            <TouchableOpacity
-              style={styles.searchButton}
-              onPress={() => setSearchVisible(!searchVisible)}
-            >
-              <Ionicons
-                name={searchVisible ? "close" : "search"}
-                size={20}
-                color="#ffffff"
-              />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.sortButton}
-              onPress={() => setSortModalVisible(true)}
-            >
-              <Ionicons name="funnel-outline" size={20} color="#ffffff" />
-            </TouchableOpacity>
+            <View style={styles.headerActions}>
+              <TouchableOpacity
+                style={styles.searchButton}
+                onPress={() => setSearchVisible(!searchVisible)}
+              >
+                <Ionicons
+                  name={searchVisible ? "close" : "search"}
+                  size={20}
+                  color="#ffffff"
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.sortButton}
+                onPress={() => setSortModalVisible(true)}
+              >
+                <Ionicons name="funnel-outline" size={20} color="#ffffff" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.favoriteFilterButton,
+                  showFavoritesOnly && styles.favoriteFilterButtonActive,
+                ]}
+                onPress={() => setShowFavoritesOnly(!showFavoritesOnly)}
+              >
+                <Ionicons
+                  name={showFavoritesOnly ? "star" : "star-outline"}
+                  size={20}
+                  color="#ffffff"
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+          <View style={styles.statsRow}>
+            <Text style={styles.headerSubtitle}>
+              총{" "}
+              {searchQuery || showFavoritesOnly
+                ? filteredAndSortedCompanies.length
+                : companies.length}
+              개 거래처 • {companies.filter((c) => c.isFavorite).length}개
+              즐겨찾기
+              {showFavoritesOnly && " (즐겨찾기만 표시)"}
+            </Text>
           </View>
         </View>
       </LinearGradient>
@@ -345,6 +382,37 @@ export const CompanyListScreen: React.FC = () => {
         </View>
       )}
 
+      {/* 거래처 유형 필터 탭 */}
+      <View style={styles.typeFilterContainer}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.typeFilterScrollContent}
+        >
+          {["전체", "고객사", "협력업체", "공급업체", "하청업체", "기타"].map(
+            (type) => (
+              <TouchableOpacity
+                key={type}
+                style={[
+                  styles.typeFilterTab,
+                  selectedCompanyType === type && styles.typeFilterTabActive,
+                ]}
+                onPress={() => setSelectedCompanyType(type)}
+              >
+                <Text
+                  style={[
+                    styles.typeFilterText,
+                    selectedCompanyType === type && styles.typeFilterTextActive,
+                  ]}
+                >
+                  {type}
+                </Text>
+              </TouchableOpacity>
+            )
+          )}
+        </ScrollView>
+      </View>
+
       <View style={styles.content}>
         <FlatList
           data={filteredAndSortedCompanies}
@@ -368,11 +436,12 @@ export const CompanyListScreen: React.FC = () => {
         />
       </View>
 
-      <View style={[styles.fab, { bottom: 80 + insets.bottom }]}>
-        <TouchableOpacity style={styles.fabButton} onPress={handleAddPress}>
-          <Ionicons name="add" size={24} color="#ffffff" />
-        </TouchableOpacity>
-      </View>
+      <TouchableOpacity
+        style={[styles.fab, { bottom: 20 + insets.bottom, right: 20 }]}
+        onPress={handleAddPress}
+      >
+        <Ionicons name="add" size={24} color="#ffffff" />
+      </TouchableOpacity>
 
       {/* 정렬 모달 */}
       <Modal
@@ -503,10 +572,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     width: "100%",
+    marginBottom: 10,
   },
   titleSection: {
     flex: 1,
+    alignItems: "flex-start",
+  },
+  headerActions: {
+    flexDirection: "row",
     alignItems: "center",
+  },
+  statsRow: {
+    width: "100%",
   },
   searchButton: {
     width: 40,
@@ -741,10 +818,6 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: "absolute",
-    right: 20,
-    // bottom은 동적으로 설정됨
-  },
-  fabButton: {
     backgroundColor: "#737373", // NEUTRAL_500 - 톤 다운된 회색
     width: 56,
     height: 56,
@@ -810,6 +883,45 @@ const styles = StyleSheet.create({
   },
   selectedSortOptionText: {
     color: "#007AFF",
+    fontWeight: "600",
+  },
+  favoriteFilterButton: {
+    padding: 8,
+    marginLeft: 8,
+    borderRadius: 16,
+  },
+  favoriteFilterButtonActive: {
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+  },
+  typeFilterContainer: {
+    paddingVertical: 10,
+    backgroundColor: "#ffffff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E5EA",
+  },
+  typeFilterScrollContent: {
+    paddingHorizontal: 20,
+  },
+  typeFilterTab: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    marginRight: 8,
+    borderRadius: 20,
+    backgroundColor: "#f8f9fa",
+    borderWidth: 1,
+    borderColor: "#E5E5EA",
+  },
+  typeFilterTabActive: {
+    backgroundColor: "#007AFF",
+    borderColor: "#007AFF",
+  },
+  typeFilterText: {
+    fontSize: 14,
+    color: "#666666",
+    fontWeight: "500",
+  },
+  typeFilterTextActive: {
+    color: "#ffffff",
     fontWeight: "600",
   },
 });
