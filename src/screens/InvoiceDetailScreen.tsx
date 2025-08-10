@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -13,56 +13,47 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import * as Print from "expo-print";
+import * as Sharing from "expo-sharing";
 import { THEME } from "../styles/themes";
 import { invoiceDetailStyles } from "../styles/screens";
 import { Invoice, InvoiceStatus, TaxType } from "../types";
 import { formatDate, formatCurrency } from "../utils/format";
 import { useInvoice } from "../hooks";
+import { useCompany } from "../hooks";
 
 const InvoiceDetailScreen = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const insets = useSafeAreaInsets();
   const { updateInvoiceStatus, getInvoiceById, deleteInvoice } = useInvoice();
+  const { getCompanyById } = useCompany();
 
   const { invoiceId } = route.params;
+  const [invoice, setInvoice] = useState<Invoice | null>(null);
+  const [company, setCompany] = useState<any>(null);
 
-  // 샘플 계산서 데이터 (실제로는 ID로 조회)
-  const invoice: Invoice = {
-    id: invoiceId,
-    invoiceNumber: "INV-2024-001",
-    companyId: "comp1",
-    items: [
-      {
-        id: "item1",
-        name: "착한손두부",
-        quantity: 10,
-        unitPrice: 2000,
-        amount: 20000,
-        taxType: "과세" as TaxType,
-        taxAmount: 2000,
-        totalAmount: 22000,
-      },
-      {
-        id: "item2",
-        name: "시루콩나물",
-        quantity: 5,
-        unitPrice: 1500,
-        amount: 7500,
-        taxType: "면세" as TaxType,
-        taxAmount: 0,
-        totalAmount: 7500,
-      },
-    ],
-    totalSupplyAmount: 27500,
-    totalTaxAmount: 2000,
-    totalAmount: 29500,
-    issueDate: new Date(),
-    status: "발행" as InvoiceStatus,
-    memo: "정기 납품 계산서입니다.",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
+  // 실제 계산서 데이터 로드
+  useEffect(() => {
+    const invoiceData = getInvoiceById(invoiceId);
+    if (invoiceData) {
+      setInvoice(invoiceData);
+      const companyData = getCompanyById(invoiceData.companyId);
+      setCompany(companyData);
+    } else {
+      Alert.alert("오류", "계산서를 찾을 수 없습니다.", [
+        { text: "확인", onPress: () => navigation.goBack() }
+      ]);
+    }
+  }, [invoiceId, getInvoiceById, getCompanyById, navigation]);
+
+  if (!invoice) {
+    return (
+      <SafeAreaView style={[invoiceDetailStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <Text>로딩 중...</Text>
+      </SafeAreaView>
+    );
+  }
 
   const handleEdit = () => {
     navigation.navigate("InvoiceEdit", { invoiceId: invoice.id });
@@ -171,6 +162,259 @@ const InvoiceDetailScreen = () => {
         return THEME.colors.warning;
       default:
         return THEME.colors.textSecondary;
+    }
+  };
+
+  // PDF 내보내기 기능
+  const handleExportPDF = async () => {
+    try {
+      const companyName = company?.name || "거래처명 없음";
+      const companyAddress = company?.address || "";
+      const companyPhone = company?.contactPhone || "";
+      
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <title>계산서 - ${invoice.invoiceNumber}</title>
+          <style>
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              margin: 40px;
+              color: #333;
+              line-height: 1.6;
+            }
+            .header {
+              text-align: center;
+              margin-bottom: 40px;
+              border-bottom: 3px solid #007AFF;
+              padding-bottom: 20px;
+            }
+            .header h1 {
+              color: #007AFF;
+              margin: 0;
+              font-size: 28px;
+            }
+            .invoice-info {
+              display: flex;
+              justify-content: space-between;
+              margin-bottom: 30px;
+            }
+            .info-section {
+              flex: 1;
+            }
+            .info-section h3 {
+              color: #007AFF;
+              margin-bottom: 10px;
+              border-bottom: 1px solid #eee;
+              padding-bottom: 5px;
+            }
+            .info-row {
+              display: flex;
+              margin-bottom: 8px;
+            }
+            .info-label {
+              font-weight: bold;
+              width: 100px;
+              color: #666;
+            }
+            .info-value {
+              flex: 1;
+            }
+            .items-table {
+              width: 100%;
+              border-collapse: collapse;
+              margin: 30px 0;
+            }
+            .items-table th,
+            .items-table td {
+              border: 1px solid #ddd;
+              padding: 12px;
+              text-align: left;
+            }
+            .items-table th {
+              background-color: #f8f9fa;
+              font-weight: bold;
+              color: #007AFF;
+            }
+            .items-table .text-right {
+              text-align: right;
+            }
+            .tax-badge {
+              padding: 2px 8px;
+              border-radius: 12px;
+              font-size: 12px;
+              font-weight: bold;
+            }
+            .tax-taxable {
+              background-color: #007AFF20;
+              color: #007AFF;
+            }
+            .tax-exempt {
+              background-color: #34C75920;
+              color: #34C759;
+            }
+            .total-section {
+              margin-top: 30px;
+              padding: 20px;
+              background-color: #f8f9fa;
+              border-radius: 8px;
+            }
+            .total-row {
+              display: flex;
+              justify-content: space-between;
+              margin-bottom: 10px;
+            }
+            .grand-total {
+              font-size: 18px;
+              font-weight: bold;
+              color: #007AFF;
+              border-top: 2px solid #007AFF;
+              padding-top: 10px;
+              margin-top: 10px;
+            }
+            .memo-section {
+              margin-top: 30px;
+              padding: 15px;
+              background-color: #fff3cd;
+              border-left: 4px solid #ffc107;
+              border-radius: 4px;
+            }
+            .footer {
+              margin-top: 40px;
+              text-align: center;
+              color: #666;
+              font-size: 12px;
+              border-top: 1px solid #eee;
+              padding-top: 20px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>계 산 서</h1>
+            <p>Invoice</p>
+          </div>
+
+          <div class="invoice-info">
+            <div class="info-section">
+              <h3>계산서 정보</h3>
+              <div class="info-row">
+                <span class="info-label">계산서 번호:</span>
+                <span class="info-value">${invoice.invoiceNumber}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">발행일:</span>
+                <span class="info-value">${formatDate(invoice.issueDate)}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">상태:</span>
+                <span class="info-value">${invoice.status}</span>
+              </div>
+            </div>
+            
+            <div class="info-section">
+              <h3>거래처 정보</h3>
+              <div class="info-row">
+                <span class="info-label">거래처명:</span>
+                <span class="info-value">${companyName}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">주소:</span>
+                <span class="info-value">${companyAddress}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">연락처:</span>
+                <span class="info-value">${companyPhone}</span>
+              </div>
+            </div>
+          </div>
+
+          <table class="items-table">
+            <thead>
+              <tr>
+                <th>품목명</th>
+                <th>수량</th>
+                <th>단가</th>
+                <th>공급가액</th>
+                <th>세구분</th>
+                <th>세액</th>
+                <th class="text-right">합계</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${invoice.items.map(item => `
+                <tr>
+                  <td>${item.name}</td>
+                  <td class="text-right">${item.quantity}개</td>
+                  <td class="text-right">${formatCurrency(item.unitPrice)}</td>
+                  <td class="text-right">${formatCurrency(item.amount)}</td>
+                  <td>
+                    <span class="tax-badge ${item.taxType === '과세' ? 'tax-taxable' : 'tax-exempt'}">
+                      ${item.taxType}
+                    </span>
+                  </td>
+                  <td class="text-right">${formatCurrency(item.taxAmount)}</td>
+                  <td class="text-right">${formatCurrency(item.totalAmount)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+
+          <div class="total-section">
+            <div class="total-row">
+              <span>공급가액:</span>
+              <span>${formatCurrency(invoice.totalSupplyAmount)}</span>
+            </div>
+            <div class="total-row">
+              <span>세액:</span>
+              <span>${formatCurrency(invoice.totalTaxAmount)}</span>
+            </div>
+            <div class="total-row grand-total">
+              <span>총 합계:</span>
+              <span>${formatCurrency(invoice.totalAmount)}</span>
+            </div>
+          </div>
+
+          ${invoice.memo ? `
+            <div class="memo-section">
+              <h4>메모</h4>
+              <p>${invoice.memo}</p>
+            </div>
+          ` : ''}
+
+          <div class="footer">
+            <p>마포 비즈니스 매니저에서 생성된 계산서입니다.</p>
+            <p>생성일시: ${new Date().toLocaleString('ko-KR')}</p>
+          </div>
+        </body>
+        </html>
+      `;
+
+      const { uri } = await Print.printToFileAsync({
+        html: htmlContent,
+        base64: false,
+      });
+
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri, {
+          mimeType: 'application/pdf',
+          dialogTitle: `계산서 공유 - ${invoice.invoiceNumber}`,
+          UTI: 'com.adobe.pdf',
+        });
+      } else {
+        Alert.alert(
+          "PDF 생성 완료",
+          `계산서 PDF가 생성되었습니다.\n경로: ${uri}`
+        );
+      }
+    } catch (error) {
+      console.error('PDF 생성 오류:', error);
+      Alert.alert(
+        "오류",
+        "PDF 생성 중 오류가 발생했습니다."
+      );
     }
   };
 
@@ -443,12 +687,7 @@ const InvoiceDetailScreen = () => {
                 invoiceDetailStyles.actionButton,
                 { backgroundColor: THEME.colors.success },
               ]}
-              onPress={() =>
-                Alert.alert(
-                  "기능 준비중",
-                  "PDF 내보내기 기능은 곧 제공될 예정입니다."
-                )
-              }
+              onPress={handleExportPDF}
             >
               <Ionicons
                 name="download-outline"

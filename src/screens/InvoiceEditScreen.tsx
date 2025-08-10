@@ -67,6 +67,17 @@ const InvoiceEditScreen = () => {
         setInvoiceNumber(existingInvoice.invoiceNumber);
         setItems(existingInvoice.items);
         setStatus(existingInvoice.status);
+        
+        // 기존 아이템들에 대한 드롭다운 상태 초기화
+        const initialDropdownStates: { [key: string]: any } = {};
+        existingInvoice.items.forEach((item) => {
+          initialDropdownStates[item.id] = {
+            showCategoryDropdown: false,
+            showProductDropdown: false,
+            selectedCategory: null,
+          };
+        });
+        setDropdownStates(initialDropdownStates);
       }
     }
   }, [isEdit, invoiceId, getInvoiceById]);
@@ -333,7 +344,16 @@ const InvoiceEditScreen = () => {
           Alert.alert(
             "생성 완료",
             `${selectedCompany?.name}의 계산서가 생성되었습니다.\n계산서 번호: ${invoiceNumber}`,
-            [{ text: "확인", onPress: () => navigation.goBack() }]
+            [{ 
+              text: "확인", 
+              onPress: () => {
+                // 계산서 목록 화면으로 이동하면서 새로고침 트리거
+                navigation.navigate("InvoiceManagement", { 
+                  refresh: true,
+                  timestamp: Date.now() 
+                });
+              }
+            }]
           );
         } else {
           Alert.alert("오류", "계산서 생성에 실패했습니다.");

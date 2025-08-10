@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   View,
   Text,
@@ -47,6 +47,15 @@ const InvoiceManagementScreen = () => {
       refreshData();
     }, [refreshData])
   );
+
+  // route params 변경 감지로 즉시 새로고침
+  useEffect(() => {
+    if (route.params?.refresh || route.params?.timestamp) {
+      refreshData();
+      // params 클리어 (무한 새로고침 방지)
+      navigation.setParams({ refresh: undefined, timestamp: undefined });
+    }
+  }, [route.params?.refresh, route.params?.timestamp, refreshData, navigation]);
 
   // 과세/면세에 따른 기본 상품 필터 설정
   const defaultProductFilters = useMemo(() => {
