@@ -25,9 +25,6 @@ import { useCompany } from "../hooks";
 import { COLORS } from "../styles/colors";
 import { formatPhoneNumber } from "../utils/format";
 import DeliveryRegistrationModal from "../components/modals/DeliveryRegistrationModal";
-import ProductSelection, {
-  SelectedProduct,
-} from "../components/ProductSelection";
 import { useInvoice } from "../hooks/useInvoice";
 import { useDelivery } from "../hooks/useDelivery";
 
@@ -46,11 +43,10 @@ const CompanyDetailScreen = () => {
   const company = getCompanyById(companyId);
 
   const [activeTab, setActiveTab] = useState<
-    "info" | "invoices" | "products" | "deliveries"
-  >("info");
+    "invoices" | "deliveries" | "info"
+  >("invoices");
   const [showDeliveryModal, setShowDeliveryModal] = useState(false);
   const [qrModalVisible, setQrModalVisible] = useState(false);
-  const [showProductSelection, setShowProductSelection] = useState(false);
 
   // 해당 거래처의 계산서 필터링
   const companyInvoices = React.useMemo(() => {
@@ -116,22 +112,6 @@ const CompanyDetailScreen = () => {
       );
     }
     setShowDeliveryModal(false);
-  };
-
-  const handleProductConfirm = (products: SelectedProduct[]) => {
-    // 선택된 상품으로 계산서 생성 화면으로 이동
-    Alert.alert(
-      "계산서 생성",
-      `${products.length}개 상품이 선택되었습니다.\n계산서 생성 화면으로 이동합니다.`,
-      [
-        { text: "취소" },
-        {
-          text: "확인",
-          onPress: () =>
-            navigation.navigate("InvoiceEdit" as any, { companyId }),
-        },
-      ]
-    );
   };
 
   const renderInvoicesList = () => (
@@ -473,27 +453,6 @@ const CompanyDetailScreen = () => {
       <TouchableOpacity
         style={[
           styles.tabButton,
-          activeTab === "info" && [
-            styles.activeTab,
-            { backgroundColor: COLORS.primary },
-          ],
-        ]}
-        onPress={() => setActiveTab("info")}
-      >
-        <Text
-          style={[
-            styles.tabText,
-            {
-              color: activeTab === "info" ? COLORS.white : COLORS.textSecondary,
-            },
-          ]}
-        >
-          기본 정보
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[
-          styles.tabButton,
           activeTab === "invoices" && [
             styles.activeTab,
             { backgroundColor: COLORS.primary },
@@ -511,28 +470,6 @@ const CompanyDetailScreen = () => {
           ]}
         >
           계산서 ({companyInvoices.length})
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[
-          styles.tabButton,
-          activeTab === "products" && [
-            styles.activeTab,
-            { backgroundColor: COLORS.primary },
-          ],
-        ]}
-        onPress={() => setActiveTab("products")}
-      >
-        <Text
-          style={[
-            styles.tabText,
-            {
-              color:
-                activeTab === "products" ? COLORS.white : COLORS.textSecondary,
-            },
-          ]}
-        >
-          상품 선택
         </Text>
       </TouchableOpacity>
       <TouchableOpacity
@@ -559,19 +496,38 @@ const CompanyDetailScreen = () => {
           배송 ({companyDeliveries.length})
         </Text>
       </TouchableOpacity>
+      <TouchableOpacity
+        style={[
+          styles.tabButton,
+          activeTab === "info" && [
+            styles.activeTab,
+            { backgroundColor: COLORS.primary },
+          ],
+        ]}
+        onPress={() => setActiveTab("info")}
+      >
+        <Text
+          style={[
+            styles.tabText,
+            {
+              color: activeTab === "info" ? COLORS.white : COLORS.textSecondary,
+            },
+          ]}
+        >
+          기본정보
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 
   const renderContent = () => {
     switch (activeTab) {
-      case "info":
-        return renderCompanyInfo();
       case "invoices":
         return renderInvoicesList();
-      case "products":
-        return renderProductsTab();
       case "deliveries":
         return renderDeliveriesTab();
+      case "info":
+        return renderCompanyInfo();
       default:
         return null;
     }
@@ -656,13 +612,6 @@ const CompanyDetailScreen = () => {
           onClose={() => setShowDeliveryModal(false)}
           onConfirm={handleDeliveryRegister}
           preselectedCompanyId={companyId}
-        />
-
-        {/* 상품 선택 모달 */}
-        <ProductSelection
-          visible={showProductSelection}
-          onClose={() => setShowProductSelection(false)}
-          onConfirm={handleProductConfirm}
         />
       </SafeAreaView>
     </>

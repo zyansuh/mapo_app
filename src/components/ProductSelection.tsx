@@ -13,6 +13,8 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "../styles/colors";
 import { ProductCategory, CATEGORY_ITEMS, ProductItem } from "../types/product";
+import { useInvoice } from "../hooks/useInvoice";
+import { Invoice } from "../types/invoice";
 
 export interface SelectedProduct {
   category: ProductCategory;
@@ -26,6 +28,8 @@ interface ProductSelectionProps {
   onClose: () => void;
   onConfirm: (products: SelectedProduct[]) => void;
   selectedProducts?: SelectedProduct[];
+  companyId?: string; // 회사 ID 추가
+  enableInvoiceImport?: boolean; // 계산서 가져오기 기능 활성화
 }
 
 const ProductSelection: React.FC<ProductSelectionProps> = ({
@@ -33,8 +37,11 @@ const ProductSelection: React.FC<ProductSelectionProps> = ({
   onClose,
   onConfirm,
   selectedProducts = [],
+  companyId,
+  enableInvoiceImport = false,
 }) => {
   const [products, setProducts] = useState<SelectedProduct[]>(selectedProducts);
+  const { invoices } = useInvoice();
 
   // 드롭다운 관련 상태
   const [selectedCategory, setSelectedCategory] =
@@ -49,7 +56,53 @@ const ProductSelection: React.FC<ProductSelectionProps> = ({
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [showProductDropdown, setShowProductDropdown] = useState(false);
 
+  // 계산서 가져오기 관련 상태
+  const [showInvoiceSelection, setShowInvoiceSelection] = useState(false);
+  const [companyInvoices, setCompanyInvoices] = useState<Invoice[]>([]);
+
   const categories: ProductCategory[] = ["두부", "콩나물", "묵류"];
+
+  // 해당 회사의 계산서 필터링
+  React.useEffect(() => {
+    if (companyId && enableInvoiceImport) {
+      const filteredInvoices = invoices.filter(
+        (invoice) => invoice.companyId === companyId
+      );
+      setCompanyInvoices(filteredInvoices);
+    }
+  }, [companyId, invoices, enableInvoiceImport]);
+
+  // 계산서에서 상품 가져오기
+  const handleImportFromInvoice = (invoice: Invoice) => {
+    const importedProducts: SelectedProduct[] = invoice.items.map((item) => ({
+      category: "기타" as ProductCategory, // 기본 카테고리 설정
+      productItem: item.name as ProductItem,
+      quantity: item.quantity,
+      unitPrice: item.unitPrice,
+    }));
+
+    // 기존 상품과 중복 체크하여 추가
+    const updatedProducts = [...products];
+    importedProducts.forEach((newProduct) => {
+      const existingIndex = updatedProducts.findIndex(
+        (p) => p.productItem === newProduct.productItem
+      );
+      if (existingIndex >= 0) {
+        // 기존 상품이 있으면 수량 합산
+        updatedProducts[existingIndex].quantity += newProduct.quantity;
+      } else {
+        // 새 상품 추가
+        updatedProducts.push(newProduct);
+      }
+    });
+
+    setProducts(updatedProducts);
+    setShowInvoiceSelection(false);
+    Alert.alert(
+      "완료",
+      `${invoice.invoiceNumber}에서 ${importedProducts.length}개 상품을 가져왔습니다.`
+    );
+  };
 
   const handleCategorySelect = (category: ProductCategory) => {
     setSelectedCategory(category);
@@ -415,6 +468,89 @@ const ProductSelection: React.FC<ProductSelectionProps> = ({
     );
   };
 
+  // 계산서 선택 모달 렌더링
+  const renderInvoiceSelection = () => (
+    <Modal
+      visible={showInvoiceSelection}
+      animationType="slide"
+      presentationStyle="pageSheet"
+    >
+      <View style={[styles.container, { backgroundColor: COLORS.background }]}>
+        <View style={[styles.header, { backgroundColor: COLORS.white }]}>
+          <TouchableOpacity
+            onPress={() => setShowInvoiceSelection(false)}
+            style={styles.closeButton}
+          >
+            <Ionicons name="close" size={24} color={COLORS.text} />
+          </TouchableOpacity>
+          <Text style={[styles.headerTitle, { color: COLORS.text }]}>
+            계산서에서 가져오기
+          </Text>
+          <View style={styles.confirmButton} />
+        </View>
+
+        <ScrollView style={styles.content}>
+          {companyInvoices.length > 0 ? (
+            companyInvoices.map((invoice) => (
+              <TouchableOpacity
+                key={invoice.id}
+                style={[styles.invoiceItem, { backgroundColor: COLORS.white }]}
+                onPress={() => handleImportFromInvoice(invoice)}
+              >
+                <View style={styles.invoiceHeader}>
+                  <Text
+                    style={[styles.invoiceNumber, { color: COLORS.primary }]}
+                  >
+                    {invoice.invoiceNumber}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.invoiceDate,
+                      { color: COLORS.textSecondary },
+                    ]}
+                  >
+                    {new Date(invoice.issueDate).toLocaleDateString("ko-KR")}
+                  </Text>
+                </View>
+                <Text style={[styles.invoiceAmount, { color: COLORS.text }]}>
+                  총 {invoice.totalAmount.toLocaleString()}원
+                </Text>
+                <View style={styles.invoiceItems}>
+                  <Text
+                    style={[
+                      styles.itemsPreview,
+                      { color: COLORS.textSecondary },
+                    ]}
+                  >
+                    {invoice.items
+                      .map((item) => `${item.name} ${item.quantity}개`)
+                      .join(", ")}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            ))
+          ) : (
+            <View style={styles.emptyInvoices}>
+              <Ionicons
+                name="document-outline"
+                size={48}
+                color={COLORS.textSecondary}
+              />
+              <Text
+                style={[
+                  styles.emptyInvoicesText,
+                  { color: COLORS.textSecondary },
+                ]}
+              >
+                해당 거래처의 계산서가 없습니다
+              </Text>
+            </View>
+          )}
+        </ScrollView>
+      </View>
+    </Modal>
+  );
+
   return (
     <Modal
       visible={visible}
@@ -430,14 +566,28 @@ const ProductSelection: React.FC<ProductSelectionProps> = ({
           <Text style={[styles.headerTitle, { color: COLORS.text }]}>
             상품 선택
           </Text>
-          <TouchableOpacity
-            onPress={handleConfirm}
-            style={styles.confirmButton}
-          >
-            <Text style={[styles.confirmText, { color: COLORS.primary }]}>
-              완료 ({products.length})
-            </Text>
-          </TouchableOpacity>
+          <View style={styles.headerActions}>
+            {enableInvoiceImport && companyInvoices.length > 0 && (
+              <TouchableOpacity
+                onPress={() => setShowInvoiceSelection(true)}
+                style={styles.importButton}
+              >
+                <Ionicons
+                  name="download-outline"
+                  size={20}
+                  color={COLORS.primary}
+                />
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity
+              onPress={handleConfirm}
+              style={styles.confirmButton}
+            >
+              <Text style={[styles.confirmText, { color: COLORS.primary }]}>
+                완료 ({products.length})
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -455,6 +605,9 @@ const ProductSelection: React.FC<ProductSelectionProps> = ({
           </View>
         </ScrollView>
       </View>
+
+      {/* 계산서 선택 모달 */}
+      {renderInvoiceSelection()}
     </Modal>
   );
 };
@@ -690,6 +843,56 @@ const styles = StyleSheet.create({
   totalAmount: {
     fontSize: 20,
     fontWeight: "700",
+  },
+  headerActions: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  importButton: {
+    padding: 8,
+    marginRight: 12,
+  },
+  invoiceItem: {
+    padding: 16,
+    marginBottom: 12,
+    borderRadius: 8,
+    marginHorizontal: 16,
+  },
+  invoiceHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  invoiceNumber: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  invoiceDate: {
+    fontSize: 14,
+  },
+  invoiceAmount: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 8,
+  },
+  invoiceItems: {
+    marginTop: 4,
+  },
+  itemsPreview: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  emptyInvoices: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 60,
+  },
+  emptyInvoicesText: {
+    fontSize: 16,
+    marginTop: 16,
+    textAlign: "center",
   },
 });
 

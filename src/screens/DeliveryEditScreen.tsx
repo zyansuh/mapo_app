@@ -458,6 +458,8 @@ const DeliveryEditScreen = () => {
           onClose={() => setShowProductSelection(false)}
           onConfirm={handleProductsSelect}
           selectedProducts={selectedProducts}
+          companyId={selectedCompanyId}
+          enableInvoiceImport={true}
         />
       </SafeAreaView>
     </>
