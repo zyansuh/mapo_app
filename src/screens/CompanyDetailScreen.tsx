@@ -580,21 +580,26 @@ const CompanyDetailScreen = () => {
           {renderContent()}
         </ScrollView>
 
-        {/* 삭제 버튼 */}
-        <View
-          style={[
-            styles.deleteButtonContainer,
-            {
-              paddingBottom:
-                Platform.OS === "android" ? 80 : Math.max(16, insets.bottom),
-            },
-          ]}
-        >
-          <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-            <Ionicons name="trash-outline" size={20} color={COLORS.error} />
-            <Text style={styles.deleteButtonText}>회사 삭제</Text>
-          </TouchableOpacity>
-        </View>
+        {/* 삭제 버튼 - 기본정보 탭에서만 표시 */}
+        {activeTab === "info" && (
+          <View
+            style={[
+              styles.deleteButtonContainer,
+              {
+                paddingBottom:
+                  Platform.OS === "android" ? 80 : Math.max(16, insets.bottom),
+              },
+            ]}
+          >
+            <TouchableOpacity
+              style={styles.deleteButton}
+              onPress={handleDelete}
+            >
+              <Ionicons name="trash-outline" size={20} color={COLORS.error} />
+              <Text style={styles.deleteButtonText}>회사 삭제</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* QR 코드 모달 */}
         {company && (

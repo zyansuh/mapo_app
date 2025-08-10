@@ -123,22 +123,6 @@ export const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
     }
   };
 
-  const handleCopyData = () => {
-    const qrData = generateQRData();
-    Alert.alert("QR 코드 데이터", qrData, [
-      { text: "확인" },
-      {
-        text: "데이터 공유",
-        onPress: () => {
-          Share.share({
-            message: qrData,
-            title: getTitle(),
-          });
-        },
-      },
-    ]);
-  };
-
   if (!data) return null;
 
   return (
@@ -169,14 +153,6 @@ export const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
             {/* 정보 텍스트 */}
             <Text style={[styles.description, { color: COLORS.textSecondary }]}>
               {getDescription()}
-            </Text>
-
-            {/* QR 코드 데이터 표시 */}
-            <Text style={[styles.infoText, { color: COLORS.textSecondary }]}>
-              QR 코드에 포함된 정보
-            </Text>
-            <Text style={[styles.infoSubtext, { color: COLORS.textSecondary }]}>
-              {generateQRData()}
             </Text>
           </View>
 
