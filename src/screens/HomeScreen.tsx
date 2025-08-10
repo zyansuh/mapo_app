@@ -279,7 +279,7 @@ const HomeScreen = () => {
             </Text>
             <TouchableOpacity
               style={[styles.actionButton, { backgroundColor: COLORS.primary }]}
-              onPress={() => navigation.navigate("CompanyCreate")}
+              onPress={() => navigation.navigate("CompanyEdit")}
             >
               <Ionicons name="add" size={20} color={COLORS.white} />
               <Text style={[styles.actionButtonText, { color: COLORS.white }]}>

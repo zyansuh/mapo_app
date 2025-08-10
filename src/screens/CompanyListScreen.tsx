@@ -9,6 +9,7 @@ import {
   Alert,
   SafeAreaView,
   TextInput,
+  Modal,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
@@ -33,29 +34,56 @@ export const CompanyListScreen: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchVisible, setSearchVisible] = useState(false);
+  const [sortBy, setSortBy] = useState<"name" | "recent" | "favorite">(
+    "recent"
+  );
+  const [sortModalVisible, setSortModalVisible] = useState(false);
 
-  // 검색어로 필터링된 회사 목록
-  const filteredCompanies = useMemo(() => {
-    if (!searchQuery.trim()) {
-      return companies;
+  // 검색 및 정렬된 회사 목록
+  const filteredAndSortedCompanies = useMemo(() => {
+    let filtered = companies;
+
+    // 검색 필터 적용
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = companies.filter(
+        (company) =>
+          company.name.toLowerCase().includes(query) ||
+          company.address.toLowerCase().includes(query) ||
+          (company.contactPerson &&
+            company.contactPerson.toLowerCase().includes(query)) ||
+          company.phoneNumber
+            .replace(/[^0-9]/g, "")
+            .includes(query.replace(/[^0-9]/g, "")) ||
+          (company.businessNumber &&
+            company.businessNumber
+              .replace(/[^0-9]/g, "")
+              .includes(query.replace(/[^0-9]/g, "")))
+      );
     }
 
-    const query = searchQuery.toLowerCase().trim();
-    return companies.filter(
-      (company) =>
-        company.name.toLowerCase().includes(query) ||
-        company.address.toLowerCase().includes(query) ||
-        (company.contactPerson &&
-          company.contactPerson.toLowerCase().includes(query)) ||
-        company.phoneNumber
-          .replace(/[^0-9]/g, "")
-          .includes(query.replace(/[^0-9]/g, "")) ||
-        (company.businessNumber &&
-          company.businessNumber
-            .replace(/[^0-9]/g, "")
-            .includes(query.replace(/[^0-9]/g, "")))
-    );
-  }, [companies, searchQuery]);
+    // 정렬 적용
+    const sorted = [...filtered].sort((a, b) => {
+      switch (sortBy) {
+        case "name":
+          return a.name.localeCompare(b.name, "ko-KR");
+        case "recent":
+          return (
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+        case "favorite":
+          if (a.isFavorite && !b.isFavorite) return -1;
+          if (!a.isFavorite && b.isFavorite) return 1;
+          return (
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+        default:
+          return 0;
+      }
+    });
+
+    return sorted;
+  }, [companies, searchQuery, sortBy]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -259,8 +287,11 @@ export const CompanyListScreen: React.FC = () => {
             <View style={styles.titleSection}>
               <Text style={styles.headerTitle}>거래처 관리</Text>
               <Text style={styles.headerSubtitle}>
-                총 {searchQuery ? filteredCompanies.length : companies.length}개
-                거래처 • {companies.filter((c) => c.isFavorite).length}개
+                총{" "}
+                {searchQuery
+                  ? filteredAndSortedCompanies.length
+                  : companies.length}
+                개 거래처 • {companies.filter((c) => c.isFavorite).length}개
                 즐겨찾기
               </Text>
             </View>
@@ -273,6 +304,12 @@ export const CompanyListScreen: React.FC = () => {
                 size={20}
                 color="#ffffff"
               />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.sortButton}
+              onPress={() => setSortModalVisible(true)}
+            >
+              <Ionicons name="funnel-outline" size={20} color="#ffffff" />
             </TouchableOpacity>
           </View>
         </View>
@@ -310,13 +347,14 @@ export const CompanyListScreen: React.FC = () => {
 
       <View style={styles.content}>
         <FlatList
-          data={filteredCompanies}
+          data={filteredAndSortedCompanies}
           renderItem={renderCompanyItem}
           keyExtractor={(item) => item.id}
           contentContainerStyle={[
             styles.listContainer,
             { paddingBottom: 100 + insets.bottom },
-            filteredCompanies.length === 0 && styles.emptyListContainer,
+            filteredAndSortedCompanies.length === 0 &&
+              styles.emptyListContainer,
           ]}
           showsVerticalScrollIndicator={false}
           refreshControl={
@@ -335,6 +373,112 @@ export const CompanyListScreen: React.FC = () => {
           <Ionicons name="add" size={24} color="#ffffff" />
         </TouchableOpacity>
       </View>
+
+      {/* 정렬 모달 */}
+      <Modal
+        visible={sortModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setSortModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>정렬 옵션</Text>
+              <TouchableOpacity
+                onPress={() => setSortModalVisible(false)}
+                style={styles.modalCloseButton}
+              >
+                <Ionicons name="close" size={24} color={COLORS.BLACK} />
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              style={[
+                styles.sortOption,
+                sortBy === "recent" && styles.selectedSortOption,
+              ]}
+              onPress={() => {
+                setSortBy("recent");
+                setSortModalVisible(false);
+              }}
+            >
+              <Ionicons
+                name="time-outline"
+                size={20}
+                color={sortBy === "recent" ? COLORS.PRIMARY : COLORS.GRAY}
+              />
+              <Text
+                style={[
+                  styles.sortOptionText,
+                  sortBy === "recent" && styles.selectedSortOptionText,
+                ]}
+              >
+                최근 생성순
+              </Text>
+              {sortBy === "recent" && (
+                <Ionicons name="checkmark" size={20} color={COLORS.PRIMARY} />
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.sortOption,
+                sortBy === "name" && styles.selectedSortOption,
+              ]}
+              onPress={() => {
+                setSortBy("name");
+                setSortModalVisible(false);
+              }}
+            >
+              <Ionicons
+                name="text-outline"
+                size={20}
+                color={sortBy === "name" ? COLORS.PRIMARY : COLORS.GRAY}
+              />
+              <Text
+                style={[
+                  styles.sortOptionText,
+                  sortBy === "name" && styles.selectedSortOptionText,
+                ]}
+              >
+                이름순 (가나다)
+              </Text>
+              {sortBy === "name" && (
+                <Ionicons name="checkmark" size={20} color={COLORS.PRIMARY} />
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.sortOption,
+                sortBy === "favorite" && styles.selectedSortOption,
+              ]}
+              onPress={() => {
+                setSortBy("favorite");
+                setSortModalVisible(false);
+              }}
+            >
+              <Ionicons
+                name="star-outline"
+                size={20}
+                color={sortBy === "favorite" ? COLORS.PRIMARY : COLORS.GRAY}
+              />
+              <Text
+                style={[
+                  styles.sortOptionText,
+                  sortBy === "favorite" && styles.selectedSortOptionText,
+                ]}
+              >
+                즐겨찾기 우선
+              </Text>
+              {sortBy === "favorite" && (
+                <Ionicons name="checkmark" size={20} color={COLORS.PRIMARY} />
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -612,6 +756,61 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
+  },
+  sortButton: {
+    padding: 8,
+    marginLeft: 8,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "flex-end",
+  },
+  modalContent: {
+    backgroundColor: "#ffffff",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingTop: 20,
+    paddingBottom: 40,
+    paddingHorizontal: 20,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#000000",
+  },
+  modalCloseButton: {
+    padding: 8,
+  },
+  sortOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    marginBottom: 8,
+    backgroundColor: "#f8f9fa",
+  },
+  selectedSortOption: {
+    backgroundColor: "#007AFF20",
+    borderWidth: 1,
+    borderColor: "#007AFF",
+  },
+  sortOptionText: {
+    fontSize: 16,
+    marginLeft: 12,
+    flex: 1,
+    color: "#666666",
+  },
+  selectedSortOptionText: {
+    color: "#007AFF",
+    fontWeight: "600",
   },
 });
 

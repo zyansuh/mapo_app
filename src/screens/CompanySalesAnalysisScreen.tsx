@@ -32,6 +32,18 @@ interface CompanySalesData {
   lastInvoiceDate: Date;
   taxableProducts: { name: string; quantity: number; amount: number }[];
   taxFreeProducts: { name: string; quantity: number; amount: number }[];
+  transactions: {
+    // 거래 내역 추가
+    invoiceNumber: string;
+    issueDate: Date;
+    totalAmount: number;
+    items: {
+      name: string;
+      quantity: number;
+      amount: number;
+      taxType: TaxType;
+    }[];
+  }[];
 }
 
 const CompanySalesAnalysisScreen = () => {
@@ -48,6 +60,9 @@ const CompanySalesAnalysisScreen = () => {
   const [sortBy, setSortBy] = useState<
     "company" | "total" | "taxable" | "taxFree"
   >("total");
+  const [expandedCompanyId, setExpandedCompanyId] = useState<string | null>(
+    null
+  );
   const [dateFilterVisible, setDateFilterVisible] = useState(false);
   const [tempStartDate, setTempStartDate] = useState("");
   const [tempEndDate, setTempEndDate] = useState("");
@@ -113,6 +128,7 @@ const CompanySalesAnalysisScreen = () => {
           lastInvoiceDate: invoiceDate,
           taxableProducts: [],
           taxFreeProducts: [],
+          transactions: [],
         };
         salesMap.set(invoice.companyId, salesData);
       }
@@ -123,6 +139,19 @@ const CompanySalesAnalysisScreen = () => {
       if (invoiceDate > salesData.lastInvoiceDate) {
         salesData.lastInvoiceDate = invoiceDate;
       }
+
+      // 거래 내역 추가
+      salesData.transactions.push({
+        invoiceNumber: invoice.invoiceNumber,
+        issueDate: invoiceDate,
+        totalAmount: invoice.totalAmount,
+        items: invoice.items.map((item) => ({
+          name: item.name,
+          quantity: item.quantity,
+          amount: item.totalAmount,
+          taxType: item.taxType,
+        })),
+      });
 
       // 과세/면세별 분류
       invoice.items.forEach((item) => {
@@ -194,10 +223,6 @@ const CompanySalesAnalysisScreen = () => {
 
     return filtered;
   }, [companySalesData, searchText, sortBy]);
-
-  const handleCompanyPress = (companyData: CompanySalesData) => {
-    navigation.navigate("CompanySalesDetail", { companyData });
-  };
 
   const openDateFilter = () => {
     setTempStartDate(startDate.toISOString().split("T")[0]);
@@ -288,68 +313,185 @@ const CompanySalesAnalysisScreen = () => {
     </Modal>
   );
 
-  const renderCompanyItem = ({ item }: { item: CompanySalesData }) => (
-    <TouchableOpacity
-      style={[styles.companyCard, { backgroundColor: COLORS.white }]}
-      onPress={() => handleCompanyPress(item)}
-    >
-      <View style={styles.companyHeader}>
-        <Text style={[styles.companyName, { color: COLORS.text }]}>
-          {item.companyName}
-        </Text>
-        <Text style={[styles.invoiceCount, { color: COLORS.textSecondary }]}>
-          {item.invoiceCount}건
-        </Text>
-      </View>
+  const renderCompanyItem = ({ item }: { item: CompanySalesData }) => {
+    const isExpanded = expandedCompanyId === item.companyId;
 
-      <View style={styles.salesInfo}>
-        <View style={styles.salesRow}>
-          <Text style={[styles.salesLabel, { color: COLORS.textSecondary }]}>
-            총 매출
-          </Text>
-          <Text style={[styles.salesAmount, { color: COLORS.text }]}>
-            {formatCurrency(item.totalAmount)}
-          </Text>
-        </View>
-
-        <View style={styles.salesRow}>
-          <Text style={[styles.salesLabel, { color: COLORS.textSecondary }]}>
-            과세상품 (묵류)
-          </Text>
-          <Text style={[styles.salesAmount, { color: COLORS.primary }]}>
-            {formatCurrency(item.taxableAmount)}
-          </Text>
-        </View>
-
-        <View style={styles.salesRow}>
-          <Text style={[styles.salesLabel, { color: COLORS.textSecondary }]}>
-            면세상품 (두부,콩나물)
-          </Text>
-          <Text style={[styles.salesAmount, { color: COLORS.success }]}>
-            {formatCurrency(item.taxFreeAmount)}
-          </Text>
-        </View>
-
-        <View style={styles.salesRow}>
-          <Text style={[styles.salesLabel, { color: COLORS.textSecondary }]}>
-            최근 거래
-          </Text>
-          <Text style={[styles.salesDate, { color: COLORS.textSecondary }]}>
-            {formatDate(item.lastInvoiceDate)}
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.productSummary}>
-        <Text
-          style={[styles.productSummaryText, { color: COLORS.textSecondary }]}
+    return (
+      <View style={[styles.companyCard, { backgroundColor: COLORS.white }]}>
+        <TouchableOpacity
+          onPress={() =>
+            setExpandedCompanyId(isExpanded ? null : item.companyId)
+          }
         >
-          과세: {item.taxableProducts.length}개 품목, 면세:{" "}
-          {item.taxFreeProducts.length}개 품목
-        </Text>
+          <View style={styles.companyHeader}>
+            <Text style={[styles.companyName, { color: COLORS.text }]}>
+              {item.companyName}
+            </Text>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Text
+                style={[styles.invoiceCount, { color: COLORS.textSecondary }]}
+              >
+                {item.invoiceCount}건
+              </Text>
+              <Ionicons
+                name={isExpanded ? "chevron-up" : "chevron-down"}
+                size={20}
+                color={COLORS.textSecondary}
+                style={{ marginLeft: 8 }}
+              />
+            </View>
+          </View>
+
+          <View style={styles.salesInfo}>
+            <View style={styles.salesRow}>
+              <Text
+                style={[styles.salesLabel, { color: COLORS.textSecondary }]}
+              >
+                총 매출
+              </Text>
+              <Text style={[styles.salesAmount, { color: COLORS.text }]}>
+                {formatCurrency(item.totalAmount)}
+              </Text>
+            </View>
+
+            <View style={styles.salesRow}>
+              <Text
+                style={[styles.salesLabel, { color: COLORS.textSecondary }]}
+              >
+                과세상품 (묵류)
+              </Text>
+              <Text style={[styles.salesAmount, { color: COLORS.primary }]}>
+                {formatCurrency(item.taxableAmount)}
+              </Text>
+            </View>
+
+            <View style={styles.salesRow}>
+              <Text
+                style={[styles.salesLabel, { color: COLORS.textSecondary }]}
+              >
+                면세상품 (두부,콩나물)
+              </Text>
+              <Text style={[styles.salesAmount, { color: COLORS.success }]}>
+                {formatCurrency(item.taxFreeAmount)}
+              </Text>
+            </View>
+
+            <View style={styles.salesRow}>
+              <Text
+                style={[styles.salesLabel, { color: COLORS.textSecondary }]}
+              >
+                최근 거래
+              </Text>
+              <Text style={[styles.salesDate, { color: COLORS.textSecondary }]}>
+                {formatDate(item.lastInvoiceDate)}
+              </Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+
+        {/* 거래 내역 상세 */}
+        {isExpanded && (
+          <View
+            style={[
+              styles.transactionDetail,
+              { backgroundColor: COLORS.background },
+            ]}
+          >
+            <Text style={[styles.transactionTitle, { color: COLORS.text }]}>
+              거래 내역 ({item.transactions.length}건)
+            </Text>
+            {item.transactions
+              .sort((a, b) => b.issueDate.getTime() - a.issueDate.getTime())
+              .map((transaction, index) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.transactionItem,
+                    { backgroundColor: COLORS.white },
+                  ]}
+                >
+                  <View style={styles.transactionHeader}>
+                    <Text
+                      style={[
+                        styles.transactionInvoiceNumber,
+                        { color: COLORS.primary },
+                      ]}
+                    >
+                      {transaction.invoiceNumber}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.transactionDate,
+                        { color: COLORS.textSecondary },
+                      ]}
+                    >
+                      {formatDate(transaction.issueDate)}
+                    </Text>
+                  </View>
+
+                  <View style={styles.transactionItems}>
+                    {transaction.items.map((transItem, itemIndex) => (
+                      <View key={itemIndex} style={styles.transactionItemRow}>
+                        <Text
+                          style={[
+                            styles.transactionItemName,
+                            { color: COLORS.text },
+                          ]}
+                        >
+                          {transItem.name}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.transactionItemDetail,
+                            { color: COLORS.textSecondary },
+                          ]}
+                        >
+                          {transItem.quantity}개 ×{" "}
+                          {formatCurrency(
+                            transItem.amount / transItem.quantity
+                          )}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.transactionItemAmount,
+                            {
+                              color:
+                                transItem.taxType === "과세"
+                                  ? COLORS.primary
+                                  : COLORS.success,
+                            },
+                          ]}
+                        >
+                          {formatCurrency(transItem.amount)}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+
+                  <View style={styles.transactionTotal}>
+                    <Text
+                      style={[
+                        styles.transactionTotalText,
+                        { color: COLORS.text },
+                      ]}
+                    >
+                      합계: {formatCurrency(transaction.totalAmount)}
+                    </Text>
+                  </View>
+                </View>
+              ))}
+          </View>
+        )}
       </View>
-    </TouchableOpacity>
-  );
+    );
+  };
+
+  const handleCompanyPress = (companyData: CompanySalesData) => {
+    // 기존의 상세 화면 네비게이션 대신 확장/축소 토글로 변경
+    setExpandedCompanyId(
+      expandedCompanyId === companyData.companyId ? null : companyData.companyId
+    );
+  };
 
   const renderPeriodSelector = () => (
     <View style={styles.periodSelector}>
@@ -801,6 +943,70 @@ const styles = StyleSheet.create({
   applyButtonText: {
     fontSize: 16,
     fontWeight: "600",
+  },
+  transactionDetail: {
+    marginTop: 10,
+    padding: 15,
+    borderRadius: 8,
+  },
+  transactionTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  transactionItem: {
+    marginBottom: 10,
+    padding: 12,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "#E5E5EA",
+  },
+  transactionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  transactionInvoiceNumber: {
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  transactionDate: {
+    fontSize: 12,
+  },
+  transactionItems: {
+    marginBottom: 8,
+  },
+  transactionItemRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 3,
+  },
+  transactionItemName: {
+    flex: 2,
+    fontSize: 13,
+  },
+  transactionItemDetail: {
+    flex: 2,
+    fontSize: 11,
+    textAlign: "center",
+  },
+  transactionItemAmount: {
+    flex: 1,
+    fontSize: 13,
+    fontWeight: "600",
+    textAlign: "right",
+  },
+  transactionTotal: {
+    borderTopWidth: 1,
+    borderTopColor: "#E5E5EA",
+    paddingTop: 6,
+    alignItems: "flex-end",
+  },
+  transactionTotalText: {
+    fontSize: 14,
+    fontWeight: "bold",
   },
 });
 
