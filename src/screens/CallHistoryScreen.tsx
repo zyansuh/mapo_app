@@ -28,6 +28,12 @@ const CallHistoryScreen = () => {
     makeCall,
     permissionStatus,
     requestPermissions,
+    isDetectionActive,
+    startDetection,
+    stopDetection,
+    unknownNumbers,
+    currentCall,
+    getCallDetectionStats,
   } = useCall();
 
   const [activeFilter, setActiveFilter] = useState<FilterType>("all");
@@ -130,6 +136,34 @@ const CallHistoryScreen = () => {
         onPress: clearCallHistory,
       },
     ]);
+  };
+
+  // 전화 감지 토글
+  const handleToggleDetection = async () => {
+    if (isDetectionActive) {
+      stopDetection();
+    } else {
+      if (!permissionStatus.allGranted) {
+        Alert.alert(
+          "권한 필요",
+          "전화 감지 기능을 사용하려면 권한이 필요합니다.",
+          [
+            { text: "취소", style: "cancel" },
+            {
+              text: "권한 허용",
+              onPress: async () => {
+                const granted = await requestPermissions();
+                if (granted) {
+                  await startDetection();
+                }
+              },
+            },
+          ]
+        );
+        return;
+      }
+      await startDetection();
+    }
   };
 
   // 필터 버튼 렌더링
@@ -264,6 +298,52 @@ const CallHistoryScreen = () => {
           </TouchableOpacity>
         </View>
 
+        {/* 전화 감지 상태 */}
+        <View
+          style={[
+            styles.detectionBanner,
+            {
+              backgroundColor: isDetectionActive ? "#d1fae5" : "#fee2e2",
+            },
+          ]}
+        >
+          <View style={styles.detectionInfo}>
+            <Ionicons
+              name={isDetectionActive ? "radio" : "radio-outline"}
+              size={20}
+              color={isDetectionActive ? "#059669" : "#dc2626"}
+            />
+            <Text
+              style={[
+                styles.detectionText,
+                {
+                  color: isDetectionActive ? "#059669" : "#dc2626",
+                },
+              ]}
+            >
+              전화 감지 {isDetectionActive ? "활성" : "비활성"}
+            </Text>
+            {currentCall && (
+              <Text style={[styles.currentCallText, { color: "#059669" }]}>
+                · 통화 중: {currentCall.phoneNumber}
+              </Text>
+            )}
+          </View>
+          <TouchableOpacity
+            style={[
+              styles.detectionButton,
+              {
+                backgroundColor: isDetectionActive ? "#dc2626" : "#059669",
+              },
+            ]}
+            onPress={handleToggleDetection}
+          >
+            <Text style={[styles.detectionButtonText, { color: COLORS.white }]}>
+              {isDetectionActive ? "중지" : "시작"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
         {/* 권한 상태 알림 */}
         {!permissionStatus.allGranted && (
           <View
@@ -322,6 +402,14 @@ const CallHistoryScreen = () => {
               부재중
             </Text>
           </View>
+          <View style={styles.statItem}>
+            <Text style={[styles.statNumber, { color: "#f59e0b" }]}>
+              {unknownNumbers.length}
+            </Text>
+            <Text style={[styles.statLabel, { color: COLORS.textSecondary }]}>
+              알 수 없는 번호
+            </Text>
+          </View>
         </View>
 
         {/* 필터 */}
@@ -375,6 +463,38 @@ const styles = StyleSheet.create({
   },
   clearButton: {
     padding: 4,
+  },
+  detectionBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  detectionInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  detectionText: {
+    fontSize: 14,
+    fontWeight: "600",
+    marginLeft: 8,
+  },
+  currentCallText: {
+    fontSize: 12,
+    marginLeft: 8,
+  },
+  detectionButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  detectionButtonText: {
+    fontSize: 12,
+    fontWeight: "600",
   },
   permissionBanner: {
     flexDirection: "row",

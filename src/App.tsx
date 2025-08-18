@@ -1,8 +1,14 @@
 import React from "react";
-import { HomeScreen } from "./screens";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { CallProvider } from "./providers/CallProvider";
+import { AppNavigator } from "./navigation/AppNavigator";
 
 export default function App() {
-  // Phone detection 기능 임시 비활성화 (에러 해결 후 재활성화)
-
-  return <HomeScreen />;
+  return (
+    <SafeAreaProvider>
+      <CallProvider>
+        <AppNavigator />
+      </CallProvider>
+    </SafeAreaProvider>
+  );
 }

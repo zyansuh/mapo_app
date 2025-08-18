@@ -182,6 +182,13 @@ const HomeScreen = () => {
       onPress: () => navigation.navigate("CallHistory"),
       count: callHistory.length,
     },
+    {
+      title: "전화 감지 테스트",
+      icon: "radio" as const,
+      color: "#ec4899",
+      onPress: () => navigation.navigate("CallDetectionTest"),
+      count: 0,
+    },
   ];
 
   return (

@@ -21,6 +21,7 @@ import {
   DeliveryEditScreen,
 } from "../screens";
 import CallHistoryScreen from "../screens/CallHistoryScreen";
+import CallDetectionTestScreen from "../screens/CallDetectionTestScreen";
 import { COLORS } from "../constants";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -199,6 +200,13 @@ export const AppNavigator = () => {
         <Stack.Screen
           name="CallHistory"
           component={CallHistoryScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="CallDetectionTest"
+          component={CallDetectionTestScreen}
           options={{
             headerShown: false,
           }}

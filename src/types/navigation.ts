@@ -15,6 +15,7 @@ export type RootStackParamList = {
   DeliveryDetail: { deliveryId: string };
   DeliveryEdit: { deliveryId: string };
   CallHistory: undefined;
+  CallDetectionTest: undefined;
 };
 
 export type TabParamList = {

@@ -19,10 +19,15 @@ interface CallContextType {
 
   // Phone detection
   isDetectionActive: boolean;
-  startDetection: () => void;
+  startDetection: () => Promise<boolean> | void;
   stopDetection: () => void;
   unknownNumbers: any[];
   unknownNumberCount: number;
+  currentCall: any;
+  removeUnknownNumber: (id: string) => void;
+  clearUnknownNumbers: () => void;
+  getCallDetectionStats: () => any;
+  isKnownNumber: (phoneNumber: string) => boolean;
 
   // Analytics data
   analytics: any;
@@ -80,7 +85,13 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
     stopDetection,
     unknownNumbers,
     unknownNumberCount,
+    currentCall,
     addTestUnknownNumber,
+    removeUnknownNumber,
+    clearUnknownNumbers,
+    checkAgainstCompanyNumbers,
+    getCallDetectionStats,
+    isKnownNumber,
   } = useCallDetection();
 
   const { analytics } = useCallAnalytics(callHistory, companies);
@@ -101,6 +112,13 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
       stopDetection();
     }
   }, [enableAutoDetection, isDetectionActive, startDetection, stopDetection]);
+
+  // 거래처 데이터가 변경될 때마다 알 수 없는 번호 체크
+  useEffect(() => {
+    if (companies.length > 0) {
+      checkAgainstCompanyNumbers(companies);
+    }
+  }, [companies, checkAgainstCompanyNumbers]);
 
   const initializeCallFeatures = () => {
     // Add sample call history in development environment
@@ -216,6 +234,11 @@ export const CallProvider: React.FC<CallProviderProps> = ({ children }) => {
     stopDetection,
     unknownNumbers,
     unknownNumberCount,
+    currentCall,
+    removeUnknownNumber,
+    clearUnknownNumbers,
+    getCallDetectionStats,
+    isKnownNumber,
 
     // Analytics data
     analytics,
