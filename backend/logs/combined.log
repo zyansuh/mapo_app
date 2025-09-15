@@ -1,0 +1,13 @@
+{"level":"info","message":"서버가 포트 3001에서 실행 중입니다.","service":"mapo-backend","timestamp":"2025-09-15 12:45:31"}
+{"level":"info","message":"환경: development","service":"mapo-backend","timestamp":"2025-09-15 12:45:31"}
+{"level":"info","message":"MongoDB 연결 성공","service":"mapo-backend","timestamp":"2025-09-15 12:45:31"}
+{"level":"info","message":"서버가 포트 3001에서 실행 중입니다.","service":"mapo-backend","timestamp":"2025-09-15 14:00:34"}
+{"level":"info","message":"환경: development","service":"mapo-backend","timestamp":"2025-09-15 14:00:34"}
+{"level":"info","message":"MongoDB 연결 성공","service":"mapo-backend","timestamp":"2025-09-15 14:00:34"}
+{"level":"info","message":"::1 - - [15/Sep/2025:05:02:21 +0000] \"GET /health HTTP/1.1\" 200 105 \"-\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36\"","service":"mapo-backend","timestamp":"2025-09-15 14:02:21"}
+{"level":"info","message":"::1 - - [15/Sep/2025:05:02:22 +0000] \"GET /favicon.ico HTTP/1.1\" 404 52 \"-\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36\"","service":"mapo-backend","timestamp":"2025-09-15 14:02:22"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"mapo-backend","timestamp":"2025-09-15 14:02:31"}
+{"level":"info","message":"서버가 포트 3001에서 실행 중입니다.","service":"mapo-backend","timestamp":"2025-09-15 14:02:41"}
+{"level":"info","message":"환경: development","service":"mapo-backend","timestamp":"2025-09-15 14:02:41"}
+{"level":"info","message":"MongoDB 연결 성공","service":"mapo-backend","timestamp":"2025-09-15 14:02:41"}
+{"level":"info","message":"::1 - - [15/Sep/2025:05:02:47 +0000] \"GET /health HTTP/1.1\" 200 103 \"-\" \"curl/8.7.1\"","service":"mapo-backend","timestamp":"2025-09-15 14:02:47"}

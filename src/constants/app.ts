@@ -9,7 +9,7 @@ export const APP_INFO = {
 
 // API related constants
 export const API_CONFIG = {
-  BASE_URL: process.env.EXPO_PUBLIC_API_URL || "https://api.mapo.com",
+  BASE_URL: process.env.EXPO_PUBLIC_API_URL || "http://localhost:3001/api",
   TIMEOUT: 30000, // 30 seconds
   RETRY_ATTEMPTS: 3,
   RETRY_DELAY: 1000, // 1 second
