@@ -11,3 +11,13 @@
 {"level":"info","message":"환경: development","service":"mapo-backend","timestamp":"2025-09-15 14:02:41"}
 {"level":"info","message":"MongoDB 연결 성공","service":"mapo-backend","timestamp":"2025-09-15 14:02:41"}
 {"level":"info","message":"::1 - - [15/Sep/2025:05:02:47 +0000] \"GET /health HTTP/1.1\" 200 103 \"-\" \"curl/8.7.1\"","service":"mapo-backend","timestamp":"2025-09-15 14:02:47"}
+{"level":"info","message":"::1 - - [15/Sep/2025:05:07:03 +0000] \"GET / HTTP/1.1\" 404 52 \"-\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36\"","service":"mapo-backend","timestamp":"2025-09-15 14:07:03"}
+{"level":"info","message":"SIGTERM received, shutting down gracefully","service":"mapo-backend","timestamp":"2025-09-15 15:58:05"}
+{"level":"info","message":"서버가 포트 3001에서 실행 중입니다.","service":"mapo-backend","timestamp":"2025-09-15 15:58:06"}
+{"level":"info","message":"환경: development","service":"mapo-backend","timestamp":"2025-09-15 15:58:06"}
+{"level":"info","message":"MongoDB 연결 성공","service":"mapo-backend","timestamp":"2025-09-15 15:58:06"}
+{"level":"info","message":"::1 - - [15/Sep/2025:06:58:11 +0000] \"GET /health HTTP/1.1\" 200 103 \"-\" \"curl/8.7.1\"","service":"mapo-backend","timestamp":"2025-09-15 15:58:11"}
+{"level":"info","message":"서버가 포트 3001에서 실행 중입니다.","service":"mapo-backend","timestamp":"2025-09-15 15:58:20"}
+{"level":"info","message":"환경: development","service":"mapo-backend","timestamp":"2025-09-15 15:58:20"}
+{"level":"info","message":"MongoDB 연결 성공","service":"mapo-backend","timestamp":"2025-09-15 15:58:20"}
+{"level":"info","message":"::1 - - [15/Sep/2025:06:58:26 +0000] \"GET /health HTTP/1.1\" 200 103 \"-\" \"curl/8.7.1\"","service":"mapo-backend","timestamp":"2025-09-15 15:58:26"}

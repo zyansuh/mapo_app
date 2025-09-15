@@ -311,7 +311,7 @@ export const useForm = <T extends Record<string, any>>(
   };
 };
 
-// 데이터 페칭 관리
+// 범용 데이터 페칭 관리 (useApi와 구분하여 사용)
 export const useDataFetching = <T>(
   fetchFunction: () => Promise<T>,
   dependencies: any[] = []

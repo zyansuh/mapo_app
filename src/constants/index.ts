@@ -1,30 +1,20 @@
-// 상수 파일들을 중앙에서 관리
+// 모든 상수를 통합 관리하는 메인 인덱스 파일
+
+// 기본 상수들
 export * from "./app";
 export * from "./messages";
+export * from "./validation";
+export * from "./api";
+export * from "./storage";
 
-// 기존 상수들도 호환성을 위해 re-export
-export const COLORS = {
-  PRIMARY: "#6b7280",
-  SECONDARY: "#6c757d",
-  SUCCESS: "#28a745",
-  WARNING: "#ffc107",
-  ERROR: "#dc3545",
-  WHITE: "#ffffff",
-  BLACK: "#000000",
-  LIGHT_GRAY: "#f8f9fa",
-  DARK_GRAY: "#343a40",
-  BACKGROUND: "#ffffff",
-  GRAY: "#6c757d",
-};
+// 비즈니스 상수들
+export * from "./business";
+export * from "./company";
+export * from "./delivery";
+export * from "./invoice";
+export * from "./product";
 
-export const SIZES = {
-  XS: 4,
-  SM: 8,
-  MD: 16,
-  LG: 24,
-  XL: 32,
-  XXL: 48,
-  SMALL: 8,
-  MEDIUM: 16,
-  LARGE: 24,
-};
+// UI 상수들
+export * from "./ui";
+export * from "./animations";
+export * from "./breakpoints";

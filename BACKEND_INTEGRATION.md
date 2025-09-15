@@ -31,6 +31,10 @@
 - ✅ 데이터 검증 및 에러 처리
 - ✅ 보안 미들웨어 (CORS, Rate Limiting, Helmet)
 - ✅ 로깅 시스템
+- ✅ **소프트 삭제 시스템** (회사 데이터 복구 가능)
+- ✅ **델타 동기화** (변경분만 동기화)
+- ✅ **벌크 임포트** (대량 데이터 일괄 업로드)
+- ✅ **로컬 데이터 마이그레이션** (기존 데이터 백엔드 이관)
 
 ### 프론트엔드 (React Native)
 
@@ -39,6 +43,8 @@
 - ✅ 데이터 동기화 훅 (useDataSync)
 - ✅ 로그인 화면
 - ✅ 자동 토큰 관리
+- ✅ **코드 구조 완전 리팩토링** (타입, 훅, 컴포넌트, 서비스 체계화)
+- ✅ **로컬 거래처 백엔드 이관 스크립트**
 
 ## 🚀 시작하기
 
@@ -105,10 +111,14 @@ EXPO_PUBLIC_API_URL=http://localhost:3001/api
 
 ### 회사 관리
 
-- `GET /api/companies` - 회사 목록
+- `GET /api/companies` - 회사 목록 (검색, 필터링, 페이지네이션)
+- `GET /api/companies/:id` - 회사 상세 조회
 - `POST /api/companies` - 회사 생성
 - `PUT /api/companies/:id` - 회사 수정
-- `DELETE /api/companies/:id` - 회사 삭제
+- `DELETE /api/companies/:id` - 회사 소프트 삭제
+- `GET /api/companies/sync/delta?since=ISO_DATE` - 델타 동기화 (변경분 조회)
+- `POST /api/companies/bulk` - 벌크 임포트 (대량 데이터 일괄 업로드)
+- `GET /api/companies/stats/overview` - 회사 통계 조회
 
 ### 배송 관리
 
@@ -132,6 +142,25 @@ EXPO_PUBLIC_API_URL=http://localhost:3001/api
 - 5분마다 로컬 변경사항을 서버로 업로드
 - 온라인/오프라인 상태 자동 감지
 
+### 델타 동기화 (새로 추가!)
+
+- 변경된 데이터만 동기화하여 네트워크 트래픽 절약
+- `updatedAt` 기준으로 변경분만 조회
+- 삭제된 데이터도 별도로 추적
+
+```typescript
+import { apiService } from "../services/api";
+
+// 델타 동기화
+const lastSyncTime = "2024-01-01T00:00:00.000Z";
+const deltaResponse = await apiService.getCompanyDelta(lastSyncTime);
+
+if (deltaResponse.success) {
+  const { updated, deleted } = deltaResponse.data;
+  // 업데이트된 데이터와 삭제된 데이터 처리
+}
+```
+
 ### 수동 동기화
 
 ```typescript
@@ -147,6 +176,17 @@ await syncToServer();
 
 // 서버에서 다운로드
 await syncFromServer();
+```
+
+### 로컬 데이터 마이그레이션
+
+기존 로컬 스토리지의 거래처 데이터를 백엔드로 이관:
+
+```typescript
+import { pushLocalCompaniesToBackend } from "../scripts/importCompanies";
+
+// 로컬 거래처 데이터를 백엔드로 이관
+await pushLocalCompaniesToBackend();
 ```
 
 ## 🔐 인증 시스템
@@ -186,16 +226,38 @@ await logout();
 2. 회원가입을 진행하거나 기존 계정으로 로그인합니다
 3. 로그인 성공 시 홈 화면으로 이동합니다
 
-### 2. 데이터 관리
+### 2. 기존 데이터 마이그레이션 (중요!)
+
+기존 로컬 스토리지에 저장된 거래처 데이터를 백엔드로 이관하려면:
+
+1. **임시로 App.tsx에 import 추가**:
+
+   ```typescript
+   // src/App.tsx 상단에 임시로 추가
+   import "./scripts/importCompanies";
+   ```
+
+2. **앱을 한 번 실행**하여 "✅ 로컬 거래처 이관 완료" 로그 확인
+
+3. **import 제거**:
+   ```typescript
+   // 위에서 추가한 import 라인 삭제
+   // import "./scripts/importCompanies"; // 이 라인 삭제
+   ```
+
+### 3. 데이터 관리
 
 - 모든 데이터는 자동으로 서버와 동기화됩니다
+- **소프트 삭제**: 삭제된 데이터는 복구 가능합니다
+- **델타 동기화**: 변경된 데이터만 동기화하여 빠른 속도
 - 오프라인 상태에서도 로컬 데이터를 사용할 수 있습니다
 - 온라인 상태가 되면 자동으로 동기화됩니다
 
-### 3. 다중 기기 사용
+### 4. 다중 기기 사용
 
 - 같은 계정으로 다른 기기에서 로그인하면 동일한 데이터에 접근할 수 있습니다
 - 한 기기에서 변경한 내용이 다른 기기에서도 반영됩니다
+- **벌크 임포트**: 대량의 거래처 데이터를 한 번에 업로드 가능
 
 ## 🛠️ 개발 가이드
 
@@ -254,6 +316,38 @@ await logout();
 - CORS 설정
 - Rate Limiting
 
+## 🆕 최신 업데이트 (2024년 1월)
+
+### 새로 추가된 기능들
+
+1. **소프트 삭제 시스템**
+
+   - 회사 데이터 삭제 시 실제로는 `isDeleted=true`로 표시
+   - 삭제된 데이터 복구 가능
+   - 목록 조회 시 삭제된 데이터 자동 제외
+
+2. **델타 동기화**
+
+   - `GET /api/companies/sync/delta?since=ISO_DATE`
+   - 마지막 동기화 이후 변경된 데이터만 조회
+   - 네트워크 트래픽 대폭 절약
+
+3. **벌크 임포트**
+
+   - `POST /api/companies/bulk`
+   - 대량의 거래처 데이터를 한 번에 업로드
+   - 중복 데이터 자동 처리 (사업자번호 또는 이름+주소 기준)
+
+4. **로컬 데이터 마이그레이션**
+
+   - 기존 AsyncStorage의 거래처 데이터를 백엔드로 자동 이관
+   - `src/scripts/importCompanies.ts` 스크립트 제공
+
+5. **코드 구조 완전 리팩토링**
+   - 타입, 훅, 컴포넌트, 서비스 체계화
+   - 모든 모듈의 인덱스 파일 정리
+   - 개발자 경험 대폭 향상
+
 ## 📝 다음 단계
 
 1. **프로덕션 배포**
@@ -268,6 +362,9 @@ await logout();
    - 파일 업로드/다운로드
    - 데이터 백업/복원
    - 사용자 권한 관리
+   - **저장된 검색 필터** (사용자별 검색 조건 저장)
+   - **분석 대시보드** (매출, 거래처 현황 통계)
+   - **Swagger API 문서화**
 
 3. **모니터링**
    - 로그 수집 및 분석

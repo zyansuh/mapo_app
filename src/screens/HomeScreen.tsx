@@ -23,6 +23,7 @@ import {
   useDelivery,
   useLoading,
   useNotifications,
+  useDataSync,
 } from "../hooks";
 import { useCall } from "../providers/CallProvider";
 import {
@@ -37,6 +38,7 @@ import {
   getImportStats,
 } from "../utils/bulkImportCompanies";
 import { resetAndReimportCompanies } from "../utils/resetImport";
+import { SyncStatusBar } from "../components";
 
 const HomeScreen = () => {
   const navigation = useNavigation<any>();
@@ -48,6 +50,7 @@ const HomeScreen = () => {
   const { stats: deliveryStats } = useDelivery();
   const { loading } = useLoading();
   const { showSuccess, showError } = useNotifications();
+  const { syncToServer } = useDataSync();
   const { callHistory } = useCall();
 
   // getStats는 이미 계산된 객체이므로 직접 사용
@@ -215,6 +218,8 @@ const HomeScreen = () => {
             <Text style={styles.headerSubtitle}>사업 관리의 모든 것</Text>
           </View>
         </LinearGradient>
+
+        <SyncStatusBar onSyncPress={syncToServer} />
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.welcomeSection}>

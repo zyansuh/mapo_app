@@ -5,8 +5,9 @@ import {
   DeliveryStatus,
   DeliveryStats,
 } from "../types/delivery";
+import { apiService } from "../services/api";
 import { storageService, STORAGE_KEYS } from "../services/storage";
-import { generateId } from "../utils";
+import { useAuth } from "./useAuth";
 
 // 샘플 배송 데이터
 const getSampleDeliveries = (): Delivery[] => [
@@ -124,63 +125,122 @@ export const useDelivery = (): UseDeliveryReturn => {
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { isAuthenticated } = useAuth();
 
   // 초기 데이터 로드
   useEffect(() => {
-    loadDeliveries();
-  }, []);
+    if (isAuthenticated) {
+      loadDeliveries();
+    }
+  }, [isAuthenticated]);
 
   const loadDeliveries = useCallback(async () => {
     setLoading(true);
     setError(null);
 
     try {
-      // 실제로는 스토리지에서 로드하지만, 지금은 샘플 데이터 사용
-      const sampleData = getSampleDeliveries();
-      setDeliveries(sampleData);
+      if (isAuthenticated) {
+        // 백엔드에서 데이터 로드
+        const response = await apiService.getDeliveries();
+        if (response.success && response.data) {
+          setDeliveries(response.data);
+          // 로컬 스토리지에도 백업
+          await storageService.setItem(STORAGE_KEYS.DELIVERIES, response.data);
+        }
+      } else {
+        // 오프라인 모드: 로컬 스토리지에서 로드
+        const storedData = await storageService.getItem<Delivery[]>(
+          STORAGE_KEYS.DELIVERIES
+        );
+
+        if (storedData && Array.isArray(storedData)) {
+          // 날짜 객체 복원
+          const restoredData = storedData.map((delivery) => ({
+            ...delivery,
+            deliveryDate: new Date(delivery.deliveryDate),
+            createdAt: new Date(delivery.createdAt),
+            updatedAt: new Date(delivery.updatedAt),
+          }));
+          setDeliveries(restoredData);
+        } else {
+          // 샘플 데이터 사용
+          const sampleData = getSampleDeliveries();
+          setDeliveries(sampleData);
+        }
+      }
     } catch (err) {
-      setError("배송 데이터를 불러오는데 실패했습니다.");
       console.error("배송 데이터 로드 오류:", err);
+      // 백엔드 실패 시 로컬 스토리지에서 로드 시도
+      try {
+        const storedData = await storageService.getItem<Delivery[]>(
+          STORAGE_KEYS.DELIVERIES
+        );
+        if (storedData && Array.isArray(storedData)) {
+          setDeliveries(storedData);
+        }
+      } catch (localErr) {
+        setError("배송 데이터를 불러오는데 실패했습니다.");
+      }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isAuthenticated]);
 
   const addDelivery = useCallback(
     async (data: DeliveryFormData): Promise<Delivery | null> => {
       try {
-        const newDelivery: Delivery = {
-          id: generateId(),
-          deliveryNumber: generateDeliveryNumber(),
-          companyId: data.companyId,
-          products: data.products.map((product, index) => ({
-            ...product,
-            id: generateId(),
-            totalPrice: product.quantity * product.unitPrice,
-          })),
-          totalAmount: data.products.reduce(
-            (sum, product) => sum + product.quantity * product.unitPrice,
-            0
-          ),
-          deliveryDate: data.deliveryDate,
-          deliveryAddress: data.deliveryAddress,
-          deliveryMemo: data.deliveryMemo,
-          driverName: data.driverName,
-          driverPhone: data.driverPhone,
-          status: "준비중",
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
+        if (isAuthenticated) {
+          // 백엔드에 저장
+          const response = await apiService.createDelivery(data);
+          if (response.success && response.data) {
+            const newDelivery = response.data;
+            setDeliveries((prev) => [newDelivery, ...prev]);
+            await storageService.setItem(STORAGE_KEYS.DELIVERIES, [
+              newDelivery,
+              ...deliveries,
+            ]);
+            return newDelivery;
+          }
+        } else {
+          // 오프라인 모드: 로컬에만 저장
+          const newDelivery: Delivery = {
+            id: `local_${Date.now()}`,
+            deliveryNumber: generateDeliveryNumber(),
+            companyId: data.companyId,
+            products: data.products.map((product, index) => ({
+              ...product,
+              id: `local_prod_${Date.now()}_${index}`,
+              totalPrice: product.quantity * product.unitPrice,
+            })),
+            totalAmount: data.products.reduce(
+              (sum, product) => sum + product.quantity * product.unitPrice,
+              0
+            ),
+            deliveryDate: data.deliveryDate,
+            deliveryAddress: data.deliveryAddress,
+            deliveryMemo: data.deliveryMemo,
+            driverName: data.driverName,
+            driverPhone: data.driverPhone,
+            status: "준비중",
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
 
-        setDeliveries((prev) => [newDelivery, ...prev]);
-        return newDelivery;
+          setDeliveries((prev) => [newDelivery, ...prev]);
+          await storageService.setItem(STORAGE_KEYS.DELIVERIES, [
+            newDelivery,
+            ...deliveries,
+          ]);
+          return newDelivery;
+        }
+        return null;
       } catch (err) {
         setError("배송 등록에 실패했습니다.");
         console.error("배송 추가 오류:", err);
         return null;
       }
     },
-    []
+    [deliveries, isAuthenticated]
   );
 
   const updateDelivery = useCallback(

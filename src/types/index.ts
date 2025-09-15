@@ -1,49 +1,19 @@
-// 통합 타입 export
-// 모든 도메인별 타입들을 중앙에서 관리
+// 모든 타입 정의를 통합 관리하는 메인 인덱스 파일
 
-// 공통 타입들
+// 기본 타입들
 export * from "./common";
-export * from "./company";
-export * from "./product";
-export * from "./invoice";
-export * from "./call";
-export * from "./delivery";
+export * from "./api";
 export * from "./navigation";
 
-// 외상 관리 관련 타입 (인보이스와 분리된 부분)
-export type CreditStatus = "정상" | "연체" | "상환완료" | "취소";
+// 도메인별 타입들
+export * from "./company";
+export * from "./delivery";
+export * from "./invoice";
+export * from "./product";
+export * from "./user";
 
-export interface CreditRecord {
-  id: string;
-  companyId: string;
-  amount: number; // 외상 금액
-  paidAmount: number; // 지불된 금액
-  remainingAmount: number; // 잔여 금액
-  dueDate: Date; // 지불 기한
-  status: CreditStatus;
-  description?: string;
-  products?: any[]; // 상품 정보
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface CreditPayment {
-  id: string;
-  creditRecordId: string;
-  amount: number;
-  paymentMethod: string; // PaymentMethod 타입 참조
-  paymentDate: Date;
-  memo?: string;
-  createdAt: Date;
-}
-
-// 간단한 통계
-export interface DashboardStats {
-  totalCompanies: number;
-  recentActivities: Array<{
-    id: string;
-    type: "call";
-    title: string;
-    timestamp: Date;
-  }>;
-}
+// 기능별 타입들
+export * from "./analytics";
+export * from "./call";
+export * from "./form";
+export * from "./storage";

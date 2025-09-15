@@ -80,7 +80,7 @@ router.get(
       } = req.query;
 
       // 검색 조건 구성
-      const filter = { userId: req.user._id };
+      const filter = { userId: req.user._id, isDeleted: { $ne: true } };
 
       if (search) {
         filter.$or = [
@@ -140,6 +140,7 @@ router.get("/:id", async (req, res) => {
     const company = await Company.findOne({
       _id: req.params.id,
       userId: req.user._id,
+      isDeleted: { $ne: true },
     });
 
     if (!company) {
@@ -339,12 +340,14 @@ router.put(
 );
 
 // 회사 삭제
+// 소프트 삭제
 router.delete("/:id", async (req, res) => {
   try {
-    const company = await Company.findOneAndDelete({
-      _id: req.params.id,
-      userId: req.user._id,
-    });
+    const company = await Company.findOneAndUpdate(
+      { _id: req.params.id, userId: req.user._id },
+      { isDeleted: true, deletedAt: new Date() },
+      { new: true }
+    );
 
     if (!company) {
       return res.status(404).json({
@@ -358,6 +361,7 @@ router.delete("/:id", async (req, res) => {
     res.json({
       success: true,
       message: "회사가 삭제되었습니다.",
+      data: { id: req.params.id },
     });
   } catch (error) {
     logger.error("회사 삭제 오류:", error);
@@ -436,3 +440,117 @@ router.get("/stats/overview", async (req, res) => {
 });
 
 module.exports = router;
+// 델타 동기화: 변경분 조회
+router.get(
+  "/sync/delta",
+  [query("since").isISO8601().withMessage("since는 ISO8601 날짜여야 합니다.")],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res
+          .status(400)
+          .json({
+            success: false,
+            message: "입력 데이터가 유효하지 않습니다.",
+            errors: errors.array(),
+          });
+      }
+
+      const since = new Date(req.query.since);
+      const userId = req.user._id;
+
+      const [updated, deleted] = await Promise.all([
+        Company.find({
+          userId,
+          isDeleted: { $ne: true },
+          updatedAt: { $gt: since },
+        }).lean(),
+        Company.find({ userId, isDeleted: true, deletedAt: { $gt: since } })
+          .select("_id deletedAt")
+          .lean(),
+      ]);
+
+      return res.json({ success: true, data: { updated, deleted } });
+    } catch (error) {
+      logger.error("회사 델타 동기화 오류:", error);
+      res
+        .status(500)
+        .json({ success: false, message: "서버 오류가 발생했습니다." });
+    }
+  }
+);
+
+// 벌크 임포트: 회사 배열 생성
+router.post(
+  "/bulk",
+  [
+    body("companies")
+      .isArray({ min: 1 })
+      .withMessage("companies 배열이 필요합니다."),
+    body("companies.*.name").notEmpty(),
+    body("companies.*.type").isIn([
+      "고객사",
+      "협력업체",
+      "공급업체",
+      "하청업체",
+      "기타",
+    ]),
+    body("companies.*.region").isString(),
+    body("companies.*.address").notEmpty(),
+    body("companies.*.phoneNumber").notEmpty(),
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res
+          .status(400)
+          .json({
+            success: false,
+            message: "입력 데이터가 유효하지 않습니다.",
+            errors: errors.array(),
+          });
+      }
+
+      const userId = req.user._id;
+      const input = req.body.companies.map((c) => ({ ...c, userId }));
+
+      // 중복 기준: 같은 userId에서 사업자번호 또는 (이름+주소)
+      const bulkOps = [];
+      for (const c of input) {
+        const filter = {
+          userId,
+          $or: [
+            ...(c.businessNumber ? [{ businessNumber: c.businessNumber }] : []),
+            { $and: [{ name: c.name }, { address: c.address }] },
+          ],
+        };
+
+        bulkOps.push({
+          updateOne: {
+            filter,
+            update: { $setOnInsert: c },
+            upsert: true,
+          },
+        });
+      }
+
+      const result = await Company.bulkWrite(bulkOps, { ordered: false });
+      const upserts = result.upsertedCount || 0;
+
+      return res
+        .status(201)
+        .json({
+          success: true,
+          message: "벌크 임포트 완료",
+          data: { inserted: upserts },
+        });
+    } catch (error) {
+      logger.error("회사 벌크 임포트 오류:", error);
+      res
+        .status(500)
+        .json({ success: false, message: "서버 오류가 발생했습니다." });
+    }
+  }
+);

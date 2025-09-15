@@ -90,6 +90,15 @@ const companySchema = new mongoose.Schema(
     nextContactDate: {
       type: Date,
     },
+    // 소프트 삭제
+    isDeleted: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    deletedAt: {
+      type: Date,
+    },
     // 사용자별 데이터 분리를 위한 필드
     userId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -108,6 +117,8 @@ companySchema.index({ userId: 1, type: 1 });
 companySchema.index({ userId: 1, region: 1 });
 companySchema.index({ userId: 1, status: 1 });
 companySchema.index({ userId: 1, isFavorite: 1 });
+companySchema.index({ userId: 1, updatedAt: 1 });
+companySchema.index({ userId: 1, deletedAt: 1 });
 
 // 가상 필드: 전체 주소
 companySchema.virtual("fullAddress").get(function () {

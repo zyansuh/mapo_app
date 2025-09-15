@@ -22,8 +22,11 @@ import {
 } from "../screens";
 import CallHistoryScreen from "../screens/CallHistoryScreen";
 import CallDetectionTestScreen from "../screens/CallDetectionTestScreen";
+import LoginScreen from "../screens/LoginScreen";
 import { COLORS } from "../constants";
 import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "../hooks";
+import { OfflineBanner } from "../components";
 
 // navigation 타입들을 types에서 import
 import { RootStackParamList, TabParamList } from "../types";
@@ -88,130 +91,144 @@ const TabNavigator = () => {
 };
 
 export const AppNavigator = () => {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return null; // 로딩 중일 때는 아무것도 표시하지 않음
+  }
+
   return (
-    <NavigationContainer>
-      <Stack.Navigator
-        initialRouteName="Main"
-        screenOptions={{
-          headerStyle: {
-            backgroundColor: COLORS.PRIMARY,
-          },
-          headerTintColor: "#FFFFFF",
-          headerTitleStyle: {
-            fontWeight: "bold",
-          },
-        }}
-      >
-        <Stack.Screen
-          name="Main"
-          component={TabNavigator}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="CompanyDetail"
-          component={CompanyDetailScreen}
-          options={({ route }) => ({
-            title: "거래처 상세",
-            headerBackTitle: "뒤로",
-          })}
-        />
-        <Stack.Screen
-          name="CompanyEdit"
-          component={CompanyEditScreen}
-          options={({ route }) => ({
-            title: (route.params as any)?.companyId
-              ? "거래처 수정"
-              : "거래처 등록",
-            headerBackTitle: "뒤로",
-          })}
-        />
-        <Stack.Screen
-          name="CompanyImport"
-          component={CompanyImportScreen}
-          options={{
-            title: "거래처 일괄 등록",
-            headerBackTitle: "뒤로",
+    <>
+      <OfflineBanner />
+      <NavigationContainer>
+        <Stack.Navigator
+          initialRouteName={isAuthenticated ? "Main" : "Login"}
+          screenOptions={{
+            headerStyle: {
+              backgroundColor: COLORS.PRIMARY,
+            },
+            headerTintColor: "#FFFFFF",
+            headerTitleStyle: {
+              fontWeight: "bold",
+            },
           }}
-        />
-        <Stack.Screen
-          name="DirectImport"
-          component={DirectImportScreen}
-          options={{
-            title: "데이터베이스 직접 등록",
-            headerBackTitle: "뒤로",
-          }}
-        />
-        <Stack.Screen
-          name="InvoiceManagement"
-          component={InvoiceManagementScreen}
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="InvoiceEdit"
-          component={InvoiceEditScreen}
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="InvoiceDetail"
-          component={InvoiceDetailScreen}
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="CompanySalesAnalysis"
-          component={CompanySalesAnalysisScreen}
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="CompanySalesDetail"
-          component={CompanySalesDetailScreen}
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="DeliveryManagement"
-          component={DeliveryManagementScreen}
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="DeliveryDetail"
-          component={DeliveryDetailScreen}
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="DeliveryEdit"
-          component={DeliveryEditScreen}
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="CallHistory"
-          component={CallHistoryScreen}
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="CallDetectionTest"
-          component={CallDetectionTestScreen}
-          options={{
-            headerShown: false,
-          }}
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
+        >
+          <Stack.Screen
+            name="Login"
+            component={LoginScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Main"
+            component={TabNavigator}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="CompanyDetail"
+            component={CompanyDetailScreen}
+            options={({ route }) => ({
+              title: "거래처 상세",
+              headerBackTitle: "뒤로",
+            })}
+          />
+          <Stack.Screen
+            name="CompanyEdit"
+            component={CompanyEditScreen}
+            options={({ route }) => ({
+              title: (route.params as any)?.companyId
+                ? "거래처 수정"
+                : "거래처 등록",
+              headerBackTitle: "뒤로",
+            })}
+          />
+          <Stack.Screen
+            name="CompanyImport"
+            component={CompanyImportScreen}
+            options={{
+              title: "거래처 일괄 등록",
+              headerBackTitle: "뒤로",
+            }}
+          />
+          <Stack.Screen
+            name="DirectImport"
+            component={DirectImportScreen}
+            options={{
+              title: "데이터베이스 직접 등록",
+              headerBackTitle: "뒤로",
+            }}
+          />
+          <Stack.Screen
+            name="InvoiceManagement"
+            component={InvoiceManagementScreen}
+            options={{
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
+            name="InvoiceEdit"
+            component={InvoiceEditScreen}
+            options={{
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
+            name="InvoiceDetail"
+            component={InvoiceDetailScreen}
+            options={{
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
+            name="CompanySalesAnalysis"
+            component={CompanySalesAnalysisScreen}
+            options={{
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
+            name="CompanySalesDetail"
+            component={CompanySalesDetailScreen}
+            options={{
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
+            name="DeliveryManagement"
+            component={DeliveryManagementScreen}
+            options={{
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
+            name="DeliveryDetail"
+            component={DeliveryDetailScreen}
+            options={{
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
+            name="DeliveryEdit"
+            component={DeliveryEditScreen}
+            options={{
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
+            name="CallHistory"
+            component={CallHistoryScreen}
+            options={{
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
+            name="CallDetectionTest"
+            component={CallDetectionTestScreen}
+            options={{
+              headerShown: false,
+            }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </>
   );
 };

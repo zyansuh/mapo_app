@@ -1,281 +1,378 @@
-import { REGEX_PATTERNS } from "../constants/app";
+// 유효성 검사 유틸리티 함수들
 
-// 검증 결과 타입
-export interface ValidationResult {
+// 이메일 유효성 검사
+export const isValidEmail = (email: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
+// 전화번호 유효성 검사
+export const isValidPhone = (phone: string): boolean => {
+  const phoneRegex = /^[\d\-\+\(\)\s]+$/;
+  return phoneRegex.test(phone) && phone.replace(/\D/g, "").length >= 10;
+};
+
+// 한국 전화번호 유효성 검사
+export const isValidKoreanPhone = (phone: string): boolean => {
+  const koreanPhoneRegex = /^(\+82|0)[1-9]\d{1,2}\d{3,4}\d{4}$/;
+  return koreanPhoneRegex.test(phone.replace(/\s/g, ""));
+};
+
+// 사업자등록번호 유효성 검사
+export const isValidBusinessNumber = (businessNumber: string): boolean => {
+  const cleanNumber = businessNumber.replace(/\D/g, "");
+  if (cleanNumber.length !== 10) return false;
+
+  const weights = [1, 3, 7, 1, 3, 7, 1, 3, 5];
+  let sum = 0;
+
+  for (let i = 0; i < 9; i++) {
+    sum += parseInt(cleanNumber[i]) * weights[i];
+  }
+
+  sum += Math.floor((parseInt(cleanNumber[8]) * 5) / 10);
+  const remainder = sum % 10;
+  const checkDigit = remainder === 0 ? 0 : 10 - remainder;
+
+  return checkDigit === parseInt(cleanNumber[9]);
+};
+
+// 주민등록번호 유효성 검사
+export const isValidResidentNumber = (residentNumber: string): boolean => {
+  const cleanNumber = residentNumber.replace(/\D/g, "");
+  if (cleanNumber.length !== 13) return false;
+
+  const weights1 = [2, 3, 4, 5, 6, 7];
+  const weights2 = [8, 9, 2, 3, 4, 5];
+
+  let sum = 0;
+  for (let i = 0; i < 6; i++) {
+    sum += parseInt(cleanNumber[i]) * weights1[i];
+  }
+
+  for (let i = 6; i < 12; i++) {
+    sum += parseInt(cleanNumber[i]) * weights2[i - 6];
+  }
+
+  const remainder = sum % 11;
+  const checkDigit = remainder < 2 ? remainder : 11 - remainder;
+
+  return checkDigit === parseInt(cleanNumber[12]);
+};
+
+// URL 유효성 검사
+export const isValidUrl = (url: string): boolean => {
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+// IP 주소 유효성 검사
+export const isValidIP = (ip: string): boolean => {
+  const ipRegex =
+    /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+  return ipRegex.test(ip);
+};
+
+// 비밀번호 강도 검사
+export interface PasswordStrength {
+  score: number; // 0-4
+  feedback: string[];
   isValid: boolean;
-  error?: string;
 }
 
-// 기본 검증 함수들
-export const validators = {
-  // 필수 입력 검증
-  required: (value: any, fieldName: string = "필드"): ValidationResult => {
-    const isEmpty =
-      value === null ||
-      value === undefined ||
-      (typeof value === "string" && value.trim() === "") ||
-      (Array.isArray(value) && value.length === 0);
+export const checkPasswordStrength = (password: string): PasswordStrength => {
+  const feedback: string[] = [];
+  let score = 0;
 
-    return {
-      isValid: !isEmpty,
-      error: isEmpty ? `${fieldName}은(는) 필수 입력 항목입니다.` : undefined,
-    };
-  },
+  if (password.length >= 8) {
+    score++;
+  } else {
+    feedback.push("최소 8자 이상이어야 합니다");
+  }
 
-  // 이메일 검증
-  email: (value: string): ValidationResult => {
-    if (!value) return { isValid: true }; // 선택적 필드인 경우
+  if (/[a-z]/.test(password)) {
+    score++;
+  } else {
+    feedback.push("소문자를 포함해야 합니다");
+  }
 
-    const isValid = REGEX_PATTERNS.EMAIL.test(value);
-    return {
-      isValid,
-      error: isValid ? undefined : "올바른 이메일 주소를 입력해주세요.",
-    };
-  },
+  if (/[A-Z]/.test(password)) {
+    score++;
+  } else {
+    feedback.push("대문자를 포함해야 합니다");
+  }
 
-  // 전화번호 검증
-  phone: (value: string): ValidationResult => {
-    if (!value) return { isValid: true }; // 선택적 필드인 경우
+  if (/\d/.test(password)) {
+    score++;
+  } else {
+    feedback.push("숫자를 포함해야 합니다");
+  }
 
-    // 하이픈, 공백 제거 후 검증
-    const cleanValue = value.replace(/[\s-]/g, "");
-    const isValid = REGEX_PATTERNS.PHONE.test(cleanValue);
+  if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+    score++;
+  } else {
+    feedback.push("특수문자를 포함하면 더 안전합니다");
+  }
 
-    return {
-      isValid,
-      error: isValid
-        ? undefined
-        : "올바른 전화번호를 입력해주세요. (예: 010-1234-5678)",
-    };
-  },
-
-  // 사업자등록번호 검증
-  businessNumber: (value: string): ValidationResult => {
-    if (!value) return { isValid: true }; // 선택적 필드인 경우
-
-    const isValid = REGEX_PATTERNS.BUSINESS_NUMBER.test(value);
-    return {
-      isValid,
-      error: isValid
-        ? undefined
-        : "올바른 사업자등록번호를 입력해주세요. (예: 123-45-67890)",
-    };
-  },
-
-  // 숫자 검증
-  number: (
-    value: string | number,
-    options?: {
-      min?: number;
-      max?: number;
-      integer?: boolean;
-    }
-  ): ValidationResult => {
-    const numValue = typeof value === "string" ? parseFloat(value) : value;
-
-    if (isNaN(numValue)) {
-      return {
-        isValid: false,
-        error: "올바른 숫자를 입력해주세요.",
-      };
-    }
-
-    if (options?.integer && !Number.isInteger(numValue)) {
-      return {
-        isValid: false,
-        error: "정수를 입력해주세요.",
-      };
-    }
-
-    if (options?.min !== undefined && numValue < options.min) {
-      return {
-        isValid: false,
-        error: `${options.min} 이상의 값을 입력해주세요.`,
-      };
-    }
-
-    if (options?.max !== undefined && numValue > options.max) {
-      return {
-        isValid: false,
-        error: `${options.max} 이하의 값을 입력해주세요.`,
-      };
-    }
-
-    return { isValid: true };
-  },
-
-  // 문자열 길이 검증
-  length: (
-    value: string,
-    options: {
-      min?: number;
-      max?: number;
-    }
-  ): ValidationResult => {
-    const length = value ? value.length : 0;
-
-    if (options.min !== undefined && length < options.min) {
-      return {
-        isValid: false,
-        error: `최소 ${options.min}자 이상 입력해주세요.`,
-      };
-    }
-
-    if (options.max !== undefined && length > options.max) {
-      return {
-        isValid: false,
-        error: `최대 ${options.max}자까지 입력 가능합니다.`,
-      };
-    }
-
-    return { isValid: true };
-  },
-
-  // 날짜 검증
-  date: (
-    value: string | Date,
-    options?: {
-      future?: boolean;
-      past?: boolean;
-      minDate?: Date;
-      maxDate?: Date;
-    }
-  ): ValidationResult => {
-    let date: Date;
-
-    if (typeof value === "string") {
-      date = new Date(value);
-    } else {
-      date = value;
-    }
-
-    if (isNaN(date.getTime())) {
-      return {
-        isValid: false,
-        error: "올바른 날짜를 입력해주세요.",
-      };
-    }
-
-    const now = new Date();
-
-    if (options?.future && date <= now) {
-      return {
-        isValid: false,
-        error: "미래 날짜를 입력해주세요.",
-      };
-    }
-
-    if (options?.past && date >= now) {
-      return {
-        isValid: false,
-        error: "과거 날짜를 입력해주세요.",
-      };
-    }
-
-    if (options?.minDate && date < options.minDate) {
-      return {
-        isValid: false,
-        error: `${options.minDate.toLocaleDateString()} 이후 날짜를 입력해주세요.`,
-      };
-    }
-
-    if (options?.maxDate && date > options.maxDate) {
-      return {
-        isValid: false,
-        error: `${options.maxDate.toLocaleDateString()} 이전 날짜를 입력해주세요.`,
-      };
-    }
-
-    return { isValid: true };
-  },
-
-  // URL 검증
-  url: (value: string): ValidationResult => {
-    if (!value) return { isValid: true }; // 선택적 필드인 경우
-
-    try {
-      new URL(value);
-      return { isValid: true };
-    } catch {
-      return {
-        isValid: false,
-        error: "올바른 URL을 입력해주세요.",
-      };
-    }
-  },
+  return {
+    score,
+    feedback,
+    isValid: score >= 3,
+  };
 };
 
-// 복합 검증 함수
-export const validateField = (
+// 숫자 범위 검사
+export const isInRange = (value: number, min: number, max: number): boolean => {
+  return value >= min && value <= max;
+};
+
+// 문자열 길이 검사
+export const isValidLength = (
+  str: string,
+  min: number,
+  max: number
+): boolean => {
+  return str.length >= min && str.length <= max;
+};
+
+// 날짜 유효성 검사
+export const isValidDate = (date: string | Date): boolean => {
+  const dateObj = typeof date === "string" ? new Date(date) : date;
+  return dateObj instanceof Date && !isNaN(dateObj.getTime());
+};
+
+// 미래 날짜 검사
+export const isFutureDate = (date: string | Date): boolean => {
+  const dateObj = typeof date === "string" ? new Date(date) : date;
+  return dateObj > new Date();
+};
+
+// 과거 날짜 검사
+export const isPastDate = (date: string | Date): boolean => {
+  const dateObj = typeof date === "string" ? new Date(date) : date;
+  return dateObj < new Date();
+};
+
+// 파일 크기 검사
+export const isValidFileSize = (file: File, maxSizeInMB: number): boolean => {
+  const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
+  return file.size <= maxSizeInBytes;
+};
+
+// 파일 타입 검사
+export const isValidFileType = (
+  file: File,
+  allowedTypes: string[]
+): boolean => {
+  return allowedTypes.includes(file.type);
+};
+
+// 이미지 파일 검사
+export const isValidImageFile = (file: File): boolean => {
+  const imageTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+  return isValidFileType(file, imageTypes);
+};
+
+// JSON 문자열 검사
+export const isValidJSON = (str: string): boolean => {
+  try {
+    JSON.parse(str);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+// 숫자 문자열 검사
+export const isNumeric = (str: string): boolean => {
+  return !isNaN(parseFloat(str)) && isFinite(Number(str));
+};
+
+// 정수 검사
+export const isInteger = (value: any): boolean => {
+  return Number.isInteger(value);
+};
+
+// 양수 검사
+export const isPositive = (value: number): boolean => {
+  return value > 0;
+};
+
+// 음수 검사
+export const isNegative = (value: number): boolean => {
+  return value < 0;
+};
+
+// 0 검사
+export const isZero = (value: number): boolean => {
+  return value === 0;
+};
+
+// 배열 검사
+export const isArray = (value: any): value is any[] => {
+  return Array.isArray(value);
+};
+
+// 빈 배열 검사
+export const isEmptyArray = (arr: any[]): boolean => {
+  return arr.length === 0;
+};
+
+// 객체 검사
+export const isObject = (value: any): boolean => {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+};
+
+// 빈 객체 검사
+export const isEmptyObject = (obj: any): boolean => {
+  return isObject(obj) && Object.keys(obj).length === 0;
+};
+
+// 함수 검사
+export const isFunction = (value: any): value is Function => {
+  return typeof value === "function";
+};
+
+// Promise 검사
+export const isPromise = (value: any): value is Promise<any> => {
+  return value && typeof value.then === "function";
+};
+
+// 정규식 검사
+export const matchesPattern = (str: string, pattern: RegExp): boolean => {
+  return pattern.test(str);
+};
+
+// 한국어 검사
+export const isKorean = (str: string): boolean => {
+  const koreanRegex = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/;
+  return koreanRegex.test(str);
+};
+
+// 영어 검사
+export const isEnglish = (str: string): boolean => {
+  const englishRegex = /[a-zA-Z]/;
+  return englishRegex.test(str);
+};
+
+// 숫자만 검사
+export const isDigitsOnly = (str: string): boolean => {
+  return /^\d+$/.test(str);
+};
+
+// 알파벳만 검사
+export const isAlphaOnly = (str: string): boolean => {
+  return /^[a-zA-Z]+$/.test(str);
+};
+
+// 알파벳과 숫자만 검사
+export const isAlphaNumeric = (str: string): boolean => {
+  return /^[a-zA-Z0-9]+$/.test(str);
+};
+
+// 공백 검사
+export const hasWhitespace = (str: string): boolean => {
+  return /\s/.test(str);
+};
+
+// 특수문자 검사
+export const hasSpecialChars = (str: string): boolean => {
+  return /[!@#$%^&*(),.?":{}|<>]/.test(str);
+};
+
+// 복합 유효성 검사
+export interface ValidationRule {
+  required?: boolean;
+  minLength?: number;
+  maxLength?: number;
+  min?: number;
+  max?: number;
+  pattern?: RegExp;
+  custom?: (value: any) => boolean | string;
+  message?: string;
+}
+
+export const validate = (
   value: any,
-  rules: Array<(value: any) => ValidationResult>
-): ValidationResult => {
+  rules: ValidationRule[]
+): { isValid: boolean; errors: string[] } => {
+  const errors: string[] = [];
+
   for (const rule of rules) {
-    const result = rule(value);
-    if (!result.isValid) {
-      return result;
+    if (
+      rule.required &&
+      (value === undefined || value === null || value === "")
+    ) {
+      errors.push(rule.message || "필수 입력 항목입니다.");
+      continue;
+    }
+
+    if (value === undefined || value === null || value === "") {
+      continue; // 비어있는 값은 required가 아닌 경우 스킵
+    }
+
+    if (
+      rule.minLength &&
+      typeof value === "string" &&
+      value.length < rule.minLength
+    ) {
+      errors.push(
+        rule.message || `최소 ${rule.minLength}자 이상 입력해주세요.`
+      );
+    }
+
+    if (
+      rule.maxLength &&
+      typeof value === "string" &&
+      value.length > rule.maxLength
+    ) {
+      errors.push(
+        rule.message || `최대 ${rule.maxLength}자까지 입력 가능합니다.`
+      );
+    }
+
+    if (
+      rule.min !== undefined &&
+      typeof value === "number" &&
+      value < rule.min
+    ) {
+      errors.push(rule.message || `최소값은 ${rule.min}입니다.`);
+    }
+
+    if (
+      rule.max !== undefined &&
+      typeof value === "number" &&
+      value > rule.max
+    ) {
+      errors.push(rule.message || `최대값은 ${rule.max}입니다.`);
+    }
+
+    if (
+      rule.pattern &&
+      typeof value === "string" &&
+      !rule.pattern.test(value)
+    ) {
+      errors.push(rule.message || "올바른 형식이 아닙니다.");
+    }
+
+    if (rule.custom) {
+      const result = rule.custom(value);
+      if (result !== true) {
+        errors.push(
+          typeof result === "string"
+            ? result
+            : rule.message || "유효하지 않은 값입니다."
+        );
+      }
     }
   }
-  return { isValid: true };
-};
 
-// 객체 전체 검증
-export const validateObject = <T extends Record<string, any>>(
-  obj: T,
-  schema: Record<keyof T, Array<(value: any) => ValidationResult>>
-): { isValid: boolean; errors: Partial<Record<keyof T, string>> } => {
-  const errors: Partial<Record<keyof T, string>> = {};
-  let isValid = true;
-
-  for (const [key, rules] of Object.entries(schema) as Array<[keyof T, any]>) {
-    const result = validateField(obj[key], rules);
-    if (!result.isValid) {
-      errors[key] = result.error;
-      isValid = false;
-    }
-  }
-
-  return { isValid, errors };
-};
-
-// 회사 데이터 검증 스키마
-export const companyValidationSchema = {
-  name: [
-    (value: string) => validators.required(value, "회사명"),
-    (value: string) => validators.length(value, { min: 1, max: 100 }),
-  ],
-  type: [(value: string) => validators.required(value, "업체 구분")],
-  region: [(value: string) => validators.required(value, "지역")],
-  address: [
-    (value: string) => validators.required(value, "주소"),
-    (value: string) => validators.length(value, { max: 200 }),
-  ],
-  phoneNumber: [(value: string) => validators.phone(value)],
-  email: [(value: string) => validators.email(value)],
-  businessNumber: [(value: string) => validators.businessNumber(value)],
-  contactPerson: [(value: string) => validators.length(value, { max: 50 })],
-};
-
-// 상품 데이터 검증 스키마
-export const productValidationSchema = {
-  name: [
-    (value: string) => validators.required(value, "상품명"),
-    (value: string) => validators.length(value, { min: 1, max: 100 }),
-  ],
-  category: [(value: string) => validators.required(value, "카테고리")],
-  price: [
-    (value: number) => validators.required(value, "가격"),
-    (value: number) => validators.number(value, { min: 0 }),
-  ],
-  unit: [
-    (value: string) => validators.required(value, "단위"),
-    (value: string) => validators.length(value, { max: 20 }),
-  ],
-};
-
-// 폼 검증 헬퍼 함수
-export const createFormValidator = <T extends Record<string, any>>(
-  schema: Record<keyof T, Array<(value: any) => ValidationResult>>
-) => {
-  return (data: T) => validateObject(data, schema);
+  return {
+    isValid: errors.length === 0,
+    errors,
+  };
 };

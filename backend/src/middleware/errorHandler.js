@@ -5,7 +5,15 @@ const errorHandler = (err, req, res, next) => {
   error.message = err.message;
 
   // Log error
-  logger.error(err);
+  logger.error("Error occurred:", {
+    message: err.message,
+    stack: err.stack,
+    url: req.originalUrl,
+    method: req.method,
+    ip: req.ip,
+    userAgent: req.get("User-Agent"),
+    timestamp: new Date().toISOString(),
+  });
 
   // Mongoose bad ObjectId
   if (err.name === "CastError") {
@@ -15,8 +23,9 @@ const errorHandler = (err, req, res, next) => {
 
   // Mongoose duplicate key
   if (err.code === 11000) {
-    const message = "중복된 데이터가 있습니다.";
-    error = { message, statusCode: 400 };
+    const field = Object.keys(err.keyValue)[0];
+    const message = `${field}이(가) 이미 존재합니다`;
+    error = { message, statusCode: 409 };
   }
 
   // Mongoose validation error
@@ -41,7 +50,15 @@ const errorHandler = (err, req, res, next) => {
   res.status(error.statusCode || 500).json({
     success: false,
     message: error.message || "서버 오류가 발생했습니다.",
-    ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
+    error: {
+      code: error.statusCode || 500,
+      timestamp: new Date().toISOString(),
+      path: req.originalUrl,
+    },
+    ...(process.env.NODE_ENV === "development" && {
+      stack: err.stack,
+      details: err,
+    }),
   });
 };
 

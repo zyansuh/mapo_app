@@ -6,9 +6,9 @@ import {
   CompanySearchFilters,
   SearchOptions,
 } from "../types";
-import { getInitialCompanies } from "../data/companies";
-import { generateId } from "../utils";
+import { apiService } from "../services/api";
 import { storageService, STORAGE_KEYS } from "../services/storage";
+import { useAuth } from "./useAuth";
 
 // 회사 훅의 반환 타입
 interface UseCompanyReturn {
@@ -50,50 +50,68 @@ export const useCompany = (): UseCompanyReturn => {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { isAuthenticated } = useAuth();
 
   // 초기 데이터 로드
   useEffect(() => {
-    loadCompanies();
-  }, []);
+    if (isAuthenticated) {
+      loadCompanies();
+    }
+  }, [isAuthenticated]);
 
-  // 데이터 로드
+  // 데이터 로드 (백엔드 우선, 오프라인 시 로컬 스토리지)
   const loadCompanies = useCallback(async (): Promise<void> => {
     setLoading(true);
     setError(null);
 
     try {
-      const storedData = await storageService.getItem<Company[]>(
-        STORAGE_KEYS.COMPANIES
-      );
-
-      if (storedData && Array.isArray(storedData)) {
-        // 날짜 객체 복원
-        const restoredData = storedData.map((company) => ({
-          ...company,
-          createdAt: new Date(company.createdAt),
-          updatedAt: new Date(company.updatedAt),
-          lastContactDate: company.lastContactDate
-            ? new Date(company.lastContactDate)
-            : undefined,
-          nextContactDate: company.nextContactDate
-            ? new Date(company.nextContactDate)
-            : undefined,
-        }));
-        setCompanies(restoredData);
+      if (isAuthenticated) {
+        // 백엔드에서 데이터 로드
+        const response = await apiService.getCompanies();
+        if (response.success && response.data) {
+          setCompanies(response.data);
+          // 로컬 스토리지에도 백업
+          await storageService.setItem(STORAGE_KEYS.COMPANIES, response.data);
+        }
       } else {
-        // 초기 데이터 로드
-        const initialData = getInitialCompanies();
-        setCompanies(initialData);
-        // 초기 데이터 저장
-        await storageService.setItem(STORAGE_KEYS.COMPANIES, initialData);
+        // 오프라인 모드: 로컬 스토리지에서 로드
+        const storedData = await storageService.getItem<Company[]>(
+          STORAGE_KEYS.COMPANIES
+        );
+
+        if (storedData && Array.isArray(storedData)) {
+          // 날짜 객체 복원
+          const restoredData = storedData.map((company) => ({
+            ...company,
+            createdAt: new Date(company.createdAt),
+            updatedAt: new Date(company.updatedAt),
+            lastContactDate: company.lastContactDate
+              ? new Date(company.lastContactDate)
+              : undefined,
+            nextContactDate: company.nextContactDate
+              ? new Date(company.nextContactDate)
+              : undefined,
+          }));
+          setCompanies(restoredData);
+        }
       }
     } catch (err) {
-      setError("회사 데이터를 불러오는 중 오류가 발생했습니다.");
       console.error("회사 데이터 로드 실패:", err);
+      // 백엔드 실패 시 로컬 스토리지에서 로드 시도
+      try {
+        const storedData = await storageService.getItem<Company[]>(
+          STORAGE_KEYS.COMPANIES
+        );
+        if (storedData && Array.isArray(storedData)) {
+          setCompanies(storedData);
+        }
+      } catch (localErr) {
+        setError("회사 데이터를 불러오는 중 오류가 발생했습니다.");
+      }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isAuthenticated]);
 
   // 스토리지에 저장
   const saveToStorage = useCallback(async (data: Company[]): Promise<void> => {
@@ -109,69 +127,117 @@ export const useCompany = (): UseCompanyReturn => {
   const addCompany = useCallback(
     async (data: CompanyFormData): Promise<Company | null> => {
       try {
-        const newCompany: Company = {
-          id: generateId(),
-          ...data,
-          status: "활성",
-          tags: data.tags || [],
-          isFavorite: false,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
+        if (isAuthenticated) {
+          // 백엔드에 저장
+          const response = await apiService.createCompany(data);
+          if (response.success && response.data) {
+            const newCompany = response.data;
+            setCompanies((prev) => [newCompany, ...prev]);
+            await saveToStorage([newCompany, ...companies]);
+            return newCompany;
+          }
+        } else {
+          // 오프라인 모드: 로컬에만 저장
+          const newCompany: Company = {
+            id: `local_${Date.now()}`,
+            ...data,
+            status: "활성",
+            tags: data.tags || [],
+            isFavorite: false,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
 
-        const updatedCompanies = [...companies, newCompany];
-        setCompanies(updatedCompanies);
-        await saveToStorage(updatedCompanies);
-
-        return newCompany;
+          const updatedCompanies = [...companies, newCompany];
+          setCompanies(updatedCompanies);
+          await saveToStorage(updatedCompanies);
+          return newCompany;
+        }
+        return null;
       } catch (error) {
         setError("회사 추가에 실패했습니다.");
         console.error("회사 추가 실패:", error);
         return null;
       }
     },
-    [companies, saveToStorage]
+    [companies, saveToStorage, isAuthenticated]
   );
 
   // 회사 수정
   const updateCompany = useCallback(
     async (id: string, data: Partial<CompanyFormData>): Promise<boolean> => {
       try {
-        const updatedCompanies = companies.map((company) =>
-          company.id === id
-            ? { ...company, ...data, updatedAt: new Date() }
-            : company
-        );
+        if (isAuthenticated) {
+          // 백엔드에 업데이트
+          const response = await apiService.updateCompany(id, data);
+          if (response.success && response.data) {
+            const updatedCompany = response.data;
+            setCompanies((prev) =>
+              prev.map((company) =>
+                company.id === id ? updatedCompany : company
+              )
+            );
+            await saveToStorage(
+              companies.map((company) =>
+                company.id === id ? updatedCompany : company
+              )
+            );
+            return true;
+          }
+        } else {
+          // 오프라인 모드: 로컬에만 업데이트
+          const updatedCompanies = companies.map((company) =>
+            company.id === id
+              ? { ...company, ...data, updatedAt: new Date() }
+              : company
+          );
 
-        setCompanies(updatedCompanies);
-        await saveToStorage(updatedCompanies);
-        return true;
+          setCompanies(updatedCompanies);
+          await saveToStorage(updatedCompanies);
+          return true;
+        }
+        return false;
       } catch (error) {
         setError("회사 정보 수정에 실패했습니다.");
         console.error("회사 수정 실패:", error);
         return false;
       }
     },
-    [companies, saveToStorage]
+    [companies, saveToStorage, isAuthenticated]
   );
 
   // 회사 삭제
   const deleteCompany = useCallback(
     async (id: string): Promise<boolean> => {
       try {
-        const updatedCompanies = companies.filter(
-          (company) => company.id !== id
-        );
-        setCompanies(updatedCompanies);
-        await saveToStorage(updatedCompanies);
-        return true;
+        if (isAuthenticated) {
+          // 백엔드에서 삭제
+          const response = await apiService.deleteCompany(id);
+          if (response.success) {
+            const updatedCompanies = companies.filter(
+              (company) => company.id !== id
+            );
+            setCompanies(updatedCompanies);
+            await saveToStorage(updatedCompanies);
+            return true;
+          }
+        } else {
+          // 오프라인 모드: 로컬에서만 삭제
+          const updatedCompanies = companies.filter(
+            (company) => company.id !== id
+          );
+          setCompanies(updatedCompanies);
+          await saveToStorage(updatedCompanies);
+          return true;
+        }
+        return false;
       } catch (error) {
         setError("회사 삭제에 실패했습니다.");
         console.error("회사 삭제 실패:", error);
         return false;
       }
     },
-    [companies, saveToStorage]
+    [companies, saveToStorage, isAuthenticated]
   );
 
   // ID로 회사 찾기

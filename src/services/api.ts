@@ -208,6 +208,16 @@ class ApiService {
     return this.get(`/companies${queryString ? `?${queryString}` : ""}`);
   }
 
+  // 회사 델타 동기화
+  async getCompanyDelta(since: string): Promise<ApiResponse<any>> {
+    return this.get(`/companies/sync/delta?since=${encodeURIComponent(since)}`);
+  }
+
+  // 회사 벌크 임포트
+  async bulkImportCompanies(companies: any[]): Promise<ApiResponse<any>> {
+    return this.post("/companies/bulk", { companies });
+  }
+
   async getCompany(id: string): Promise<ApiResponse<any>> {
     return this.get(`/companies/${id}`);
   }

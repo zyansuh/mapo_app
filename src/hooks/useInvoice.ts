@@ -5,8 +5,9 @@ import {
   InvoiceStatus,
   TaxType,
 } from "../types/invoice";
+import { apiService } from "../services/api";
 import { storageService, STORAGE_KEYS } from "../services/storage";
-import { generateId } from "../utils";
+import { useAuth } from "./useAuth";
 
 // 샘플 계산서 데이터
 const getSampleInvoices = (): Invoice[] => [
@@ -1012,46 +1013,69 @@ export const useInvoice = (): UseInvoiceReturn => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { isAuthenticated } = useAuth();
 
   // 초기 데이터 로드
   useEffect(() => {
-    loadInvoices();
-  }, []);
+    if (isAuthenticated) {
+      loadInvoices();
+    }
+  }, [isAuthenticated]);
 
   const loadInvoices = useCallback(async () => {
     setLoading(true);
     setError(null);
 
     try {
-      // 스토리지에서 데이터 로드
-      const storedData = await storageService.getItem<Invoice[]>(
-        STORAGE_KEYS.INVOICES
-      );
-
-      if (storedData && Array.isArray(storedData)) {
-        // 날짜 객체 복원
-        const restoredData = storedData.map((invoice) => ({
-          ...invoice,
-          issueDate: new Date(invoice.issueDate),
-          dueDate: invoice.dueDate ? new Date(invoice.dueDate) : undefined,
-          createdAt: new Date(invoice.createdAt),
-          updatedAt: new Date(invoice.updatedAt),
-        }));
-        setInvoices(restoredData);
+      if (isAuthenticated) {
+        // 백엔드에서 데이터 로드
+        const response = await apiService.getInvoices();
+        if (response.success && response.data) {
+          setInvoices(response.data);
+          // 로컬 스토리지에도 백업
+          await storageService.setItem(STORAGE_KEYS.INVOICES, response.data);
+        }
       } else {
-        // 초기 샘플 데이터 로드
-        const sampleData = getSampleInvoices();
-        setInvoices(sampleData);
-        // 샘플 데이터 저장
-        await saveToStorage(sampleData);
+        // 오프라인 모드: 로컬 스토리지에서 로드
+        const storedData = await storageService.getItem<Invoice[]>(
+          STORAGE_KEYS.INVOICES
+        );
+
+        if (storedData && Array.isArray(storedData)) {
+          // 날짜 객체 복원
+          const restoredData = storedData.map((invoice) => ({
+            ...invoice,
+            issueDate: new Date(invoice.issueDate),
+            dueDate: invoice.dueDate ? new Date(invoice.dueDate) : undefined,
+            createdAt: new Date(invoice.createdAt),
+            updatedAt: new Date(invoice.updatedAt),
+          }));
+          setInvoices(restoredData);
+        } else {
+          // 초기 샘플 데이터 로드
+          const sampleData = getSampleInvoices();
+          setInvoices(sampleData);
+          // 샘플 데이터 저장
+          await saveToStorage(sampleData);
+        }
       }
     } catch (err) {
-      setError("계산서 데이터를 불러오는데 실패했습니다.");
       console.error("계산서 로드 오류:", err);
+      // 백엔드 실패 시 로컬 스토리지에서 로드 시도
+      try {
+        const storedData = await storageService.getItem<Invoice[]>(
+          STORAGE_KEYS.INVOICES
+        );
+        if (storedData && Array.isArray(storedData)) {
+          setInvoices(storedData);
+        }
+      } catch (localErr) {
+        setError("계산서 데이터를 불러오는데 실패했습니다.");
+      }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isAuthenticated]);
 
   // 스토리지에 저장
   const saveToStorage = useCallback(async (data: Invoice[]): Promise<void> => {

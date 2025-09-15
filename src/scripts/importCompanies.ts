@@ -1,41 +1,53 @@
-import {
-  importCompaniesToDatabase,
-  getImportStats,
-} from "../utils/bulkImportCompanies";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { apiService } from "../services/api";
+import { Company } from "../types";
 
-export async function executeCompanyImport() {
-  console.log("=== 거래처 데이터 임포트 시작 ===");
-
-  // Check statistics first
-  const stats = getImportStats();
-  console.log(`총 ${stats.total}개의 거래처 데이터를 처리합니다.`);
-  console.log("지역별 분포:", stats.byRegion);
-  console.log("유형별 분포:", stats.byType);
-
+export async function pushLocalCompaniesToBackend() {
+  console.log("=== 로컬 거래처 → 백엔드 이관 시작 ===");
   try {
-    // Save to actual database
-    const result = await importCompaniesToDatabase();
+    const localStr = await AsyncStorage.getItem("companies");
+    const localCompanies: Company[] = localStr ? JSON.parse(localStr) : [];
 
-    console.log("\n=== 임포트 완료 ===");
-    console.log(`성공: ${result.success}개`);
-
-    if (result.errors.length > 0) {
-      console.log(`실패: ${result.errors.length}개`);
-      console.log("실패 목록:", result.errors);
+    if (!localCompanies.length) {
+      console.log("로컬 거래처 데이터가 없습니다.");
+      return { pushed: 0 };
     }
 
-    return result;
+    // 최소 필드만 전송
+    const payload = localCompanies.map((c) => ({
+      name: c.name,
+      type: c.type,
+      region: c.region,
+      status: c.status,
+      address: c.address,
+      phoneNumber: c.phoneNumber,
+      email: c.email,
+      businessNumber: c.businessNumber,
+      contactPerson: c.contactPerson,
+      contactPhone: c.contactPhone,
+      memo: c.memo,
+      tags: c.tags || [],
+      isFavorite: Boolean((c as any).isFavorite),
+      lastContactDate: c.lastContactDate || null,
+      nextContactDate: c.nextContactDate || null,
+      createdAt: c.createdAt,
+      updatedAt: c.updatedAt,
+    }));
+
+    const res = await apiService.bulkImportCompanies(payload);
+    if (!res.success) {
+      throw new Error(res.message || "벌크 임포트 실패");
+    }
+
+    console.log("이관 완료:", res.data);
+    return res.data;
   } catch (error) {
-    console.error("임포트 중 오류 발생:", error);
+    console.error("이관 중 오류:", error);
     throw error;
   }
 }
 
-// Execute immediately
-executeCompanyImport()
-  .then((result) => {
-    console.log("✅ 거래처 데이터 임포트가 완료되었습니다!");
-  })
-  .catch((error) => {
-    console.error("❌ 임포트 실패:", error);
-  });
+// 실행 예시
+pushLocalCompaniesToBackend()
+  .then(() => console.log("✅ 로컬 거래처 이관 완료"))
+  .catch((e) => console.error("❌ 이관 실패:", e));

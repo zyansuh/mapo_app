@@ -1,6 +1,7 @@
 // 네비게이션 관련 타입 정의
 
 export type RootStackParamList = {
+  Login: undefined;
   Main: undefined;
   CompanyDetail: { companyId: string };
   CompanyEdit: { companyId?: string };
